@@ -1,5 +1,11 @@
 # Bifrost
 
+<p align="center">
+  <img src=".github/assets/bifrost-logo.png" alt="Bifrost - the link between worlds" width="512">
+</p>
+
+Bifrost is an unofficial community addon and is not affiliated with or endorsed by Bohemia Interactive.
+
 Bifrost is an Arma Reforger Game Master addon focused on a compact operational interface, faster scenario editing, and additional AI and effects controls.
 
 ## Current scope
