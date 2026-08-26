@@ -2,14 +2,18 @@
 class DCO_GMRenderManager
 {
 	static const int MAX_COMMANDS = 4096;
+	static const int UPDATE_MS = 33;
+	static const int SELECTION_REFRESH_MS = 100;
 
 	protected CanvasWidget m_wCanvas;
 	protected ref array<ref CanvasWidgetCommand> m_DrawCommands = {};
 	protected ref ScriptInvoker m_OnRender = new ScriptInvoker();
+	protected ref array<SCR_EditableEntityComponent> m_SelectedUnits = {};
 	protected bool m_bActive;
 	protected bool m_bCommandCapLogged;
 	protected int m_iLastDiagAt;
 	protected int m_iLastDiagCount = -1;
+	protected int m_iLastSelectionRefreshAt;
 
 	ScriptInvoker GetOnRender()
 	{
@@ -31,9 +35,9 @@ class DCO_GMRenderManager
 		}
 
 		m_bActive = true;
-		GetGame().GetCallqueue().CallLater(Update, 100, true);
+		GetGame().GetCallqueue().CallLater(Update, UPDATE_MS, true);
 		if (m_wCanvas)
-			Print(string.Format("[DCO-GM] GM-client canvas renderer STARTED (client=%1x%2)", workspace.GetWidth(), workspace.GetHeight()), LogLevel.NORMAL);
+			Print(string.Format("[DCO-GM] GM-client canvas renderer STARTED (client=%1x%2 interval=%3ms)", workspace.GetWidth(), workspace.GetHeight(), UPDATE_MS), LogLevel.NORMAL);
 		else
 			Print("[DCO-GM] GM-client canvas renderer FAILED: canvas unavailable", LogLevel.ERROR);
 	}
@@ -43,6 +47,7 @@ class DCO_GMRenderManager
 		m_bActive = false;
 		GetGame().GetCallqueue().Remove(Update);
 		m_DrawCommands.Clear();
+		m_SelectedUnits.Clear();
 		if (m_wCanvas)
 		{
 			m_wCanvas.SetDrawCommands(m_DrawCommands);
@@ -63,6 +68,7 @@ class DCO_GMRenderManager
 		}
 
 		m_OnRender.Invoke(this);
+		RefreshSelectionIfNeeded();
 		DrawSelectionBoxes();
 		m_wCanvas.SetDrawCommands(m_DrawCommands);
 		LogRendererHealth();
@@ -89,6 +95,37 @@ class DCO_GMRenderManager
 			return false;
 		screenPosition = workspace.ProjWorldToScreenNative(worldPosition, world);
 		return screenPosition[2] >= 0;
+	}
+
+	protected bool ProjectLine(vector from, vector to, out vector screenFrom, out vector screenTo)
+	{
+		bool fromVisible = Project(from, screenFrom);
+		bool toVisible = Project(to, screenTo);
+		if (!fromVisible && !toVisible)
+			return false;
+		if (!fromVisible)
+			ClipEndpoint(from, to, screenFrom);
+		if (!toVisible)
+			ClipEndpoint(to, from, screenTo);
+		return true;
+	}
+
+	// Keeps segments visible while one endpoint crosses the camera plane.
+	protected void ClipEndpoint(vector hidden, vector visible, out vector screenPosition)
+	{
+		Project(visible, screenPosition);
+		for (int i = 0; i < 8; i++)
+		{
+			vector midpoint = (hidden + visible) * 0.5;
+			vector midpointScreen;
+			if (Project(midpoint, midpointScreen))
+			{
+				visible = midpoint;
+				screenPosition = midpointScreen;
+			}
+			else
+				hidden = midpoint;
+		}
 	}
 
 	protected void AddScreenLine(vector from, vector to, int colorARGB, float width = 2.0)
@@ -141,7 +178,7 @@ class DCO_GMRenderManager
 	{
 		vector a;
 		vector b;
-		if (!Project(from, a) || !Project(to, b))
+		if (!ProjectLine(from, to, a, b))
 			return;
 		AddScreenLine(a, b, colorARGB);
 		vector delta = Vector(b[0] - a[0], b[1] - a[1], 0);
@@ -157,12 +194,12 @@ class DCO_GMRenderManager
 		AddScreenPolyline(arrowHead, colorARGB);
 	}
 
-	void DrawLine(vector from, vector to, int colorARGB)
+	void DrawLine(vector from, vector to, int colorARGB, float width = 2.0)
 	{
 		vector a;
 		vector b;
-		if (Project(from, a) && Project(to, b))
-			AddScreenLine(a, b, colorARGB);
+		if (ProjectLine(from, to, a, b))
+			AddScreenLine(a, b, colorARGB, width);
 	}
 
 	void DrawStick(vector groundPos, float height, int colorARGB)
@@ -221,14 +258,9 @@ class DCO_GMRenderManager
 	protected void DrawSelectionBoxes()
 	{
 		int boxColor = AccentARGB(255);
-		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
-		SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
-		foreach (SCR_EditableEntityComponent editable : selected)
+		foreach (SCR_EditableEntityComponent editable : m_SelectedUnits)
 		{
 			if (!editable)
-				continue;
-			bool isUnit = SCR_EditableCharacterComponent.Cast(editable) != null || SCR_EditableVehicleComponent.Cast(editable) != null;
-			if (!isUnit)
 				continue;
 			IEntity owner = editable.GetOwner();
 			if (!owner)
@@ -249,6 +281,25 @@ class DCO_GMRenderManager
 			float halfW = Math.Max(1.0, (maximum[0] - minimum[0]) * 0.5 + 0.2);
 			float halfD = Math.Max(1.0, (maximum[2] - minimum[2]) * 0.5 + 0.2);
 			DrawBox(Vector(cx - halfW, minimum[1], cz - halfD), Vector(cx + halfW, Math.Max(minimum[1] + 2.2, maximum[1] + 0.25), cz + halfD), boxColor);
+		}
+	}
+
+	protected void RefreshSelectionIfNeeded()
+	{
+		int now = System.GetTickCount();
+		if (now - m_iLastSelectionRefreshAt < SELECTION_REFRESH_MS)
+			return;
+		m_iLastSelectionRefreshAt = now;
+		m_SelectedUnits.Clear();
+		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
+		SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
+		foreach (SCR_EditableEntityComponent editable : selected)
+		{
+			if (!editable)
+				continue;
+			bool isUnit = SCR_EditableCharacterComponent.Cast(editable) != null || SCR_EditableVehicleComponent.Cast(editable) != null;
+			if (isUnit)
+				m_SelectedUnits.Insert(editable);
 		}
 	}
 }

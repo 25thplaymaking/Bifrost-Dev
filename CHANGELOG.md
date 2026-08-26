@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Increased tactical overlays and role markers to a 30 Hz client update while caching expensive discovery and trace work.
+- Increased dedicated-server AI overlay snapshots to 4 Hz and kept visible targets attached to their local replicated entities.
+- Grounded movement routes into an overhead GPS-style path and clipped lines cleanly across the camera plane.
+
 ## 1.0.1 - 2026-08-26
 
 - Fixed dedicated-server simulation pause authority, replication, reconnect, and join-in-progress state.

@@ -7,6 +7,7 @@ class DCO_GMAIOverlaySample
 	float m_fExposure;
 	float m_fTraceFraction;
 	vector m_vTargetPosition;
+	string m_sTargetEntityId;
 	ref array<vector> m_aPath = {};
 }
 
@@ -26,13 +27,16 @@ class DCO_GMAIOverlaySnapshot
 	static const int CHUNK_SAMPLES = 16;
 	static const int MAX_PATH_POINTS = 10;
 	static const float RANGE = 450.0;
-	static const int STALE_MS = 2500;
+	static const int STALE_MS = 1500;
+	static const int SERVER_LIST_REFRESH_MS = 1000;
 
 	protected static ref map<string, ref DCO_GMAIOverlaySample> s_Samples = new map<string, ref DCO_GMAIOverlaySample>();
+	protected static ref array<SCR_EditableEntityComponent> s_ServerCharacters = {};
 	protected static int s_iSerial = -1;
 	protected static int s_iLastReceiveAt;
 	protected static int s_iLastServerDiagAt;
 	protected static int s_iLastClientDiagAt;
+	protected static int s_iLastServerListRefreshAt;
 
 	static void BuildChunks(vector cameraPosition, int requestMask, string selectedIds, int serial, notnull array<string> chunks)
 	{
@@ -45,12 +49,11 @@ class DCO_GMAIOverlaySnapshot
 			return;
 		}
 
-		set<SCR_EditableEntityComponent> all = new set<SCR_EditableEntityComponent>();
-		core.GetAllEntities(all);
+		RefreshServerCharacters(core);
 		int accepted;
 		for (int pass = 0; pass < 2 && accepted < MAX_SAMPLES; pass++)
 		{
-			foreach (SCR_EditableEntityComponent editable : all)
+			foreach (SCR_EditableEntityComponent editable : s_ServerCharacters)
 			{
 				if (!editable || editable.GetEntityType() != EEditableEntityType.CHARACTER)
 					continue;
@@ -100,6 +103,22 @@ class DCO_GMAIOverlaySnapshot
 		}
 	}
 
+	protected static void RefreshServerCharacters(SCR_EditableEntityCore core)
+	{
+		int now = System.GetTickCount();
+		if (s_iLastServerListRefreshAt > 0 && now - s_iLastServerListRefreshAt < SERVER_LIST_REFRESH_MS)
+			return;
+		s_iLastServerListRefreshAt = now;
+		s_ServerCharacters.Clear();
+		set<SCR_EditableEntityComponent> all = new set<SCR_EditableEntityComponent>();
+		core.GetAllEntities(all);
+		foreach (SCR_EditableEntityComponent editable : all)
+		{
+			if (editable && editable.GetEntityType() == EEditableEntityType.CHARACTER)
+				s_ServerCharacters.Insert(editable);
+		}
+	}
+
 	protected static void ReadPath(IEntity owner, notnull array<vector> output)
 	{
 		AIBaseMovementComponent movement = DCO_GMAwarenessCue.GetMovement(owner);
@@ -134,7 +153,12 @@ class DCO_GMAIOverlaySnapshot
 		sample.m_vTargetPosition = target.GetLastSeenPosition();
 		IEntity targetEntity = target.GetTargetEntity();
 		if (sample.m_bTargetVisible && targetEntity)
+		{
 			sample.m_vTargetPosition = targetEntity.GetOrigin();
+			RplComponent targetRpl = RplComponent.Cast(targetEntity.FindComponent(RplComponent));
+			if (targetRpl && targetRpl.Id().IsValid())
+				sample.m_sTargetEntityId = targetRpl.Id().AsString();
+		}
 	}
 
 	protected static void WriteChunk(int serial, notnull array<ref DCO_GMAIOverlaySample> samples, notnull array<string> chunks)
@@ -195,7 +219,15 @@ class DCO_GMAIOverlaySnapshot
 		s_iSerial = -1;
 		s_iLastReceiveAt = 0;
 		s_iLastClientDiagAt = 0;
+		s_ServerCharacters.Clear();
+		s_iLastServerListRefreshAt = 0;
 	}
+}
+
+class DCO_GMConeTraceCache
+{
+	ref array<float> m_Fractions = {1.0, 1.0, 1.0};
+	int m_iLastTraceAt;
 }
 
 class DCO_GMAwarenessCue
@@ -213,6 +245,12 @@ class DCO_GMAwarenessCue
 	static const float MARKER_HEAD_H = 2.15;
 	static const float MARKER_SIZE = 32.0;
 	static const float MARKER_GAP = 30.0;
+	static const int SNAPSHOT_REQUEST_MS = 250;
+	static const int SELECTION_REFRESH_MS = 100;
+	static const int LIST_REFRESH_MS = 1000;
+	static const int CONE_TRACE_MS = 150;
+	static const int MARKER_CELL_STRIDE = 8192;
+	static const float ROUTE_LIFT = 0.12;
 
 	static const int CONE_PLAYER = 0xCC33CCFF;
 	static const int CONE_AI = 0x99FFD15A;
@@ -231,14 +269,18 @@ class DCO_GMAwarenessCue
 	protected ref array<SCR_EditableEntityComponent> m_Chars = {};
 	protected ref array<vector> m_PrevPos = {};
 	protected ref array<ResourceName> m_CharIcons = {};
+	protected ref array<ref DCO_GMConeTraceCache> m_ConeTraces = {};
+	protected ref map<string, IEntity> m_EntityByRplId = new map<string, IEntity>();
 	protected ref array<ImageWidget> m_MarkerWidgets = {};
 	protected ref array<ResourceName> m_MarkerTextures = {};
-	protected ref array<vector> m_UsedMarkerPos = {};
+	protected ref set<int> m_UsedMarkerCells = new set<int>();
 	protected ref set<SCR_EditableEntityComponent> m_SelectedUnits = new set<SCR_EditableEntityComponent>();
 	protected int m_iLastRefreshAt;
+	protected int m_iLastSelectionRefreshAt;
 	protected int m_iLastSnapshotRequestAt;
 	protected int m_iLastVisibleMarkers = -1;
 	protected int m_iLastOverlayDiagAt;
+	protected int m_iLastRenderAt;
 
 	void Start(DCO_GMRenderManager render, Widget shellRoot)
 	{
@@ -249,7 +291,6 @@ class DCO_GMAwarenessCue
 		BuildMarkerPool();
 		if (m_Render)
 			m_Render.GetOnRender().Insert(OnRender);
-		GetGame().GetCallqueue().CallLater(UpdateMarkers, 250, true);
 		m_bActive = true;
 		Print("[DCO-GM] tactical overlays STARTED (perception + nav paths + role markers)", LogLevel.NORMAL);
 	}
@@ -258,7 +299,6 @@ class DCO_GMAwarenessCue
 	{
 		if (m_Render)
 			m_Render.GetOnRender().Remove(OnRender);
-		GetGame().GetCallqueue().Remove(UpdateMarkers);
 		HideMarkerPool();
 		foreach (ImageWidget marker : m_MarkerWidgets)
 		{
@@ -267,11 +307,13 @@ class DCO_GMAwarenessCue
 		}
 		m_MarkerWidgets.Clear();
 		m_MarkerTextures.Clear();
-		m_UsedMarkerPos.Clear();
+		m_UsedMarkerCells.Clear();
 		m_SelectedUnits.Clear();
 		m_Chars.Clear();
 		m_PrevPos.Clear();
 		m_CharIcons.Clear();
+		m_ConeTraces.Clear();
+		m_EntityByRplId.Clear();
 		DCO_GMAIOverlaySnapshot.Clear();
 		m_wMarkerLayer = null;
 		m_Render = null;
@@ -306,17 +348,20 @@ class DCO_GMAwarenessCue
 	{
 		if (!m_bActive || !render)
 			return;
+		RefreshIfNeeded();
+		RefreshSelectedUnitsIfNeeded();
+		UpdateMarkers();
+		int now = System.GetTickCount();
+		float frameSeconds = Math.Clamp((now - m_iLastRenderAt) * 0.001, 0.01, 0.2);
+		m_iLastRenderAt = now;
 		DCO_GMOverlayState state = DCO_GMOverlayState.Get();
 		if (!state.m_bViewCones && !state.m_bMovement)
 			return;
 
-		RefreshIfNeeded();
-		RefreshSelectedUnits();
 		BaseWorld world = GetGame().GetWorld();
 		vector cameraPos;
 		bool haveCamera = GetCameraPos(cameraPos);
 		RequestAuthoritySnapshot(state, cameraPos, haveCamera);
-		int now = System.GetTickCount();
 		if (now - m_iLastOverlayDiagAt >= 5000)
 		{
 			Print(string.Format("[DCO-GM] tactical overlay health: cones=%1 movement=%2 cachedUnits=%3 selected=%4 clientCamera=%5", state.m_bViewCones, state.m_bMovement, m_Chars.Count(), m_SelectedUnits.Count(), haveCamera), LogLevel.NORMAL);
@@ -338,13 +383,16 @@ class DCO_GMAwarenessCue
 				continue;
 
 			if (state.m_bMovement && IsInScope(editable, state.GetScope(DCO_GMOverlayState.OV_MOVEMENT)))
-				DrawMovement(render, owner, position, m_PrevPos[i]);
+				DrawMovement(render, world, owner, position, m_PrevPos[i], frameSeconds);
 			m_PrevPos[i] = position;
 
 			if (state.m_bViewCones && IsInScope(editable, state.GetScope(DCO_GMOverlayState.OV_CONES)))
 			{
 				vector eye = position + Vector(0, EYE_H, 0);
-				DrawViewCone(render, world, owner, eye, matrix[2], editable.GetPlayerID() > 0);
+				DCO_GMConeTraceCache coneTrace;
+				if (i < m_ConeTraces.Count())
+					coneTrace = m_ConeTraces[i];
+				DrawViewCone(render, world, owner, eye, matrix[2], editable.GetPlayerID() > 0, coneTrace, now);
 				DrawPerceivedTarget(render, owner, eye);
 			}
 		}
@@ -355,7 +403,7 @@ class DCO_GMAwarenessCue
 		if (!haveCamera || Replication.IsServer())
 			return;
 		int now = System.GetTickCount();
-		if (now - m_iLastSnapshotRequestAt < 1000)
+		if (now - m_iLastSnapshotRequestAt < SNAPSHOT_REQUEST_MS)
 			return;
 		int requestMask;
 		if (state.m_bMovement)
@@ -393,8 +441,12 @@ class DCO_GMAwarenessCue
 	}
 
 	// Expands selected groups to their member characters.
-	protected void RefreshSelectedUnits()
+	protected void RefreshSelectedUnitsIfNeeded()
 	{
+		int now = System.GetTickCount();
+		if (now - m_iLastSelectionRefreshAt < SELECTION_REFRESH_MS)
+			return;
+		m_iLastSelectionRefreshAt = now;
 		m_SelectedUnits.Clear();
 		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
 		SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
@@ -429,7 +481,7 @@ class DCO_GMAwarenessCue
 	protected void RefreshIfNeeded()
 	{
 		int now = System.GetTickCount();
-		if (now - m_iLastRefreshAt < 1000)
+		if (now - m_iLastRefreshAt < LIST_REFRESH_MS)
 			return;
 		RefreshList();
 		m_iLastRefreshAt = now;
@@ -449,6 +501,8 @@ class DCO_GMAwarenessCue
 		m_Chars.Clear();
 		m_PrevPos.Clear();
 		m_CharIcons.Clear();
+		m_ConeTraces.Clear();
+		m_EntityByRplId.Clear();
 		if (!m_Core)
 			m_Core = SCR_EditableEntityCore.Cast(SCR_EditableEntityCore.GetInstance(SCR_EditableEntityCore));
 		if (!m_Core)
@@ -460,7 +514,11 @@ class DCO_GMAwarenessCue
 		m_Core.GetAllEntities(all);
 		foreach (SCR_EditableEntityComponent editable : all)
 		{
-			if (!editable || editable.GetEntityType() != EEditableEntityType.CHARACTER)
+			if (!editable)
+				continue;
+			bool isCharacter = editable.GetEntityType() == EEditableEntityType.CHARACTER;
+			bool isVehicle = SCR_EditableVehicleComponent.Cast(editable) != null;
+			if (!isCharacter && !isVehicle)
 				continue;
 			IEntity owner = editable.GetOwner();
 			if (!owner)
@@ -468,9 +526,17 @@ class DCO_GMAwarenessCue
 			vector position = owner.GetOrigin();
 			if (haveCamera && vector.DistanceSq(position, cameraPos) > CULL_MARKERS * CULL_MARKERS)
 				continue;
+			RplComponent rpl = RplComponent.Cast(owner.FindComponent(RplComponent));
+			if (rpl && rpl.Id().IsValid())
+				m_EntityByRplId.Set(rpl.Id().AsString(), owner);
+			if (!isCharacter)
+				continue;
 			m_Chars.Insert(editable);
 			m_PrevPos.Insert(position);
 			m_CharIcons.Insert(DCO_App6Icons.ForEntity(editable));
+			DCO_GMConeTraceCache coneTrace = new DCO_GMConeTraceCache();
+			coneTrace.m_iLastTraceAt = System.GetTickCount() - CONE_TRACE_MS + (m_Chars.Count() % 5) * 30;
+			m_ConeTraces.Insert(coneTrace);
 			if (m_Chars.Count() >= CAP)
 				break;
 		}
@@ -507,7 +573,7 @@ class DCO_GMAwarenessCue
 		return SCR_AICombatComponent.Cast(agent.FindComponent(SCR_AICombatComponent));
 	}
 
-	protected void DrawMovement(DCO_GMRenderManager render, IEntity owner, vector current, vector previous)
+	protected void DrawMovement(DCO_GMRenderManager render, BaseWorld world, IEntity owner, vector current, vector previous, float frameSeconds)
 	{
 		AIBaseMovementComponent movement = GetMovement(owner);
 		array<vector> path = {};
@@ -523,12 +589,17 @@ class DCO_GMAwarenessCue
 		if (path.Count() >= 2)
 		{
 			int last = Math.Min(path.Count() - 1, PATH_LEG_CAP);
-			for (int i = 0; i < last; i++)
-				render.DrawLine(path[i] + Vector(0, 0.12, 0), path[i + 1] + Vector(0, 0.12, 0), MOVE_COLOR);
-			vector destination = path[last] + Vector(0, 0.14, 0);
-			render.DrawArrow(path[last - 1] + Vector(0, 0.12, 0), destination, 0.24, DEST_COLOR);
-			render.DrawRing(destination, Vector(1, 0, 0), Vector(0, 0, 1), 0.7, DEST_COLOR);
-			render.DrawStick(path[last], 0.8, DEST_COLOR);
+			vector from = GroundRoutePoint(world, current);
+			for (int i = 1; i <= last; i++)
+			{
+				vector to = GroundRoutePoint(world, path[i]);
+				if (i == last)
+					render.DrawArrow(from, to, 0.24, DEST_COLOR);
+				else
+					render.DrawLine(from, to, MOVE_COLOR, 3.0);
+				from = to;
+			}
+			DrawRouteDestination(render, from);
 			return;
 		}
 
@@ -538,13 +609,35 @@ class DCO_GMAwarenessCue
 		if (step < MOVE_MIN)
 			return;
 		vector direction = delta / step;
-		float speed = step * 10.0;
+		float speed = step / Math.Max(frameSeconds, 0.01);
 		float length = Math.Clamp(speed * 1.2, 1.5, 8.0);
-		vector chest = current + Vector(0, 1.0, 0);
-		render.DrawArrow(chest, chest + direction * length, 0.25, MOVE_COLOR);
+		vector ground = GroundRoutePoint(world, current);
+		vector projected = GroundRoutePoint(world, current + direction * length);
+		render.DrawArrow(ground, projected, 0.25, MOVE_COLOR);
 	}
 
-	protected void DrawViewCone(DCO_GMRenderManager render, BaseWorld world, IEntity self, vector eye, vector forward, bool isPlayer)
+	protected vector GroundRoutePoint(BaseWorld world, vector position)
+	{
+		if (world)
+			position[1] = world.GetSurfaceY(position[0], position[2]);
+		position[1] = position[1] + ROUTE_LIFT;
+		return position;
+	}
+
+	protected void DrawRouteDestination(DCO_GMRenderManager render, vector center)
+	{
+		float radius = 0.7;
+		vector north = center + Vector(0, 0, radius);
+		vector east = center + Vector(radius, 0, 0);
+		vector south = center + Vector(0, 0, -radius);
+		vector west = center + Vector(-radius, 0, 0);
+		render.DrawLine(north, east, DEST_COLOR, 3.0);
+		render.DrawLine(east, south, DEST_COLOR, 3.0);
+		render.DrawLine(south, west, DEST_COLOR, 3.0);
+		render.DrawLine(west, north, DEST_COLOR, 3.0);
+	}
+
+	protected void DrawViewCone(DCO_GMRenderManager render, BaseWorld world, IEntity self, vector eye, vector forward, bool isPlayer, DCO_GMConeTraceCache traceCache, int now)
 	{
 		forward[1] = 0;
 		if (forward.Length() < 0.001)
@@ -554,6 +647,7 @@ class DCO_GMAwarenessCue
 		int clearColor = CONE_AI;
 		if (isPlayer)
 			clearColor = CONE_PLAYER;
+		bool refreshTrace = traceCache && now - traceCache.m_iLastTraceAt >= CONE_TRACE_MS;
 
 		for (int k = 0; k < CONE_RAYS; k++)
 		{
@@ -561,22 +655,26 @@ class DCO_GMAwarenessCue
 			vector angles = baseAngles;
 			angles[0] = angles[0] + fractionAcross * CONE_HALF_FOV;
 			vector direction = angles.AnglesToVector();
-			vector end = eye + direction * CONE_RANGE;
 			float traceFraction = 1.0;
-			if (world)
+			if (traceCache && k < traceCache.m_Fractions.Count())
+				traceFraction = traceCache.m_Fractions[k];
+			if (world && refreshTrace)
 			{
 				TraceParam trace = new TraceParam();
 				trace.Start = eye;
-				trace.End = end;
+				trace.End = eye + direction * CONE_RANGE;
 				trace.Flags = TraceFlags.WORLD | TraceFlags.ENTS;
 				trace.Exclude = self;
 				traceFraction = world.TraceMove(trace, null);
-				end = eye + direction * (traceFraction * CONE_RANGE);
+				traceCache.m_Fractions[k] = traceFraction;
 			}
+			vector end = eye + direction * (traceFraction * CONE_RANGE);
 			render.DrawLine(eye, end, clearColor);
 			if (traceFraction < 0.995)
 				render.DrawSphere(end, 0.18, CONE_BLOCKED);
 		}
+		if (refreshTrace)
+			traceCache.m_iLastTraceAt = now;
 	}
 
 	protected void DrawPerceivedTarget(DCO_GMRenderManager render, IEntity observer, vector eye)
@@ -639,6 +737,16 @@ class DCO_GMAwarenessCue
 				color = TARGET_PARTIAL;
 		}
 		vector targetPosition = sample.m_vTargetPosition;
+		IEntity targetEntity;
+		if (sample.m_bTargetVisible && !sample.m_sTargetEntityId.IsEmpty())
+			m_EntityByRplId.Find(sample.m_sTargetEntityId, targetEntity);
+		if (targetEntity)
+		{
+			targetPosition = targetEntity.GetOrigin();
+			render.DrawLine(eye, targetPosition + Vector(0, 1.0, 0), color);
+			DrawTargetBox(render, targetEntity, color);
+			return;
+		}
 		render.DrawLine(eye, targetPosition + Vector(0, 0.2, 0), color);
 		render.DrawRing(targetPosition + Vector(0, 0.08, 0), Vector(1, 0, 0), Vector(0, 0, 1), 0.9, color);
 	}
@@ -666,20 +774,26 @@ class DCO_GMAwarenessCue
 		DCO_GMOverlayState state = DCO_GMOverlayState.Get();
 		if (!state.m_bMarkers || DCO_GMTheme.Get().IsMasterHidden())
 		{
-			HideMarkerPool();
+			if (m_iLastVisibleMarkers != 0)
+			{
+				HideMarkerPool();
+				m_iLastVisibleMarkers = 0;
+			}
 			return;
 		}
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
 		BaseWorld world = GetGame().GetWorld();
 		if (!workspace || !world || m_MarkerWidgets.IsEmpty())
 		{
-			HideMarkerPool();
+			if (m_iLastVisibleMarkers != 0)
+			{
+				HideMarkerPool();
+				m_iLastVisibleMarkers = 0;
+			}
 			return;
 		}
 
-		RefreshIfNeeded();
-		RefreshSelectedUnits();
-		m_UsedMarkerPos.Clear();
+		m_UsedMarkerCells.Clear();
 		int usedCount = 0;
 		for (int i = 0; i < m_Chars.Count() && usedCount < m_MarkerWidgets.Count(); i++)
 		{
@@ -713,7 +827,6 @@ class DCO_GMAwarenessCue
 			FrameSlot.SetPos(marker, placed[0], placed[1]);
 			marker.SetOpacity(0.96);
 			marker.SetVisible(true);
-			m_UsedMarkerPos.Insert(placed);
 			usedCount++;
 		}
 		for (int j = usedCount; j < m_MarkerWidgets.Count(); j++)
@@ -740,24 +853,22 @@ class DCO_GMAwarenessCue
 
 		for (int i = 0; i < 9; i++)
 		{
-			bool clear = true;
-			foreach (vector used : m_UsedMarkerPos)
-			{
-				float dx = candidates[i][0] - used[0];
-				float dy = candidates[i][1] - used[1];
-				if (dx * dx + dy * dy < MARKER_GAP * MARKER_GAP)
-				{
-					clear = false;
-					break;
-				}
-			}
-			if (clear)
+			int key = MarkerCellKey(candidates[i]);
+			if (!m_UsedMarkerCells.Contains(key))
 			{
 				placed = candidates[i];
+				m_UsedMarkerCells.Insert(key);
 				return true;
 			}
 		}
 		return false;
+	}
+
+	protected int MarkerCellKey(vector position)
+	{
+		int x = Math.Round(position[0] / MARKER_GAP);
+		int y = Math.Round(position[1] / MARKER_GAP);
+		return x + y * MARKER_CELL_STRIDE;
 	}
 
 	protected void HideMarkerPool()
