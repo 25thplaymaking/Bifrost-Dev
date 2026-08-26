@@ -1,0 +1,108 @@
+// DCO GM placement-CONFIRM bridge.
+class DCO_GMPlacementConfirm
+{
+	protected Widget m_wRoot;
+	protected SCR_PlacingEditorComponent m_Placing;
+	protected bool m_bActive;
+	protected bool m_bConfirmedThisFrame;	// debounce repeated single-shot callbacks within one input frame.
+
+	void Start(Widget shellRoot)
+	{
+		m_wRoot = shellRoot;
+		InputManager im = GetGame().GetInputManager();
+		if (!im)
+			return;
+		im.AddActionListener("EditorPlaceAndCancel", EActionTrigger.DOWN, OnPlaceOnce);
+		m_bActive = true;
+		Print("[DCO-GM] placement-confirm bridge STARTED (single-shot only; repeat placement stays native)", LogLevel.NORMAL);
+	}
+
+	void Stop()
+	{
+		InputManager im = GetGame().GetInputManager();
+		if (im)
+		{
+			im.RemoveActionListener("EditorPlaceAndCancel", EActionTrigger.DOWN, OnPlaceOnce);
+		}
+		GetGame().GetCallqueue().Remove(ClearConfirmGuard);
+		m_bActive = false;
+		m_bConfirmedThisFrame = false;
+		m_Placing = null;
+	}
+
+	protected void OnPlaceOnce(float value, EActionTrigger reason)
+	{
+		TryConfirm(true);
+	}
+
+	protected void TryConfirm(bool placeOne)
+	{
+		if (!m_bActive)
+			return;
+		if (!m_Placing)
+			m_Placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
+		if (!m_Placing)
+			return;
+		if (m_bConfirmedThisFrame)
+			return;	// already confirmed this click.
+		if (m_Placing.GetSelectedPrefab().IsEmpty())
+			return;
+		if (IsCursorOverPanels())
+			return;	// clicking our own UI, not the world.
+
+		ResourceName prefab = m_Placing.GetSelectedPrefab();
+		EnsureAvailableForSpawn(prefab);
+		bool ok = m_Placing.CreateEntity(placeOne, false);
+		m_bConfirmedThisFrame = true;
+		GetGame().GetCallqueue().CallLater(ClearConfirmGuard, 0);	// reset next frame so each click can place again.
+		Print(string.Format("[DCO-GM] placement-confirm: CreateEntity(one=%1) -> %2 (%3)", placeOne, ok, prefab), LogLevel.NORMAL);
+	}
+
+	protected void ClearConfirmGuard()
+	{
+		m_bConfirmedThisFrame = false;
+	}
+
+	protected void EnsureAvailableForSpawn(ResourceName prefab)
+	{
+		IEntity owner = m_Placing.GetOwner();
+		if (!owner)
+			return;
+		SCR_ContentBrowserEditorComponent cb = SCR_ContentBrowserEditorComponent.Cast(owner.FindComponent(SCR_ContentBrowserEditorComponent));
+		if (!cb)
+			return;
+		int pid = -1;
+		SCR_PlacingEditorComponentClass pdata = SCR_PlacingEditorComponentClass.Cast(m_Placing.GetEditorComponentData());
+		if (pdata)
+			pid = pdata.GetPrefabID(prefab);
+		if (pid >= 0 && cb.IsPrefabIDAvailable(pid))
+			return;	// already placeable - leave the browser filter alone.
+		cb.ResetAllLabels(false);
+		cb.SetCurrentSearch("");
+		cb.FilterEntries();
+		Print(string.Format("[DCO-GM] confirm: re-unlocked browser (pid=%1 nowAvail=%2)", pid, cb.IsPrefabIDAvailable(pid)), LogLevel.NORMAL);
+	}
+
+	protected bool IsCursorOverPanels()
+	{
+		if (!m_wRoot)
+			return false;
+		int mx, my;
+		WidgetManager.GetMousePos(mx, my);
+		return CursorIn("DCO_CreateBrowser", mx, my)
+			|| CursorIn("DCO_EditTree", mx, my)
+			|| CursorIn("DCO_TopBar", mx, my)
+			|| CursorIn("DCO_ContextMenu", mx, my);
+	}
+
+	protected bool CursorIn(string widgetName, int mx, int my)
+	{
+		Widget w = m_wRoot.FindAnyWidget(widgetName);
+		if (!w || !w.IsVisible())
+			return false;
+		float x, y, sx, sy;
+		w.GetScreenPos(x, y);
+		w.GetScreenSize(sx, sy);
+		return mx >= x && mx <= x + sx && my >= y && my <= y + sy;
+	}
+}

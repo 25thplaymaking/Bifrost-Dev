@@ -1,0 +1,15 @@
+GenericEntity : "{52BB1377E8B65369}Prefabs/E_DCO_FxExplosion.et" {
+ ID "198103F4EA73F04C"
+ components {
+  DCO_FxExplosionComponent "{3A135A260F23A531}" {
+   m_eFamily AIRSUPPORT
+   m_eDelivery HELICOPTER_FLYBY
+  }
+  SCR_EditableSystemComponent "{DC0F000000000022}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{DC0F000000000023}" {
+    Name "FX: Air Support"
+    Description "Bifrost UH-1H air support: flyby (pass only) or gunrun (pass plus gunfire). ROTATE the emitter to set the aircraft's travel direction. The aircraft spawns crewed with its engine already running; LIVE arms real gunrun rounds, COSMETIC stages the pass and its audio with no projectile. Max four simultaneous passes. Pairable with Trigger Fire FX."
+   }
+  }
+ }
+}

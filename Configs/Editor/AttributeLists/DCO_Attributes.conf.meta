@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{5DC0DC0A77E1B5E0}Configs/Editor/AttributeLists/DCO_Attributes.conf"
+ Configurations {
+  CONFResourceClass PC {
+  }
+  CONFResourceClass XBOX_ONE : PC {
+  }
+  CONFResourceClass XBOX_SERIES : PC {
+  }
+  CONFResourceClass PS4 : PC {
+  }
+  CONFResourceClass PS5 : PC {
+  }
+  CONFResourceClass HEADLESS : PC {
+  }
+ }
+}

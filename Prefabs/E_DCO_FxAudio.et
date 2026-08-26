@@ -1,0 +1,15 @@
+GenericEntity : "{52BB1377E8B65369}Prefabs/E_DCO_FxExplosion.et" {
+ ID "BE6B71907D26DF90"
+ components {
+  DCO_FxExplosionComponent "{3A135A260F23A531}" {
+   m_eFamily AUDIO
+   m_eDelivery SOUND_EMITTER
+  }
+  SCR_EditableSystemComponent "{DC0F000000000022}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{DC0F000000000023}" {
+    Name "FX: Audio"
+    Description "Bifrost positional audio emitter: plays a custom .acp bank event at the emitter or at a tracked player, with the same barrage/spacing/repeat scheduling as the strike emitters. The bank and event name are assigned on the prefab component in Workbench. Never damages anything. Pairable with Trigger Fire FX."
+   }
+  }
+ }
+}

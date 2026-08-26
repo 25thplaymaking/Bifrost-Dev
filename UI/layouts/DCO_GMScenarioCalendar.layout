@@ -1,0 +1,171 @@
+VerticalLayoutWidgetClass "{DCA1000000000001}" {
+ Name "DCO_Calendar"
+ Slot OverlayWidgetSlot "{DCA1000000000002}" {
+  HorizontalAlign 3
+  VerticalAlign 3
+ }
+ {
+  HorizontalLayoutWidgetClass "{DCA1000000000010}" {
+   Name "DCO_CalendarHeader"
+   Slot LayoutSlot "{DCA1000000000011}" {
+    HorizontalAlign 1
+    Padding 0 0 0 6
+   }
+   {
+    SizeLayoutWidgetClass "{DCA1000000000012}" {
+     Slot LayoutSlot "{DCA1000000000013}" { VerticalAlign 1 }
+     AllowWidthOverride 1
+     WidthOverride 56
+     AllowHeightOverride 1
+     HeightOverride 32
+     {
+      ButtonWidgetClass "{DCA1000000000014}" {
+       Name "DCO_CalendarPrevYear"
+       Slot AlignableSlot "{DCA1000000000015}" { HorizontalAlign 3 VerticalAlign 3 }
+       style blank
+       {
+        OverlayWidgetClass "{DCA1000000000016}" {
+         Slot ButtonWidgetSlot "{DCA1000000000017}" { HorizontalAlign 3 VerticalAlign 3 }
+         "Ignore Cursor" 1
+         {
+          ImageWidgetClass "{DCA1000000000018}" { Name "DCO_CalendarPrevYearPlate" Slot OverlayWidgetSlot "{DCA1000000000019}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.105 0.125 0.130 1 Size 0 0 }
+          TextWidgetClass "{DCA100000000001A}" { Name "DCO_CalendarPrevYearLabel" Slot OverlayWidgetSlot "{DCA100000000001B}" { HorizontalAlign 1 VerticalAlign 1 } Text "-Y" Color 0.90 0.93 0.95 1 "Font Size" 13 }
+         }
+        }
+       }
+      }
+     }
+    }
+    SizeLayoutWidgetClass "{DCA1000000000020}" {
+     Slot LayoutSlot "{DCA1000000000021}" { VerticalAlign 1 Padding 4 0 8 0 }
+     AllowWidthOverride 1
+     WidthOverride 48
+     AllowHeightOverride 1
+     HeightOverride 32
+     {
+      ButtonWidgetClass "{DCA1000000000022}" {
+       Name "DCO_CalendarPrevMonth"
+       Slot AlignableSlot "{DCA1000000000023}" { HorizontalAlign 3 VerticalAlign 3 }
+       style blank
+       {
+        OverlayWidgetClass "{DCA1000000000024}" {
+         Slot ButtonWidgetSlot "{DCA1000000000025}" { HorizontalAlign 3 VerticalAlign 3 }
+         "Ignore Cursor" 1
+         {
+          ImageWidgetClass "{DCA1000000000026}" { Name "DCO_CalendarPrevMonthPlate" Slot OverlayWidgetSlot "{DCA1000000000027}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.105 0.125 0.130 1 Size 0 0 }
+          TextWidgetClass "{DCA1000000000028}" { Name "DCO_CalendarPrevMonthLabel" Slot OverlayWidgetSlot "{DCA1000000000029}" { HorizontalAlign 1 VerticalAlign 1 } Text "<" Color 0.90 0.93 0.95 1 "Font Size" 16 }
+         }
+        }
+       }
+      }
+     }
+    }
+    SizeLayoutWidgetClass "{DCA1000000000030}" {
+     Slot LayoutSlot "{DCA1000000000031}" { VerticalAlign 1 }
+     AllowWidthOverride 1
+     WidthOverride 210
+     AllowHeightOverride 1
+     HeightOverride 32
+     {
+      TextWidgetClass "{DCA1000000000032}" {
+       Name "DCO_CalendarMonthLabel"
+       Slot AlignableSlot "{DCA1000000000033}" { HorizontalAlign 1 VerticalAlign 1 Padding 8 0 8 0 }
+       Text "AUGUST"
+       Color 0.90 0.93 0.95 1
+       "Font Size" 15
+      }
+     }
+    }
+    SizeLayoutWidgetClass "{DCA1000000000040}" {
+     Slot LayoutSlot "{DCA1000000000041}" { VerticalAlign 1 Padding 8 0 8 0 }
+     AllowWidthOverride 1
+     WidthOverride 108
+     AllowHeightOverride 1
+     HeightOverride 32
+     {
+      OverlayWidgetClass "{DCA1000000000042}" {
+       Slot AlignableSlot "{DCA1000000000043}" { HorizontalAlign 3 VerticalAlign 3 }
+       {
+        ImageWidgetClass "{DCA1000000000044}" { Name "DCO_CalendarYearPlate" Slot OverlayWidgetSlot "{DCA1000000000045}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.070 0.087 0.091 1 Size 0 0 }
+        ImageWidgetClass "{DCA1000000000046}" { Name "DCO_CalendarYearAccent" Slot OverlayWidgetSlot "{DCA1000000000047}" { HorizontalAlign 3 VerticalAlign 2 } Color 0.851 0.537 0.169 1 Size 0 2 }
+        EditBoxWidgetClass "{DCA1000000000048}" {
+         Name "DCO_CalendarYear"
+         Slot OverlayWidgetSlot "{DCA1000000000049}" { HorizontalAlign 3 VerticalAlign 1 Padding 12 0 12 0 }
+         style blank
+         "Font Size" 14
+         "Use placeholder text" 1
+         "Placeholder text" "YEAR"
+        }
+       }
+      }
+     }
+    }
+    SizeLayoutWidgetClass "{DCA1000000000050}" {
+     Slot LayoutSlot "{DCA1000000000051}" { VerticalAlign 1 Padding 8 0 4 0 }
+     AllowWidthOverride 1
+     WidthOverride 48
+     AllowHeightOverride 1
+     HeightOverride 32
+     {
+      ButtonWidgetClass "{DCA1000000000052}" {
+       Name "DCO_CalendarNextMonth"
+       Slot AlignableSlot "{DCA1000000000053}" { HorizontalAlign 3 VerticalAlign 3 }
+       style blank
+       {
+        OverlayWidgetClass "{DCA1000000000054}" {
+         Slot ButtonWidgetSlot "{DCA1000000000055}" { HorizontalAlign 3 VerticalAlign 3 }
+         "Ignore Cursor" 1
+         {
+          ImageWidgetClass "{DCA1000000000056}" { Name "DCO_CalendarNextMonthPlate" Slot OverlayWidgetSlot "{DCA1000000000057}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.105 0.125 0.130 1 Size 0 0 }
+          TextWidgetClass "{DCA1000000000058}" { Name "DCO_CalendarNextMonthLabel" Slot OverlayWidgetSlot "{DCA1000000000059}" { HorizontalAlign 1 VerticalAlign 1 } Text ">" Color 0.90 0.93 0.95 1 "Font Size" 16 }
+         }
+        }
+       }
+      }
+     }
+    }
+    SizeLayoutWidgetClass "{DCA1000000000060}" {
+     Slot LayoutSlot "{DCA1000000000061}" { VerticalAlign 1 }
+     AllowWidthOverride 1
+     WidthOverride 56
+     AllowHeightOverride 1
+     HeightOverride 32
+     {
+      ButtonWidgetClass "{DCA1000000000062}" {
+       Name "DCO_CalendarNextYear"
+       Slot AlignableSlot "{DCA1000000000063}" { HorizontalAlign 3 VerticalAlign 3 }
+       style blank
+       {
+        OverlayWidgetClass "{DCA1000000000064}" {
+         Slot ButtonWidgetSlot "{DCA1000000000065}" { HorizontalAlign 3 VerticalAlign 3 }
+         "Ignore Cursor" 1
+         {
+          ImageWidgetClass "{DCA1000000000066}" { Name "DCO_CalendarNextYearPlate" Slot OverlayWidgetSlot "{DCA1000000000067}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.105 0.125 0.130 1 Size 0 0 }
+          TextWidgetClass "{DCA1000000000068}" { Name "DCO_CalendarNextYearLabel" Slot OverlayWidgetSlot "{DCA1000000000069}" { HorizontalAlign 1 VerticalAlign 1 } Text "+Y" Color 0.90 0.93 0.95 1 "Font Size" 13 }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+  HorizontalLayoutWidgetClass "{DCA1000000000100}" {
+   Name "DCO_CalendarWeekdays"
+   Slot LayoutSlot "{DCA1000000000101}" { HorizontalAlign 1 Padding 0 0 0 4 }
+   {
+    SizeLayoutWidgetClass "{DCA1000000000102}" { Slot LayoutSlot "{DCA1000000000103}" {} AllowWidthOverride 1 WidthOverride 112 AllowHeightOverride 1 HeightOverride 20 { TextWidgetClass "{DCA1000000000104}" { Slot AlignableSlot "{DCA1000000000105}" { HorizontalAlign 1 VerticalAlign 1 } Text "MON" Color 0.68 0.72 0.75 1 "Font Size" 10 } } }
+    SizeLayoutWidgetClass "{DCA1000000000106}" { Slot LayoutSlot "{DCA1000000000107}" {} AllowWidthOverride 1 WidthOverride 112 AllowHeightOverride 1 HeightOverride 20 { TextWidgetClass "{DCA1000000000108}" { Slot AlignableSlot "{DCA1000000000109}" { HorizontalAlign 1 VerticalAlign 1 } Text "TUE" Color 0.68 0.72 0.75 1 "Font Size" 10 } } }
+    SizeLayoutWidgetClass "{DCA100000000010A}" { Slot LayoutSlot "{DCA100000000010B}" {} AllowWidthOverride 1 WidthOverride 112 AllowHeightOverride 1 HeightOverride 20 { TextWidgetClass "{DCA100000000010C}" { Slot AlignableSlot "{DCA100000000010D}" { HorizontalAlign 1 VerticalAlign 1 } Text "WED" Color 0.68 0.72 0.75 1 "Font Size" 10 } } }
+    SizeLayoutWidgetClass "{DCA100000000010E}" { Slot LayoutSlot "{DCA100000000010F}" {} AllowWidthOverride 1 WidthOverride 112 AllowHeightOverride 1 HeightOverride 20 { TextWidgetClass "{DCA1000000000110}" { Slot AlignableSlot "{DCA1000000000111}" { HorizontalAlign 1 VerticalAlign 1 } Text "THU" Color 0.68 0.72 0.75 1 "Font Size" 10 } } }
+    SizeLayoutWidgetClass "{DCA1000000000112}" { Slot LayoutSlot "{DCA1000000000113}" {} AllowWidthOverride 1 WidthOverride 112 AllowHeightOverride 1 HeightOverride 20 { TextWidgetClass "{DCA1000000000114}" { Slot AlignableSlot "{DCA1000000000115}" { HorizontalAlign 1 VerticalAlign 1 } Text "FRI" Color 0.68 0.72 0.75 1 "Font Size" 10 } } }
+    SizeLayoutWidgetClass "{DCA1000000000116}" { Slot LayoutSlot "{DCA1000000000117}" {} AllowWidthOverride 1 WidthOverride 112 AllowHeightOverride 1 HeightOverride 20 { TextWidgetClass "{DCA1000000000118}" { Slot AlignableSlot "{DCA1000000000119}" { HorizontalAlign 1 VerticalAlign 1 } Text "SAT" Color 0.68 0.72 0.75 1 "Font Size" 10 } } }
+    SizeLayoutWidgetClass "{DCA100000000011A}" { Slot LayoutSlot "{DCA100000000011B}" {} AllowWidthOverride 1 WidthOverride 112 AllowHeightOverride 1 HeightOverride 20 { TextWidgetClass "{DCA100000000011C}" { Slot AlignableSlot "{DCA100000000011D}" { HorizontalAlign 1 VerticalAlign 1 } Text "SUN" Color 0.68 0.72 0.75 1 "Font Size" 10 } } }
+   }
+  }
+  VerticalLayoutWidgetClass "{DCA1000000000200}" {
+   Name "DCO_CalendarWeeks"
+   Slot LayoutSlot "{DCA1000000000201}" { HorizontalAlign 1 }
+  }
+ }
+}

@@ -1,0 +1,8 @@
+DCO_IntentWaypoint : "{FFF9518F73279473}PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_Move.et" {
+ ID "663CBEF736DEBDE0"
+ Type "QRF"
+ Title "Simple QRF Position"
+ CompletionRadius 8
+ Autocomplete 0
+ m_eDCO_IntentType CQB_CLEAR
+}

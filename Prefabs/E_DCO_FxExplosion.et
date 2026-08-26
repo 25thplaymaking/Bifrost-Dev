@@ -1,0 +1,33 @@
+GenericEntity {
+ ID "5A8AA8E26AE0DCA8"
+ components {
+  DCO_FxExplosionComponent "{3A135A260F23A531}" {
+   m_eFamily STRIKE
+  }
+  SCR_EditableEntityVisibilityChildComponent "{DC0F000000000021}" {
+   m_State 96
+  }
+  SCR_EditableSystemComponent "{DC0F000000000022}" {
+   m_EntityType GENERIC
+   m_UIInfo SCR_EditableEntityUIInfo "{DC0F000000000023}" {
+    Name "FX: Explosion / Strike"
+    Description "Bifrost ground-strike emitter: ground-warhead barrages, Hydra 70 M229 and S-5KO rockets; optional player-area tracking; LIVE damage or guaranteed no-damage COSMETIC effects. Aircraft passes live on FX: Air Support, custom bank audio on FX: Audio. Pairable with Trigger Fire FX."
+    Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
+    m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
+    m_EntityBudgetCost {
+     SCR_EntityBudgetValue "{DC0F000000000024}" {
+      m_BudgetType SYSTEMS
+     }
+    }
+   }
+   m_bAutoRegister ALWAYS
+   m_bStatic 1
+   m_Flags 67
+  }
+  RplComponent "{D74CA1B30C5FA1D1}" {
+   Streamable Disabled
+  }
+  Hierarchy "{DC0F000000000025}" {
+  }
+ }
+}

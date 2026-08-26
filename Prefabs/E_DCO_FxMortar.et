@@ -1,0 +1,32 @@
+GenericEntity {
+ ID "A74430B29E7CD74C"
+ components {
+  DCO_FxMortarComponent "{EC8E5C82E292C9C1}" {
+  }
+  SCR_EditableEntityVisibilityChildComponent "{DC0F000000000031}" {
+   m_State 96
+  }
+  SCR_EditableSystemComponent "{DC0F000000000032}" {
+   m_EntityType GENERIC
+   m_UIInfo SCR_EditableEntityUIInfo "{DC0F000000000033}" {
+    Name "FX: Mortar Strike"
+    Description "Bifrost effect: incoming 81mm mortar fire scattered inside the ring - real falling shells with the real incoming whistle. LIVE = real HE impacts; cosmetic = harmless impacts. Size the spread, set impacts per salvo and spacing, then FIRE (or pair with a GM Trigger). Amber ring = cosmetic, red = LIVE."
+    Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
+    m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
+    m_EntityBudgetCost {
+     SCR_EntityBudgetValue "{DC0F000000000034}" {
+      m_BudgetType SYSTEMS
+     }
+    }
+   }
+   m_bAutoRegister ALWAYS
+   m_bStatic 1
+   m_Flags 67
+  }
+  RplComponent "{03042CDCFC98BB7F}" {
+   Streamable Disabled
+  }
+  Hierarchy "{DC0F000000000035}" {
+  }
+ }
+}

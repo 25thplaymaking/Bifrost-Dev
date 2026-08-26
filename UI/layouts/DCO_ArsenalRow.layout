@@ -1,0 +1,79 @@
+HorizontalLayoutWidgetClass "{0DC00000000A7A00}" {
+ Name "DCO_ArsDynRow"
+ Slot LayoutSlot "{0DC00000000A7A01}" {
+  Padding 6 0 6 0
+ }
+ {
+  ButtonWidgetClass "{0DC00000000A7A02}" {
+   Name "DCO_ArsDynBtn"
+   Slot LayoutSlot "{0DC00000000A7A03}" {
+    FillWeight 1
+   }
+   style blank
+   {
+    HorizontalLayoutWidgetClass "{0DC00000000A7A04}" {
+     Slot ButtonWidgetSlot "{0DC00000000A7A05}" {
+      HorizontalAlign 0
+      VerticalAlign 1
+      Padding 2 1 2 1
+     }
+     {
+      SizeLayoutWidgetClass "{0DC00000000A7A06}" {
+       Slot LayoutSlot "{0DC00000000A7A07}" {
+        Padding 0 1 6 1
+       }
+       AllowWidthOverride 1
+       WidthOverride 56
+       AllowHeightOverride 1
+       HeightOverride 40
+       {
+        ItemPreviewWidgetClass "{0DC00000000A7A08}" {
+         Name "DCO_ArsDynImg"
+         Slot AlignableSlot "{0DC00000000A7A09}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Filter Bilinear
+         Format LDR
+         "Use clear color" 1
+         "Clear Color" 0 0 0 0
+        }
+       }
+      }
+      TextWidgetClass "{0DC00000000A7A0A}" {
+       Name "DCO_ArsDynTxt"
+       Slot LayoutSlot "{0DC00000000A7A0B}" {
+        FillWeight 1
+        Padding 2 0 2 0
+        VerticalAlign 1
+       }
+       Text " "
+       Color 0.80 0.84 0.88 1
+       "Font Size" 12
+      }
+     }
+    }
+   }
+  }
+  ButtonWidgetClass "{0DC00000000A7A0C}" {
+   Name "DCO_ArsDynBag"
+   Slot LayoutSlot "{0DC00000000A7A0D}" {
+    Padding 2 0 4 0
+    VerticalAlign 1
+   }
+   style blank
+   {
+    ImageWidgetClass "{0DC00000000A7A0E}" {
+     Name "DCO_ArsDynBagIco"
+     Slot ButtonWidgetSlot "{0DC00000000A7A0F}" {
+      HorizontalAlign 1
+      VerticalAlign 1
+      Padding 4 2 4 2
+     }
+     Color 0.851 0.537 0.169 1
+     Size 20 20
+    }
+   }
+  }
+ }
+}

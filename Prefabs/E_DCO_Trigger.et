@@ -1,0 +1,32 @@
+GenericEntity {
+ ID "6A066240BED3059E"
+ components {
+  DCO_TriggerComponent "{FF8077DCA593F714}" {
+  }
+  SCR_EditableEntityVisibilityChildComponent "{DC0F000000000011}" {
+   m_State 96
+  }
+  SCR_EditableSystemComponent "{DC0F000000000012}" {
+   m_EntityType GENERIC
+   m_UIInfo SCR_EditableEntityUIInfo "{DC0F000000000013}" {
+    Name "GM Trigger"
+    Description "Configurable trigger: set the radius, activation filter and response. Cyan = armed, grey = off, dark = spent Once trigger."
+    Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
+    m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
+    m_EntityBudgetCost {
+     SCR_EntityBudgetValue "{DC0F000000000014}" {
+      m_BudgetType SYSTEMS
+     }
+    }
+   }
+   m_bAutoRegister ALWAYS
+   m_bStatic 1
+   m_Flags 67
+  }
+  RplComponent "{A1F7854C5A1AC789}" {
+   Streamable Disabled
+  }
+  Hierarchy "{DC0F000000000015}" {
+  }
+ }
+}

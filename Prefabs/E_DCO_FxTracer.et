@@ -1,0 +1,32 @@
+GenericEntity {
+ ID "9AD34BE3E93CE7CD"
+ components {
+  DCO_TracerEmitterComponent "{4ABFCD169B6E399E}" {
+  }
+  SCR_EditableEntityVisibilityChildComponent "{DC0F000000000001}" {
+   m_State 96
+  }
+  SCR_EditableSystemComponent "{DC0F000000000002}" {
+   m_EntityType GENERIC
+   m_UIInfo SCR_EditableEntityUIInfo "{DC0F000000000003}" {
+    Name "FX: Tracer Emitter"
+    Description "Bifrost effect: a placeable gunfire stream firing real tracer rounds. Aim it with the ROTATE gizmo (fires along its forward arrow - amber when cosmetic, red when LIVE), configure round type / rate / burst / live-vs-cosmetic in its attributes, and toggle FIRE from the SIM OPTIONS panel."
+    Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
+    m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
+    m_EntityBudgetCost {
+     SCR_EntityBudgetValue "{DC0F000000000004}" {
+      m_BudgetType SYSTEMS
+     }
+    }
+   }
+   m_bAutoRegister ALWAYS
+   m_bStatic 1
+   m_Flags 67
+  }
+  RplComponent "{771C465D60E2B4EB}" {
+   Streamable Disabled
+  }
+  Hierarchy "{DC0F000000000005}" {
+  }
+ }
+}
