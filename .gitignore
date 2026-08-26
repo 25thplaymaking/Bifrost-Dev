@@ -2,5 +2,6 @@
 /tools/
 /Scripts/WorkbenchGame/
 /resourceDatabase.rdb
+/addon.gproj
 /wiki-test*.json
 *.log
