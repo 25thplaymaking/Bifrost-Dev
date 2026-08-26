@@ -1,4 +1,4 @@
-// DCO GM entity-tool relay — dedi-safety for the 3 server-authoritative sandbox tools.
+// Routes GM entity tools through server authority.
 class DCO_GMToolsServer
 {
 	static const int TOOL_INVULN   = 1;
@@ -50,18 +50,37 @@ class DCO_GMToolsServer
 	}
 
 	// Server side: resolve the wire id back to the entity and apply.
-	static void Apply(int toolId, RplId targetId, vector pos)
+	static bool Apply(int toolId, RplId targetId, vector pos, out bool confirmedState)
 	{
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
 		if (!rpl)
 		{
 			Print("[DCO-GM] tool relay: RplId did not resolve on the server - tool dropped", LogLevel.WARNING);
-			return;
+			return false;
 		}
-		ApplyOn(rpl.GetEntity(), toolId, pos);
+		IEntity target = rpl.GetEntity();
+		ApplyOn(target, toolId, pos);
+		return ReadState(target, toolId, confirmedState);
 	}
 
-	// The actual tool switch, running on the authority.
+	static bool ReadState(IEntity target, int toolId, out bool state)
+	{
+		if (!target)
+			return false;
+		DCO_GMTools tools = DCO_GMTools.Get();
+		switch (toolId)
+		{
+			case TOOL_SIM:       { state = tools.IsSimOn(target); return true; }
+			case TOOL_AI:        { state = tools.IsAIOn(target); return true; }
+			case TOOL_COLLISION: { state = tools.IsCollisionOn(target); return true; }
+			case TOOL_INVULN:    { state = tools.IsDamageOn(target); return true; }
+			case TOOL_WEAPONRAISED: { state = tools.IsWeaponRaisedOn(target); return true; }
+			case TOOL_TRACER_FIRE:  { state = tools.IsTracerFiring(target); return true; }
+		}
+		return false;
+	}
+
+	// Applies the requested tool on authority.
 	static void ApplyOn(IEntity target, int toolId, vector pos)
 	{
 		if (!target)
@@ -150,6 +169,7 @@ modded class SCR_PlayerController
 {
 	[RplProp(onRplName: "DCO_OnPauseStateChanged")]
 	protected bool m_bDCO_PauseState;
+	protected int m_iDCO_AIOverlaySerial;
 
 	override protected void OnInit(IEntity owner)
 	{
@@ -173,7 +193,7 @@ modded class SCR_PlayerController
 		DCO_GMPausePresentationState.SetPaused(m_bDCO_PauseState);
 	}
 
-	// Fire the GM tool request at the server.
+	// Sends the GM tool request to authority.
 	void DCO_SendGMTool(int toolId, RplId targetId, vector pos)
 	{
 		Rpc(DCO_RpcGMTool, toolId, targetId, pos);
@@ -184,10 +204,21 @@ modded class SCR_PlayerController
 	{
 		if (!DCO_GMRights.Allow(GetPlayerId(), "GM tool"))
 			return;
-		DCO_GMToolsServer.Apply(toolId, targetId, pos);
+		bool confirmedState;
+		if (DCO_GMToolsServer.Apply(toolId, targetId, pos, confirmedState))
+			Rpc(DCO_RpcGMToolConfirmed, toolId, targetId, confirmedState);
 	}
 
-	// GM GAMEPLAY-PANEL legs: pause sweep + clock.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMToolConfirmed(int toolId, RplId targetId, bool confirmedState)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
+		if (rpl)
+			DCO_GMTools.Get().MirrorAuthorityState(rpl.GetEntity(), toolId, confirmedState);
+		Print(string.Format("[DCO-GM] tool authority ACK: tool=%1 target=%2 state=%3", toolId, targetId, confirmedState), LogLevel.NORMAL);
+	}
+
+	// Relays gameplay pause and clock controls.
 	void DCO_SendGMPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
 	{
 		Rpc(DCO_RpcGMPause, scope, aspectMask, on, selectedTargetId);
@@ -196,9 +227,17 @@ modded class SCR_PlayerController
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
 	{
-		if (!DCO_GMRights.Allow(GetPlayerId(), "GM pause"))
+		if (on && !DCO_GMRights.Allow(GetPlayerId(), "GM pause"))
 			return;
-		DCO_GMPauseServer.ApplyPause(scope, aspectMask, on, selectedTargetId);
+		int frozenCount = DCO_GMPauseServer.ApplyPause(scope, aspectMask, on, selectedTargetId);
+		Rpc(DCO_RpcGMPauseConfirmed, frozenCount > 0, frozenCount);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMPauseConfirmed(bool paused, int frozenCount)
+	{
+		DCO_GMPausePresentationState.SetConfirmed(paused, frozenCount);
+		Print(string.Format("[DCO-GM] pause authority ACK: active=%1 frozen=%2", paused, frozenCount), LogLevel.NORMAL);
 	}
 
 	void DCO_SendGMClock(float mult)
@@ -248,9 +287,30 @@ modded class SCR_PlayerController
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMDetachAll()
 	{
-		if (!DCO_GMRights.Allow(GetPlayerId(), "GM detach all"))
-			return;
 		DCO_GMAttach.DetachAllOnAuthority(GetPlayerId());
+	}
+
+	void DCO_RequestGMAIOverlay(vector cameraPosition, int requestMask, string selectedIds)
+	{
+		Rpc(DCO_RpcRequestGMAIOverlay, cameraPosition, requestMask, selectedIds);
+	}
+
+	[RplRpc(RplChannel.Unreliable, RplRcver.Server)]
+	protected void DCO_RpcRequestGMAIOverlay(vector cameraPosition, int requestMask, string selectedIds)
+	{
+		if (!DCO_GMRights.Allow(GetPlayerId(), "GM AI overlay"))
+			return;
+		m_iDCO_AIOverlaySerial++;
+		array<string> chunks = {};
+		DCO_GMAIOverlaySnapshot.BuildChunks(cameraPosition, requestMask, selectedIds, m_iDCO_AIOverlaySerial, chunks);
+		foreach (string chunk : chunks)
+			Rpc(DCO_RpcReceiveGMAIOverlay, chunk);
+	}
+
+	[RplRpc(RplChannel.Unreliable, RplRcver.Owner)]
+	protected void DCO_RpcReceiveGMAIOverlay(string payload)
+	{
+		DCO_GMAIOverlaySnapshot.Receive(payload);
 	}
 
 	void DCO_SendGMOrderFor(RplId groupId, int actionId)

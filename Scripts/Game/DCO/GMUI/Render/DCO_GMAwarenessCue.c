@@ -1,4 +1,203 @@
 // DCO GM tactical-intelligence overlays.
+class DCO_GMAIOverlaySample
+{
+	string m_sEntityId;
+	bool m_bHasTarget;
+	bool m_bTargetVisible;
+	float m_fExposure;
+	float m_fTraceFraction;
+	vector m_vTargetPosition;
+	ref array<vector> m_aPath = {};
+}
+
+class DCO_GMAIOverlayBatch
+{
+	int m_iSerial;
+	ref array<ref DCO_GMAIOverlaySample> m_aSamples = {};
+}
+
+class DCO_GMAIOverlaySnapshot
+{
+	static const int PATH_ALL = 1;
+	static const int PATH_SELECTED = 2;
+	static const int VISION_ALL = 4;
+	static const int VISION_SELECTED = 8;
+	static const int MAX_SAMPLES = 48;
+	static const int CHUNK_SAMPLES = 16;
+	static const int MAX_PATH_POINTS = 10;
+	static const float RANGE = 450.0;
+	static const int STALE_MS = 2500;
+
+	protected static ref map<string, ref DCO_GMAIOverlaySample> s_Samples = new map<string, ref DCO_GMAIOverlaySample>();
+	protected static int s_iSerial = -1;
+	protected static int s_iLastReceiveAt;
+	protected static int s_iLastServerDiagAt;
+	protected static int s_iLastClientDiagAt;
+
+	static void BuildChunks(vector cameraPosition, int requestMask, string selectedIds, int serial, notnull array<string> chunks)
+	{
+		chunks.Clear();
+		SCR_EditableEntityCore core = SCR_EditableEntityCore.Cast(SCR_EditableEntityCore.GetInstance(SCR_EditableEntityCore));
+		array<ref DCO_GMAIOverlaySample> pending = {};
+		if (!core)
+		{
+			WriteChunk(serial, pending, chunks);
+			return;
+		}
+
+		set<SCR_EditableEntityComponent> all = new set<SCR_EditableEntityComponent>();
+		core.GetAllEntities(all);
+		int accepted;
+		for (int pass = 0; pass < 2 && accepted < MAX_SAMPLES; pass++)
+		{
+			foreach (SCR_EditableEntityComponent editable : all)
+			{
+				if (!editable || editable.GetEntityType() != EEditableEntityType.CHARACTER)
+					continue;
+				IEntity owner = editable.GetOwner();
+				if (!owner || vector.DistanceSq(owner.GetOrigin(), cameraPosition) > RANGE * RANGE)
+					continue;
+				RplComponent rpl = RplComponent.Cast(owner.FindComponent(RplComponent));
+				if (!rpl || !rpl.Id().IsValid())
+					continue;
+
+				string entityId = rpl.Id().AsString();
+				bool selected = selectedIds.Contains("|" + entityId + "|");
+				if ((pass == 0) != selected)
+					continue;
+				bool wantsPath = (requestMask & PATH_ALL) != 0 || (selected && (requestMask & PATH_SELECTED) != 0);
+				bool wantsVision = (requestMask & VISION_ALL) != 0 || (selected && (requestMask & VISION_SELECTED) != 0);
+				if (!wantsPath && !wantsVision)
+					continue;
+
+				DCO_GMAIOverlaySample sample = new DCO_GMAIOverlaySample();
+				sample.m_sEntityId = entityId;
+				if (wantsPath)
+					ReadPath(owner, sample.m_aPath);
+				if (wantsVision)
+					ReadTarget(owner, sample);
+				if (sample.m_aPath.Count() < 2 && !sample.m_bHasTarget)
+					continue;
+
+				pending.Insert(sample);
+				accepted++;
+				if (pending.Count() >= CHUNK_SAMPLES)
+				{
+					WriteChunk(serial, pending, chunks);
+					pending.Clear();
+				}
+				if (accepted >= MAX_SAMPLES)
+					break;
+			}
+		}
+		if (!pending.IsEmpty() || chunks.IsEmpty())
+			WriteChunk(serial, pending, chunks);
+		int now = System.GetTickCount();
+		if (now - s_iLastServerDiagAt >= 5000)
+		{
+			Print(string.Format("[DCO-GM] AI overlay authority snapshot: samples=%1 chunks=%2 mask=%3", accepted, chunks.Count(), requestMask), LogLevel.NORMAL);
+			s_iLastServerDiagAt = now;
+		}
+	}
+
+	protected static void ReadPath(IEntity owner, notnull array<vector> output)
+	{
+		AIBaseMovementComponent movement = DCO_GMAwarenessCue.GetMovement(owner);
+		if (!movement)
+			return;
+		array<vector> source = {};
+		movement.GetCurrentPath(source);
+		if (source.Count() < 2)
+			return;
+		int copyCount = Math.Min(source.Count(), MAX_PATH_POINTS);
+		for (int i = 0; i < copyCount; i++)
+			output.Insert(source[i]);
+		if (source.Count() > MAX_PATH_POINTS)
+			output[MAX_PATH_POINTS - 1] = source[source.Count() - 1];
+	}
+
+	protected static void ReadTarget(IEntity owner, DCO_GMAIOverlaySample sample)
+	{
+		SCR_AICombatComponent combat = DCO_GMAwarenessCue.GetCombat(owner);
+		if (!combat)
+			return;
+		BaseTarget target = combat.GetCurrentTarget();
+		if (!target)
+			target = combat.GetLastSeenEnemy();
+		if (!target || target.GetTimeSinceSeen() > 11.0)
+			return;
+
+		sample.m_bHasTarget = true;
+		sample.m_bTargetVisible = target.GetTimeSinceSeen() <= SCR_AICombatComponent.TARGET_MAX_LAST_SEEN_VISIBLE;
+		sample.m_fExposure = target.GetExposure();
+		sample.m_fTraceFraction = target.GetTraceFraction();
+		sample.m_vTargetPosition = target.GetLastSeenPosition();
+		IEntity targetEntity = target.GetTargetEntity();
+		if (sample.m_bTargetVisible && targetEntity)
+			sample.m_vTargetPosition = targetEntity.GetOrigin();
+	}
+
+	protected static void WriteChunk(int serial, notnull array<ref DCO_GMAIOverlaySample> samples, notnull array<string> chunks)
+	{
+		DCO_GMAIOverlayBatch batch = new DCO_GMAIOverlayBatch();
+		batch.m_iSerial = serial;
+		foreach (DCO_GMAIOverlaySample sample : samples)
+			batch.m_aSamples.Insert(sample);
+		JsonSaveContext save = new JsonSaveContext();
+		if (!save.WriteValue("", batch))
+			return;
+		chunks.Insert(save.SaveToString());
+	}
+
+	static void Receive(string payload)
+	{
+		if (payload.IsEmpty())
+			return;
+		JsonLoadContext load = new JsonLoadContext();
+		if (!load.LoadFromString(payload))
+			return;
+		DCO_GMAIOverlayBatch batch = new DCO_GMAIOverlayBatch();
+		if (!load.ReadValue("", batch) || !batch || batch.m_iSerial < s_iSerial)
+			return;
+		if (batch.m_iSerial > s_iSerial)
+		{
+			s_Samples.Clear();
+			s_iSerial = batch.m_iSerial;
+		}
+		foreach (DCO_GMAIOverlaySample sample : batch.m_aSamples)
+		{
+			if (sample && !sample.m_sEntityId.IsEmpty())
+				s_Samples.Set(sample.m_sEntityId, sample);
+		}
+		s_iLastReceiveAt = System.GetTickCount();
+		if (s_iLastReceiveAt - s_iLastClientDiagAt >= 5000)
+		{
+			Print(string.Format("[DCO-GM] AI overlay client snapshot: serial=%1 cached=%2", s_iSerial, s_Samples.Count()), LogLevel.NORMAL);
+			s_iLastClientDiagAt = s_iLastReceiveAt;
+		}
+	}
+
+	static DCO_GMAIOverlaySample Find(IEntity entity)
+	{
+		if (!entity || System.GetTickCount() - s_iLastReceiveAt > STALE_MS)
+			return null;
+		RplComponent rpl = RplComponent.Cast(entity.FindComponent(RplComponent));
+		if (!rpl || !rpl.Id().IsValid())
+			return null;
+		DCO_GMAIOverlaySample sample;
+		s_Samples.Find(rpl.Id().AsString(), sample);
+		return sample;
+	}
+
+	static void Clear()
+	{
+		s_Samples.Clear();
+		s_iSerial = -1;
+		s_iLastReceiveAt = 0;
+		s_iLastClientDiagAt = 0;
+	}
+}
+
 class DCO_GMAwarenessCue
 {
 	static const float CONE_RANGE = 45.0;
@@ -8,7 +207,7 @@ class DCO_GMAwarenessCue
 	static const float CULL_CUES = 450.0;
 	static const float CULL_MARKERS = 1600.0;
 	static const int CAP = 140;
-	static const int MARKER_POOL = 96;
+	static const int MARKER_POOL = 64;
 	static const int PATH_LEG_CAP = 24;
 	static const float MOVE_MIN = 0.06;
 	static const float MARKER_HEAD_H = 2.15;
@@ -31,11 +230,15 @@ class DCO_GMAwarenessCue
 
 	protected ref array<SCR_EditableEntityComponent> m_Chars = {};
 	protected ref array<vector> m_PrevPos = {};
+	protected ref array<ResourceName> m_CharIcons = {};
 	protected ref array<ImageWidget> m_MarkerWidgets = {};
 	protected ref array<ResourceName> m_MarkerTextures = {};
 	protected ref array<vector> m_UsedMarkerPos = {};
 	protected ref set<SCR_EditableEntityComponent> m_SelectedUnits = new set<SCR_EditableEntityComponent>();
-	protected int m_RefreshCounter;
+	protected int m_iLastRefreshAt;
+	protected int m_iLastSnapshotRequestAt;
+	protected int m_iLastVisibleMarkers = -1;
+	protected int m_iLastOverlayDiagAt;
 
 	void Start(DCO_GMRenderManager render, Widget shellRoot)
 	{
@@ -46,7 +249,7 @@ class DCO_GMAwarenessCue
 		BuildMarkerPool();
 		if (m_Render)
 			m_Render.GetOnRender().Insert(OnRender);
-		GetGame().GetCallqueue().CallLater(UpdateMarkers, 100, true);
+		GetGame().GetCallqueue().CallLater(UpdateMarkers, 250, true);
 		m_bActive = true;
 		Print("[DCO-GM] tactical overlays STARTED (perception + nav paths + role markers)", LogLevel.NORMAL);
 	}
@@ -68,6 +271,8 @@ class DCO_GMAwarenessCue
 		m_SelectedUnits.Clear();
 		m_Chars.Clear();
 		m_PrevPos.Clear();
+		m_CharIcons.Clear();
+		DCO_GMAIOverlaySnapshot.Clear();
 		m_wMarkerLayer = null;
 		m_Render = null;
 		m_bActive = false;
@@ -110,6 +315,13 @@ class DCO_GMAwarenessCue
 		BaseWorld world = GetGame().GetWorld();
 		vector cameraPos;
 		bool haveCamera = GetCameraPos(cameraPos);
+		RequestAuthoritySnapshot(state, cameraPos, haveCamera);
+		int now = System.GetTickCount();
+		if (now - m_iLastOverlayDiagAt >= 5000)
+		{
+			Print(string.Format("[DCO-GM] tactical overlay health: cones=%1 movement=%2 cachedUnits=%3 selected=%4 clientCamera=%5", state.m_bViewCones, state.m_bMovement, m_Chars.Count(), m_SelectedUnits.Count(), haveCamera), LogLevel.NORMAL);
+			m_iLastOverlayDiagAt = now;
+		}
 		for (int i = 0; i < m_Chars.Count(); i++)
 		{
 			SCR_EditableEntityComponent editable = m_Chars[i];
@@ -138,7 +350,49 @@ class DCO_GMAwarenessCue
 		}
 	}
 
-	// Selection semantics match the GM: selecting a character affects that character; selecting a group affects its member characters.
+	protected void RequestAuthoritySnapshot(DCO_GMOverlayState state, vector cameraPosition, bool haveCamera)
+	{
+		if (!haveCamera || Replication.IsServer())
+			return;
+		int now = System.GetTickCount();
+		if (now - m_iLastSnapshotRequestAt < 1000)
+			return;
+		int requestMask;
+		if (state.m_bMovement)
+		{
+			if (state.GetScope(DCO_GMOverlayState.OV_MOVEMENT) == EDCO_OverlayScope.ALL)
+				requestMask |= DCO_GMAIOverlaySnapshot.PATH_ALL;
+			else
+				requestMask |= DCO_GMAIOverlaySnapshot.PATH_SELECTED;
+		}
+		if (state.m_bViewCones)
+		{
+			if (state.GetScope(DCO_GMOverlayState.OV_CONES) == EDCO_OverlayScope.ALL)
+				requestMask |= DCO_GMAIOverlaySnapshot.VISION_ALL;
+			else
+				requestMask |= DCO_GMAIOverlaySnapshot.VISION_SELECTED;
+		}
+		if (requestMask == 0)
+			return;
+
+		string selectedIds = "|";
+		foreach (SCR_EditableEntityComponent editable : m_SelectedUnits)
+		{
+			if (!editable || !editable.GetOwner())
+				continue;
+			RplComponent rpl = RplComponent.Cast(editable.GetOwner().FindComponent(RplComponent));
+			if (rpl && rpl.Id().IsValid())
+				selectedIds += rpl.Id().AsString() + "|";
+		}
+		SCR_PlayerController pc = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		if (pc)
+		{
+			pc.DCO_RequestGMAIOverlay(cameraPosition, requestMask, selectedIds);
+			m_iLastSnapshotRequestAt = now;
+		}
+	}
+
+	// Expands selected groups to their member characters.
 	protected void RefreshSelectedUnits()
 	{
 		m_SelectedUnits.Clear();
@@ -174,11 +428,11 @@ class DCO_GMAwarenessCue
 
 	protected void RefreshIfNeeded()
 	{
-		m_RefreshCounter++;
-		if (m_RefreshCounter < 10 && !m_Chars.IsEmpty())
+		int now = System.GetTickCount();
+		if (now - m_iLastRefreshAt < 1000)
 			return;
 		RefreshList();
-		m_RefreshCounter = 0;
+		m_iLastRefreshAt = now;
 	}
 
 	protected bool GetCameraPos(out vector position)
@@ -194,6 +448,7 @@ class DCO_GMAwarenessCue
 	{
 		m_Chars.Clear();
 		m_PrevPos.Clear();
+		m_CharIcons.Clear();
 		if (!m_Core)
 			m_Core = SCR_EditableEntityCore.Cast(SCR_EditableEntityCore.GetInstance(SCR_EditableEntityCore));
 		if (!m_Core)
@@ -215,12 +470,13 @@ class DCO_GMAwarenessCue
 				continue;
 			m_Chars.Insert(editable);
 			m_PrevPos.Insert(position);
+			m_CharIcons.Insert(DCO_App6Icons.ForEntity(editable));
 			if (m_Chars.Count() >= CAP)
 				break;
 		}
 	}
 
-	protected AIBaseMovementComponent GetMovement(IEntity owner)
+	static AIBaseMovementComponent GetMovement(IEntity owner)
 	{
 		ChimeraCharacter character = ChimeraCharacter.Cast(owner);
 		if (!character)
@@ -231,10 +487,10 @@ class DCO_GMAwarenessCue
 		AIAgent agent = control.GetAIAgent();
 		if (!agent)
 			return null;
-		return AIBaseMovementComponent.Cast(agent.FindComponent(AIBaseMovementComponent));
+		return agent.GetMovementComponent();
 	}
 
-	protected SCR_AICombatComponent GetCombat(IEntity owner)
+	static SCR_AICombatComponent GetCombat(IEntity owner)
 	{
 		SCR_AICombatComponent combat = SCR_AICombatComponent.Cast(owner.FindComponent(SCR_AICombatComponent));
 		if (combat)
@@ -257,6 +513,12 @@ class DCO_GMAwarenessCue
 		array<vector> path = {};
 		if (movement)
 			movement.GetCurrentPath(path);
+		if (path.Count() < 2)
+		{
+			DCO_GMAIOverlaySample sample = DCO_GMAIOverlaySnapshot.Find(owner);
+			if (sample)
+				path.Copy(sample.m_aPath);
+		}
 
 		if (path.Count() >= 2)
 		{
@@ -320,13 +582,18 @@ class DCO_GMAwarenessCue
 	protected void DrawPerceivedTarget(DCO_GMRenderManager render, IEntity observer, vector eye)
 	{
 		SCR_AICombatComponent combat = GetCombat(observer);
-		if (!combat)
-			return;
-		BaseTarget target = combat.GetCurrentTarget();
+		BaseTarget target;
+		if (combat)
+		{
+			target = combat.GetCurrentTarget();
+			if (!target)
+				target = combat.GetLastSeenEnemy();
+		}
 		if (!target)
-			target = combat.GetLastSeenEnemy();
-		if (!target)
+		{
+			DrawReplicatedTarget(render, observer, eye);
 			return;
+		}
 
 		float seenAge = target.GetTimeSinceSeen();
 		bool visible = seenAge <= SCR_AICombatComponent.TARGET_MAX_LAST_SEEN_VISIBLE;
@@ -357,6 +624,23 @@ class DCO_GMAwarenessCue
 		render.DrawLine(memory + Vector(-0.65, 0.1, 0), memory + Vector(0.65, 0.1, 0), TARGET_MEMORY);
 		render.DrawLine(memory + Vector(0, 0.1, -0.65), memory + Vector(0, 0.1, 0.65), TARGET_MEMORY);
 		render.DrawLine(eye, memory + Vector(0, 0.2, 0), TARGET_MEMORY);
+	}
+
+	protected void DrawReplicatedTarget(DCO_GMRenderManager render, IEntity observer, vector eye)
+	{
+		DCO_GMAIOverlaySample sample = DCO_GMAIOverlaySnapshot.Find(observer);
+		if (!sample || !sample.m_bHasTarget)
+			return;
+		int color = TARGET_MEMORY;
+		if (sample.m_bTargetVisible)
+		{
+			color = TARGET_VISIBLE;
+			if (sample.m_fExposure < 0.65 || sample.m_fTraceFraction < 0.75)
+				color = TARGET_PARTIAL;
+		}
+		vector targetPosition = sample.m_vTargetPosition;
+		render.DrawLine(eye, targetPosition + Vector(0, 0.2, 0), color);
+		render.DrawRing(targetPosition + Vector(0, 0.08, 0), Vector(1, 0, 0), Vector(0, 0, 1), 0.9, color);
 	}
 
 	protected void DrawTargetBox(DCO_GMRenderManager render, IEntity target, int color)
@@ -408,13 +692,16 @@ class DCO_GMAwarenessCue
 			if (!owner)
 				continue;
 			vector screen = workspace.ProjWorldToScreen(owner.GetOrigin() + Vector(0, MARKER_HEAD_H, 0), world);
-			if (screen[2] < 0)
+			if (screen[2] < 0 || screen[0] < -MARKER_SIZE || screen[1] < -MARKER_SIZE
+				|| screen[0] > workspace.GetWidth() + MARKER_SIZE || screen[1] > workspace.GetHeight() + MARKER_SIZE)
 				continue;
 			vector placed;
 			if (!FindMarkerPosition(screen, placed))
 				continue;
 
-			ResourceName texture = DCO_App6Icons.ForEntity(editable);
+			ResourceName texture;
+			if (i < m_CharIcons.Count())
+				texture = m_CharIcons[i];
 			if (texture.IsEmpty())
 				continue;
 			ImageWidget marker = m_MarkerWidgets[usedCount];
@@ -431,6 +718,11 @@ class DCO_GMAwarenessCue
 		}
 		for (int j = usedCount; j < m_MarkerWidgets.Count(); j++)
 			m_MarkerWidgets[j].SetVisible(false);
+		if (usedCount != m_iLastVisibleMarkers)
+		{
+			Print(string.Format("[DCO-GM] role marker health: visible=%1 cachedUnits=%2 pool=%3", usedCount, m_Chars.Count(), m_MarkerWidgets.Count()), LogLevel.NORMAL);
+			m_iLastVisibleMarkers = usedCount;
+		}
 	}
 
 	protected bool FindMarkerPosition(vector requested, out vector placed)

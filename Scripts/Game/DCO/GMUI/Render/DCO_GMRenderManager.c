@@ -1,131 +1,214 @@
-
+// Draws client world cues on a retained UI canvas.
 class DCO_GMRenderManager
 {
-	protected ref array<ref Shape> m_Shapes = {};
+	static const int MAX_COMMANDS = 4096;
+
+	protected CanvasWidget m_wCanvas;
+	protected ref array<ref CanvasWidgetCommand> m_DrawCommands = {};
 	protected ref ScriptInvoker m_OnRender = new ScriptInvoker();
 	protected bool m_bActive;
+	protected bool m_bCommandCapLogged;
+	protected int m_iLastDiagAt;
+	protected int m_iLastDiagCount = -1;
 
-	// Cues subscribe their draw method here; invoked every render tick with this manager.
 	ScriptInvoker GetOnRender()
 	{
 		return m_OnRender;
 	}
 
-	void Start()
+	void Start(Widget shellRoot)
 	{
 		if (m_bActive)
 			return;
+
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (workspace && shellRoot)
+		{
+			// Use an authored full-screen canvas for stable size and layering.
+			m_wCanvas = CanvasWidget.Cast(shellRoot.FindAnyWidget("DCO_WorldCueCanvas"));
+			if (m_wCanvas)
+				m_wCanvas.SetDrawCommands(m_DrawCommands);
+		}
+
 		m_bActive = true;
-		GetGame().GetCallqueue().CallLater(Update, 100, true);	// ~10 Hz client-side redraw.
-		Print("[DCO-GM] GM-client render pillar STARTED (MP-safe, GM-only)", LogLevel.NORMAL);
+		GetGame().GetCallqueue().CallLater(Update, 100, true);
+		if (m_wCanvas)
+			Print(string.Format("[DCO-GM] GM-client canvas renderer STARTED (client=%1x%2)", workspace.GetWidth(), workspace.GetHeight()), LogLevel.NORMAL);
+		else
+			Print("[DCO-GM] GM-client canvas renderer FAILED: canvas unavailable", LogLevel.ERROR);
 	}
 
 	void Stop()
 	{
 		m_bActive = false;
 		GetGame().GetCallqueue().Remove(Update);
-		m_Shapes.Clear();	// release all held shapes.
-		Print("[DCO-GM] GM-client render pillar STOPPED", LogLevel.NORMAL);
+		m_DrawCommands.Clear();
+		if (m_wCanvas)
+		{
+			m_wCanvas.SetDrawCommands(m_DrawCommands);
+			m_wCanvas = null;
+		}
+		Print("[DCO-GM] GM-client canvas renderer STOPPED", LogLevel.NORMAL);
 	}
 
 	protected void Update()
 	{
-		m_Shapes.Clear();
-		if (!m_bActive || DCO_GMTheme.Get().IsMasterHidden())
-			return;	// cinematic mode is a parent gate for every DCO world cue, including selection boxes and gizmos.
-		m_OnRender.Invoke(this);	// registered cues draw.
-		DrawSelectionBoxes();	// F5 - boxes around the GM's selected units.
+		m_DrawCommands.Clear();
+		m_bCommandCapLogged = false;
+		if (!m_bActive || !m_wCanvas || DCO_GMTheme.Get().IsMasterHidden())
+		{
+			if (m_wCanvas)
+				m_wCanvas.SetDrawCommands(m_DrawCommands);
+			return;
+		}
+
+		m_OnRender.Invoke(this);
+		DrawSelectionBoxes();
+		m_wCanvas.SetDrawCommands(m_DrawCommands);
+		LogRendererHealth();
+	}
+
+	protected void LogRendererHealth()
+	{
+		int count = m_DrawCommands.Count();
+		int now = System.GetTickCount();
+		bool edge = (count == 0) != (m_iLastDiagCount == 0);
+		if (m_iLastDiagCount < 0 || edge || now - m_iLastDiagAt >= 5000)
+		{
+			Print(string.Format("[DCO-GM] canvas renderer health: commands=%1 canvas=%2", count, m_wCanvas != null), LogLevel.NORMAL);
+			m_iLastDiagAt = now;
+			m_iLastDiagCount = count;
+		}
+	}
+
+	protected bool Project(vector worldPosition, out vector screenPosition)
+	{
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		BaseWorld world = GetGame().GetWorld();
+		if (!workspace || !world)
+			return false;
+		screenPosition = workspace.ProjWorldToScreenNative(worldPosition, world);
+		return screenPosition[2] >= 0;
+	}
+
+	protected void AddScreenLine(vector from, vector to, int colorARGB, float width = 2.0)
+	{
+		if (m_DrawCommands.Count() >= MAX_COMMANDS)
+		{
+			if (!m_bCommandCapLogged)
+			{
+				m_bCommandCapLogged = true;
+				Print(string.Format("[DCO-GM] canvas renderer command cap reached (%1); remaining cues skipped this frame", MAX_COMMANDS), LogLevel.WARNING);
+			}
+			return;
+		}
+		LineDrawCommand line = new LineDrawCommand();
+		line.m_iColor = colorARGB;
+		line.m_fOutlineWidth = 0;
+		line.m_fWidth = width;
+		line.m_Vertices = {from[0], from[1], to[0], to[1]};
+		m_DrawCommands.Insert(line);
+	}
+
+	protected void AddScreenPolyline(notnull array<float> vertices, int colorARGB, float width = 2.0, bool enclose = false)
+	{
+		if (vertices.Count() < 4 || m_DrawCommands.Count() >= MAX_COMMANDS)
+			return;
+		LineDrawCommand line = new LineDrawCommand();
+		line.m_iColor = colorARGB;
+		line.m_fOutlineWidth = 0;
+		line.m_fWidth = width;
+		line.m_bShouldEnclose = enclose;
+		line.m_Vertices = vertices;
+		m_DrawCommands.Insert(line);
 	}
 
 	void DrawSphere(vector pos, float radius, int colorARGB)
 	{
-		Shape s = Shape.CreateSphere(colorARGB, ShapeFlags.WIREFRAME | ShapeFlags.NOZBUFFER, pos, radius);
-		if (s)
-			m_Shapes.Insert(s);
+		vector center;
+		vector edge;
+		if (!Project(pos, center) || !Project(pos + Vector(radius, 0, 0), edge))
+			return;
+		float pixelRadius = vector.Distance(Vector(center[0], center[1], 0), Vector(edge[0], edge[1], 0));
+		if (pixelRadius < 2)
+			pixelRadius = 2;
+		array<float> vertices = {};
+		m_wCanvas.TessellateCircle(center, pixelRadius, 16, vertices);
+		AddScreenPolyline(vertices, colorARGB, 2.0, true);
 	}
 
 	void DrawArrow(vector from, vector to, float size, int colorARGB)
 	{
-		Shape s = Shape.CreateArrow(from, to, size, colorARGB, ShapeFlags.NOZBUFFER);
-		if (s)
-			m_Shapes.Insert(s);
+		vector a;
+		vector b;
+		if (!Project(from, a) || !Project(to, b))
+			return;
+		AddScreenLine(a, b, colorARGB);
+		vector delta = Vector(b[0] - a[0], b[1] - a[1], 0);
+		float length = delta.Length();
+		if (length < 1)
+			return;
+		delta = delta / length;
+		vector side = Vector(-delta[1], delta[0], 0);
+		float head = Math.Clamp(size * 34.0, 6.0, 16.0);
+		vector left = b - delta * head + side * head * 0.55;
+		vector right = b - delta * head - side * head * 0.55;
+		array<float> arrowHead = {left[0], left[1], b[0], b[1], right[0], right[1]};
+		AddScreenPolyline(arrowHead, colorARGB);
 	}
 
-	// One clean world-space segment.
 	void DrawLine(vector from, vector to, int colorARGB)
 	{
-		vector p[2];
-		p[0] = from;
-		p[1] = to;
-		Shape s = Shape.CreateLines(colorARGB, ShapeFlags.NOZBUFFER, p, 2);
-		if (s)
-			m_Shapes.Insert(s);
+		vector a;
+		vector b;
+		if (Project(from, a) && Project(to, b))
+			AddScreenLine(a, b, colorARGB);
 	}
 
 	void DrawStick(vector groundPos, float height, int colorARGB)
 	{
-		vector top = groundPos + Vector(0, height, 0);
-		Shape s = Shape.CreateArrow(groundPos, top, 0.15, colorARGB, ShapeFlags.NOZBUFFER);
-		if (s)
-			m_Shapes.Insert(s);
+		DrawArrow(groundPos, groundPos + Vector(0, height, 0), 0.15, colorARGB);
 	}
 
-	// Wireframe box from a world-space min/max corner.
 	void DrawBox(vector mn, vector mx, int colorARGB)
 	{
-		vector c0 = Vector(mn[0], mn[1], mn[2]);	// bottom: front-left.
-		vector c1 = Vector(mx[0], mn[1], mn[2]);	// front-right.
-		vector c2 = Vector(mx[0], mn[1], mx[2]);	// back-right.
-		vector c3 = Vector(mn[0], mn[1], mx[2]);	// back-left.
+		vector c0 = Vector(mn[0], mn[1], mn[2]);
+		vector c1 = Vector(mx[0], mn[1], mn[2]);
+		vector c2 = Vector(mx[0], mn[1], mx[2]);
+		vector c3 = Vector(mn[0], mn[1], mx[2]);
 		vector c4 = Vector(mn[0], mx[1], mn[2]);
 		vector c5 = Vector(mx[0], mx[1], mn[2]);
 		vector c6 = Vector(mx[0], mx[1], mx[2]);
 		vector c7 = Vector(mn[0], mx[1], mx[2]);
-
-		vector p[16];
-		p[0]  = c0; p[1]  = c1; p[2]  = c2; p[3]  = c3; p[4] = c0;	// bottom ring.
-		p[5]  = c4; p[6]  = c5; p[7]  = c6; p[8]  = c7; p[9] = c4;
-		p[10] = c5; p[11] = c1;	// retrace top edge c4-c5 -> vertical c1-c5.
-		p[12] = c2; p[13] = c6;	// retrace bottom edge c1-c2 -> vertical c2-c6.
-		p[14] = c7; p[15] = c3;	// retrace top edge c6-c7 -> vertical c3-c7.
-
-		Shape s = Shape.CreateLines(colorARGB, ShapeFlags.NOZBUFFER, p, 16);
-		if (s)
-			m_Shapes.Insert(s);
+		DrawLine(c0, c1, colorARGB); DrawLine(c1, c2, colorARGB); DrawLine(c2, c3, colorARGB); DrawLine(c3, c0, colorARGB);
+		DrawLine(c4, c5, colorARGB); DrawLine(c5, c6, colorARGB); DrawLine(c6, c7, colorARGB); DrawLine(c7, c4, colorARGB);
+		DrawLine(c0, c4, colorARGB); DrawLine(c1, c5, colorARGB); DrawLine(c2, c6, colorARGB); DrawLine(c3, c7, colorARGB);
 	}
 
 	void DrawQuad(vector p0, vector p1, vector p2, vector p3, int colorARGB)
 	{
-		vector p[8];
-		p[0] = p0; p[1] = p1;
-		p[2] = p1; p[3] = p2;
-		p[4] = p2; p[5] = p3;
-		p[6] = p3; p[7] = p0;
-
-		Shape s = Shape.CreateLines(colorARGB, ShapeFlags.NOZBUFFER, p, 8);
-		if (s)
-			m_Shapes.Insert(s);
+		DrawLine(p0, p1, colorARGB);
+		DrawLine(p1, p2, colorARGB);
+		DrawLine(p2, p3, colorARGB);
+		DrawLine(p3, p0, colorARGB);
 	}
 
 	void DrawRing(vector center, vector u, vector v, float radius, int colorARGB)
 	{
-		vector p[64];	// 32 segments x 2 endpoints each.
-		for (int i = 0; i < 32; i++)
+		vector previous = center + u * radius;
+		for (int i = 1; i <= 24; i++)
 		{
-			float a0 = (Math.PI2 * i) / 32.0;
-			float a1 = (Math.PI2 * (i + 1)) / 32.0;
-			p[i * 2]     = center + u * (Math.Cos(a0) * radius) + v * (Math.Sin(a0) * radius);
-			p[i * 2 + 1] = center + u * (Math.Cos(a1) * radius) + v * (Math.Sin(a1) * radius);
+			float angle = Math.PI2 * i / 24.0;
+			vector next = center + u * (Math.Cos(angle) * radius) + v * (Math.Sin(angle) * radius);
+			DrawLine(previous, next, colorARGB);
+			previous = next;
 		}
-		Shape s = Shape.CreateLines(colorARGB, ShapeFlags.NOZBUFFER, p, 64);
-		if (s)
-			m_Shapes.Insert(s);
 	}
 
 	protected int AccentARGB(int alpha)
 	{
 		Color c = DCO_GMTheme.Get().m_AccentColor;
-		int r = 217, g = 137, b = 43;	// amber fallback.
+		int r = 217, g = 137, b = 43;
 		if (c)
 		{
 			r = Math.Round(c.R() * 255);
@@ -138,47 +221,34 @@ class DCO_GMRenderManager
 	protected void DrawSelectionBoxes()
 	{
 		int boxColor = AccentARGB(255);
-
-		set<SCR_EditableEntityComponent> sel = new set<SCR_EditableEntityComponent>();
-		SCR_BaseEditableEntityFilter.GetEnititiesStatic(sel, EEditableEntityState.SELECTED);
-		foreach (SCR_EditableEntityComponent e : sel)
+		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
+		SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
+		foreach (SCR_EditableEntityComponent editable : selected)
 		{
-			if (!e)
+			if (!editable)
 				continue;
-
-			// Only physical units get a box.
-			bool isUnit = (SCR_EditableCharacterComponent.Cast(e) != null) || (SCR_EditableVehicleComponent.Cast(e) != null);
+			bool isUnit = SCR_EditableCharacterComponent.Cast(editable) != null || SCR_EditableVehicleComponent.Cast(editable) != null;
 			if (!isUnit)
 				continue;
-
-			IEntity owner = e.GetOwner();
+			IEntity owner = editable.GetOwner();
 			if (!owner)
 				continue;
-
-			vector mn, mx;
-			owner.GetBounds(mn, mx);
+			vector minimum;
+			vector maximum;
+			owner.GetBounds(minimum, maximum);
 			vector origin = owner.GetOrigin();
-			vector bmin = origin + mn;
-			vector bmax = origin + mx;
-
-			if (bmax[1] - bmin[1] < 0.2)
+			minimum = origin + minimum;
+			maximum = origin + maximum;
+			if (maximum[1] - minimum[1] < 0.2)
 			{
-				bmin = origin + Vector(-0.4, 0.0, -0.4);
-				bmax = origin + Vector(0.4, 1.8, 0.4);
+				minimum = origin + Vector(-0.4, 0, -0.4);
+				maximum = origin + Vector(0.4, 1.8, 0.4);
 			}
-
-			// Roomy configurable cube centered on the entity.
-			float cx = (bmin[0] + bmax[0]) * 0.5;
-			float cz = (bmin[2] + bmax[2]) * 0.5;
-			float halfW = Math.Max(1.0, (bmax[0] - bmin[0]) * 0.5 + 0.2);
-			float halfD = Math.Max(1.0, (bmax[2] - bmin[2]) * 0.5 + 0.2);
-			float baseY = bmin[1];
-			float topY  = Math.Max(bmin[1] + 2.2, bmax[1] + 0.25);
-
-			vector wmn = Vector(cx - halfW, baseY, cz - halfD);
-			vector wmx = Vector(cx + halfW, topY,  cz + halfD);
-
-			DrawBox(wmn, wmx, boxColor);
+			float cx = (minimum[0] + maximum[0]) * 0.5;
+			float cz = (minimum[2] + maximum[2]) * 0.5;
+			float halfW = Math.Max(1.0, (maximum[0] - minimum[0]) * 0.5 + 0.2);
+			float halfD = Math.Max(1.0, (maximum[2] - minimum[2]) * 0.5 + 0.2);
+			DrawBox(Vector(cx - halfW, minimum[1], cz - halfD), Vector(cx + halfW, Math.Max(minimum[1] + 2.2, maximum[1] + 0.25), cz + halfD), boxColor);
 		}
 	}
 }

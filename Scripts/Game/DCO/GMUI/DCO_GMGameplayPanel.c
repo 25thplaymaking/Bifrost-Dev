@@ -42,7 +42,7 @@ class DCO_GMGameplayPanel
 	protected bool m_AspAI = true;
 	protected bool m_AspPhysics = true;
 
-	// Themed - follows the GM's accent-hue choice, one consistent accent via the theme.
+	// Uses the current theme accent.
 	protected Color ColOn()  { return DCO_GMTheme.Get().m_AccentColor; }
 	protected Color ColOff() { return DCO_GMTheme.Get().m_MutedColor; }
 
@@ -119,6 +119,8 @@ class DCO_GMGameplayPanel
 		if (m_AspPhysics)
 			mask |= EDCO_PauseAspect.PHYSICS;
 
+		if (!Replication.IsServer())
+			DCO_GMPausePresentationState.BeginRequest();
 		DCO_GMPauseServer.RoutePause(m_Scope, mask, on);
 
 		UpdatePauseStatus();
@@ -132,6 +134,7 @@ class DCO_GMGameplayPanel
 		bool worldPaused = false;
 		bool authority = Replication.IsServer();
 		bool pauseActive = DCO_GMPausePresentationState.IsPaused();
+		bool pending = DCO_GMPausePresentationState.IsPending();
 		if (authority)
 		{
 			frozen = DCO_GMPauseCore.Get().GetFrozenCount();
@@ -141,9 +144,18 @@ class DCO_GMGameplayPanel
 
 		if (m_wStatus)
 		{
-			if (!authority && pauseActive)
+			if (!authority && pending)
 			{
-				m_wStatus.SetText("PAUSE ACTIVE ON SERVER");
+				m_wStatus.SetText("WAITING FOR SERVER CONFIRMATION");
+				m_wStatus.SetColor(DCO_GMTheme.Get().m_MutedColor);
+			}
+			else if (!authority && pauseActive)
+			{
+				int confirmed = DCO_GMPausePresentationState.GetFrozenCount();
+				if (confirmed >= 0)
+					m_wStatus.SetText(string.Format("SERVER FREEZE ACTIVE - %1 held", confirmed));
+				else
+					m_wStatus.SetText("SERVER FREEZE ACTIVE");
 				m_wStatus.SetColor(ColOn());
 			}
 			else if (worldPaused)
@@ -240,7 +252,7 @@ class DCO_GMGameplayPanel
 		else
 			t.SetColor(ColOff());
 
-		// Real tick glyph.
+	// Draws the selected-state tick.
 		string tickName = labelName;
 		tickName.Replace("_Label", "_Tick");
 		ImageWidget tick = ImageWidget.Cast(btn.FindAnyWidget(tickName));

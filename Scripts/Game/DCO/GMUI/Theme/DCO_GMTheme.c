@@ -1,4 +1,4 @@
-// Central theme for the Bifrost GM GM UI.
+// Central theme for the Bifrost GM UI.
 class DCO_GMTheme
 {
 	protected static ref DCO_GMTheme s_Instance;
@@ -69,7 +69,7 @@ class DCO_GMTheme
 	static const int   ACCENT_DEF_G = 137;
 	static const int   ACCENT_DEF_B = 43;
 
-	// Semantic status colours - NOT the accent, never touched by the hue recolor sweep.
+	// Keeps status colours independent from the accent.
 	static const int SEM_HOSTILE  = 0xFFE2483C;	// enemy / danger red.
 	static const int SEM_FRIENDLY = 0xFF3FBF6A;	// friendly / confirm green.
 	static const int SEM_PLAYER   = 0xFF3FB6E6;	// player cyan.
@@ -86,10 +86,11 @@ class DCO_GMTheme
 	// Panel-opacity floor.
 	static const float OPACITY_MIN = 0.15;
 
-	static const ref array<string> PANEL_ROOTS = {
-		"DCO_OverlayBar", "DCO_OrdersBox", "DCO_ScenarioPanel", "DCO_ContextMenu", "DCO_OptionsPanel",
-		"DCO_EditTree", "DCO_CreateBrowser", "DCO_TopBar", "DCO_BottomBar", "DCO_SimPanel",
-		"DCO_GizmoPanel", "DCO_NotifPanel", "DCO_ChatPanel", "DCO_TacticsPanel"
+	// Apply opacity to panel plates so child text and icons remain readable.
+	static const ref array<string> PANEL_SURFACES = {
+		"DCO_OverlayBg", "DCO_OrdersBg", "DCO_ScenarioBg", "DCO_MenuBg", "DCO_OptionsBg",
+		"DCO_TreeBg", "DCO_CreateBg", "DCO_TopBarBg", "DCO_BottomBarBg", "DCO_SimBg",
+		"DCO_GizmoBg", "DCO_NotifBg", "DCO_ChatBg", "DCO_TacticsBg"
 	};
 
 	static const ref array<string> PANEL_BORDERS = {
@@ -190,7 +191,7 @@ class DCO_GMTheme
 		ctx.WriteValue("opacity", m_PanelOpacity);
 		ctx.WriteValue("accentHue", m_AccentHue);
 		ctx.WriteValue("displayFontMode", m_DisplayFontMode);
-		// Persist the last deliberate OPTIONS preference, never a live session-only tab/programmatic override.
+	// Persists explicit options without session-only overrides.
 		for (int vi = 0; vi < UI_ELEMENT_COUNT; vi++)
 			ctx.WriteValue("hudVisible_" + vi.ToString(), m_ElementPersisted[vi]);
 		foreach (string pn : GEOM_PANELS)
@@ -368,7 +369,7 @@ class DCO_GMTheme
 		return string.Empty;
 	}
 
-	// Reverse of ElementWidget: the switch index owning a panel widget, or -1 for a widget outside the visibility system.
+	// Finds the visibility switch that owns a panel.
 	static int ElementIndexFor(string widgetName)
 	{
 		for (int i = 0; i < UI_ELEMENT_COUNT; i++)
@@ -518,7 +519,7 @@ class DCO_GMTheme
 	{
 		if (!root)
 			return;
-		foreach (string name : PANEL_ROOTS)
+		foreach (string name : PANEL_SURFACES)
 		{
 			Widget w = root.FindAnyWidget(name);
 			if (w)

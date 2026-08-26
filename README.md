@@ -24,8 +24,8 @@ Open the project in Arma Reforger Workbench or install the published addon throu
 
 ## Release state
 
-This repository tracks the public development build. The source and packaged resources pass the static release gates, and the current Workbench compile is clean. Dedicated-server, reconnect/JIP, and hands-on interaction checks remain part of every release promotion and are listed in [docs/TESTING.md](docs/TESTING.md).
+Current release: **1.0.1**. The source and packaged resources pass the static release gates, and the current Workbench compile is clean. Dedicated-server, reconnect/JIP, and hands-on interaction checks remain part of every release promotion and are listed in [docs/TESTING.md](docs/TESTING.md).
 
 ## License and credits
 
-Bifrost's original code and content are released under the [Arma Public License Share Alike (APL-SA)](LICENSE). Bifrost is non-commercial, Arma-only material. Third-party assets remain under their respective licenses and are documented in [CREDITS.md](CREDITS.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Bifrost's original code and content are released under the [Arma Public License Share Alike (APL-SA)](LICENSE.txt). Bifrost is non-commercial, Arma-only material. Third-party assets remain under their respective licenses and are documented in [CREDITS.md](CREDITS.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

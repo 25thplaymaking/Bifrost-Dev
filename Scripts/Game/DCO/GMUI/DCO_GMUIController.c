@@ -1,4 +1,4 @@
-// Shell controller for the Bifrost GM GM UI.
+// Shell controller for the Bifrost GM UI.
 class DCO_GMUIController
 {
 
@@ -167,13 +167,13 @@ class DCO_GMUIController
 		m_Bridge.Init(m_wRoot, m_Menu);
 
 		m_Render = new DCO_GMRenderManager();
-		m_Render.Start();
+		m_Render.Start(m_wRoot);
 
 		m_Nametags = new DCO_GMNametags();
 		m_Nametags.Init(m_wRoot);
 		m_Nametags.Start();
 
-		// Tactical-intelligence overlays: perception/target memory, resolved paths and decluttered role markers.
+	// Mounts tactical paths, perception cues, and role markers.
 		m_Awareness = new DCO_GMAwarenessCue();
 		m_Awareness.Start(m_Render, m_wRoot);
 
@@ -613,7 +613,7 @@ class DCO_GMUIController
 		FrameSlot.SetPos(wd, posX, posY);
 	}
 
-	// Attach a drag handler to a panel's top-left grip button so the GM can reposition the panel by dragging that corner.
+	// Lets the panel's grip reposition it.
 	protected void MakeDraggable(string handleName, string panelName)
 	{
 		if (!m_wRoot)
@@ -714,7 +714,7 @@ class DCO_GMUIController
 			ToggleEditPanel();
 		else if (name == "DCO_QuickDeployBtn")
 		{
-			// A successful prior row selection gives this rail button genuine one-click deployment value.
+	// Reuses the last valid placement.
 			if (!m_CreatePanel || !m_CreatePanel.RepeatLastPlacement())
 			{
 				DCO_GMTheme.Get().SetElementEnabled(DCO_GMTheme.UI_CREATE, true, m_wRoot, false);
@@ -732,7 +732,7 @@ class DCO_GMUIController
 			ResetPanelLayout();
 	}
 
-	// Bottom-bar RESET UI: clear every $profile-saved panel geometry, re-pin the PinBox defaults, and re-show both columns.
+	// Restores saved panel geometry and visibility defaults.
 	void ResetPanelLayout()
 	{
 		DCO_GMTheme.Get().ClearPanelGeoms();
@@ -766,7 +766,8 @@ class DCO_GMUIController
 			r.StopResize();
 		m_Resizables.Clear();
 		DCO_GMDraggable.ResetRaise();	// next shell build starts its raise-on-grab z counter from zero.
-		DCO_GMPauseCore.Get().ReleaseAll();
+		// Release the server freeze when the GM leaves the editor.
+		DCO_GMPauseServer.RoutePause(EDCO_PauseScope.ALL_AI, 0, false);
 		m_ResetHandler = null;	// its button dies with the root; drop our keep-alive ref.
 		m_VanillaHide.RestoreAll();	// un-hide any engine surfaces we hid.
 		DCO_GMTutorial.Get().Shutdown();	// drops its ESC listener before the shell root takes its widgets away.
@@ -790,9 +791,8 @@ class DCO_GMUIController
 			m_Awareness.Stop();
 			m_Awareness = null;
 		}
-		// Precise mode is STATIC and outlives the shell: left on, it keeps engine free-drag suppressed with no UI left to switch it back.
-		DCO_GMAttach.DetachAll();	// reverse every open attach bond while the world is still up - otherwise an.
-									// attached object is stranded frozen/unshootable/GC-blacklisted after the tools close.
+		// Resets state that outlives the shell.
+		DCO_GMAttach.DetachAll();	// Releases attached objects before their controls close.
 		DCO_GMGizmo.SetPreciseMode(false);
 		if (m_PreciseBar)	// unsubscribe from the gizmo's precise-mode invoker before the gizmo stops.
 		{

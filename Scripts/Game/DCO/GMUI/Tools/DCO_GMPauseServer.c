@@ -1,4 +1,4 @@
-// DCO GM Gameplay-panel relay — dedi-safety for the pause sweep + clock.
+// Routes GM pause and clock changes through authority.
 class DCO_GMPauseServer
 {
 	static void RoutePause(int scope, int aspectMask, bool on)
@@ -31,7 +31,7 @@ class DCO_GMPauseServer
 		pc.DCO_SendGMPause(scope, aspectMask, on, RplId.Invalid());
 	}
 
-	static void ApplyPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
+	static int ApplyPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
 	{
 		if (scope == EDCO_PauseScope.SELECTED && on && selectedTargetId.IsValid())
 		{
@@ -44,6 +44,7 @@ class DCO_GMPauseServer
 			DCO_GMPauseCore.Get().Apply(scope, aspectMask, on);
 		}
 		PushPauseState(DCO_GMPauseCore.Get().IsActive());
+		return DCO_GMPauseCore.Get().GetFrozenCount();
 	}
 
 	// Replicate the state on each controller.
@@ -86,6 +87,22 @@ class DCO_GMPauseServer
 class DCO_GMPausePresentationState
 {
 	protected static bool s_bPaused;
-	static void SetPaused(bool paused) { s_bPaused = paused; }
+	protected static bool s_bPending;
+	protected static int s_iFrozenCount = -1;
+	static void SetPaused(bool paused)
+	{
+		s_bPaused = paused;
+		s_bPending = false;
+		s_iFrozenCount = -1;
+	}
+	static void BeginRequest() { s_bPending = true; }
+	static void SetConfirmed(bool paused, int frozenCount)
+	{
+		s_bPaused = paused;
+		s_iFrozenCount = frozenCount;
+		s_bPending = false;
+	}
 	static bool IsPaused() { return s_bPaused; }
+	static bool IsPending() { return s_bPending; }
+	static int GetFrozenCount() { return s_iFrozenCount; }
 }

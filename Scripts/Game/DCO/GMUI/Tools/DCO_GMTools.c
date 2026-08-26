@@ -36,6 +36,7 @@ class DCO_GMTools
 
 	// SIM OPTIONS panel state.
 	protected ref map<IEntity, bool> m_SimOff = new map<IEntity, bool>();	// entities with simulation disabled.
+	protected ref map<IEntity, bool> m_AIOnConfirmed = new map<IEntity, bool>();
 	protected ref map<IEntity, int> m_SavedLayers = new map<IEntity, int>();	// original physics interaction masks.
 
 	// Live mannequin-freeze commands, keyed by the character they are pinning.
@@ -61,6 +62,11 @@ class DCO_GMTools
 		{
 			if (!m_SimOff.GetKey(i))
 				m_SimOff.RemoveElement(i);
+		}
+		for (int i = m_AIOnConfirmed.Count() - 1; i >= 0; i--)
+		{
+			if (!m_AIOnConfirmed.GetKey(i))
+				m_AIOnConfirmed.RemoveElement(i);
 		}
 		for (int i = m_SavedLayers.Count() - 1; i >= 0; i--)
 		{
@@ -302,7 +308,7 @@ class DCO_GMTools
 		if (m_SimOff.Contains(owner) == frozen)
 			return;	// already in the requested state — idempotent.
 
-		// CHARACTERS take a different road: sim-off is specific to vehicle spawnables.
+	// Characters use a command freeze instead of vehicle simulation state.
 		CharacterAnimationComponent anim = CharacterAnimationComponent.Cast(owner.FindComponent(CharacterAnimationComponent));
 		if (anim)
 		{
@@ -358,7 +364,7 @@ class DCO_GMTools
 		SetCharacterFrozen(owner, IsAIOn(owner));	// read the ENGINE, then flip it.
 	}
 
-	// The freeze itself, in one place so "off" is the exact inverse of "on".
+	// Applies or releases the complete character freeze.
 	void SetCharacterFrozen(IEntity owner, bool frozen)
 	{
 		if (!owner)
@@ -369,7 +375,7 @@ class DCO_GMTools
 
 		if (frozen)
 		{
-			// Park FIRST, then stop the brain: while the agent still exists it can be forced to the disabling LOD.
+			// Parks the agent before disabling its AI.
 			AIAgent agent = ctrl.GetAIAgent();
 			if (agent)
 				agent.SetPermanentLOD(AIAgent.GetMaxLOD());
@@ -388,7 +394,7 @@ class DCO_GMTools
 		if (back)
 			back.SetPermanentLOD(-1);
 
-		// HAND STANCE CONTROL BACK.
+		// Returns stance control to the AI.
 		DCO_StanceUtil.SetGMStanceLock(owner, -1);	// <0 releases.
 		BumpStanceSeq(owner);	// stales THIS unit's pending retries only - other units keep theirs.
 
@@ -404,7 +410,7 @@ class DCO_GMTools
 		if (!anim)
 			return;	// not a character - the brain+LOD half above is the whole freeze for a non-character agent.
 
-// Keeps multiplayer pausing authoritative by avoiding simulation controls that are ignored in multiplayer.
+		// Stops movement without client-only simulation controls.
 		CharacterControllerComponent mcc = CharacterControllerComponent.Cast(owner.FindComponent(CharacterControllerComponent));
 		if (mcc)
 			mcc.SetMovement(0, vector.Zero);
@@ -425,7 +431,7 @@ class DCO_GMTools
 		if (!owner)
 			return;
 
-		// Defensive compatibility with a freeze created by an older script revision.
+		// Clears any remaining animation-level freeze.
 		CharacterAnimationComponent anim = CharacterAnimationComponent.Cast(owner.FindComponent(CharacterAnimationComponent));
 		if (anim)
 		{
@@ -439,7 +445,7 @@ class DCO_GMTools
 		if (cmd)
 		{
 			cmd.RequestFinish();
-			// Park the reference instead of dropping it — see m_RetiringFreeze.
+			// Retains the command until its finish request is processed.
 			m_RetiringFreeze.Insert(cmd);
 			GetGame().GetCallqueue().Remove(ClearRetiredFreezes);
 			GetGame().GetCallqueue().CallLater(ClearRetiredFreezes, FREEZE_RETIRE_MS, false);
@@ -562,7 +568,7 @@ class DCO_GMTools
 		DCO_StanceUtil.SetGMStanceLock(owner, stanceOrd);	// GM order beats the autonomous DCO stance systems.
 		bool issued = DCO_StanceUtil.TrySetStance(owner, st, 0);	// 0 = no throttle; a direct order, not a nudge.
 
-		// ONE CLICK MUST BE ONE STANCE CHANGE.
+		// Supersedes retries from earlier stance requests.
 		int stanceSeq = BumpStanceSeq(owner);	// supersedes only THIS entity's pending retries.
 		GetGame().GetCallqueue().CallLater(EnforceStanceTick, STANCE_RETRY_MS, false, owner, stanceOrd, STANCE_RETRY_TRIES, stanceSeq);
 
@@ -641,6 +647,29 @@ class DCO_GMTools
 		return !m_SimOff.Contains(owner);
 	}
 
+	// Apply server acknowledgements to the requesting GM's presentation cache.
+	void MirrorAuthorityState(IEntity owner, int toolId, bool on)
+	{
+		if (!owner)
+			return;
+		if (toolId == DCO_GMToolsServer.TOOL_SIM)
+		{
+			if (on)
+				m_SimOff.Remove(owner);
+			else
+				m_SimOff.Set(owner, true);
+		}
+		else if (toolId == DCO_GMToolsServer.TOOL_COLLISION)
+		{
+			if (on)
+				m_SavedLayers.Remove(owner);
+			else
+				m_SavedLayers.Set(owner, 0);
+		}
+		else if (toolId == DCO_GMToolsServer.TOOL_AI)
+			m_AIOnConfirmed.Set(owner, on);
+	}
+
 	bool IsDamageOn(IEntity owner)
 	{
 		if (!owner)
@@ -649,11 +678,14 @@ class DCO_GMTools
 		return dmg && dmg.IsDamageHandlingEnabled();
 	}
 
-	// Read back from the ENGINE, not from a mirror.
+	// Reads authoritative AI state when no client confirmation exists.
 	bool IsAIOn(IEntity owner)
 	{
 		if (!owner)
 			return false;
+		bool confirmed;
+		if (!Replication.IsServer() && m_AIOnConfirmed.Find(owner, confirmed))
+			return confirmed;
 		AIControlComponent ctrl = AIControlComponent.Cast(owner.FindComponent(AIControlComponent));
 		if (!ctrl)
 			return false;
@@ -689,7 +721,7 @@ class DCO_GMTools
 		return HasPhysics(owner) || IsCharacter(owner);
 	}
 
-	// Collision is honestly NOT toggleable on a character.
+	// Character collision is not safely toggleable.
 	bool CanToggleCollision(IEntity owner)
 	{
 		return HasPhysics(owner) && !IsCharacter(owner);

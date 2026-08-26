@@ -49,6 +49,7 @@ class DCO_GMContextMenuBridge
 	protected SCR_EditableEntityComponent m_Entity;
 	protected vector m_CursorPos;
 	protected int m_Flags;
+	protected bool m_bContextMissingLogged;
 
 	void Init(Widget shellRoot, DCO_GMContextMenu menu)
 	{
@@ -59,14 +60,45 @@ class DCO_GMContextMenuBridge
 		m_Picker = new DCO_GMCreatePlayerPicker();
 		m_Picker.Init(shellRoot, menu);
 
-		m_Ctx = SCR_ContextActionsEditorComponent.Cast(SCR_ContextActionsEditorComponent.GetInstance(SCR_ContextActionsEditorComponent, true));
+		ResolveContextComponent();
+		GetGame().GetCallqueue().CallLater(PollContextComponent, 500, true);
+		Print(string.Format("[DCO-GM] context bridge init (ctx=%1)", m_Ctx != null), LogLevel.NORMAL);
+	}
+
+	protected void PollContextComponent()
+	{
+		ResolveContextComponent();
+	}
+
+	protected bool ResolveContextComponent()
+	{
+		SCR_ContextActionsEditorComponent current = SCR_ContextActionsEditorComponent.Cast(
+			SCR_ContextActionsEditorComponent.GetInstance(SCR_ContextActionsEditorComponent, false));
+		if (current == m_Ctx)
+			return m_Ctx != null;
+
 		if (m_Ctx)
 		{
-			ScriptInvoker inv = m_Ctx.GetOnMenuOpen();
-			if (inv)
-				inv.Insert(OnVanillaMenuOpen);
+			ScriptInvoker oldInvoker = m_Ctx.GetOnMenuOpen();
+			if (oldInvoker)
+				oldInvoker.Remove(OnVanillaMenuOpen);
 		}
-		Print(string.Format("[DCO-GM] context bridge init (ctx=%1)", m_Ctx != null), LogLevel.NORMAL);
+		m_Ctx = current;
+		if (m_Ctx)
+		{
+			ScriptInvoker newInvoker = m_Ctx.GetOnMenuOpen();
+			if (newInvoker)
+				newInvoker.Insert(OnVanillaMenuOpen);
+			Print("[DCO-GM] context bridge bound to current editor-mode context component", LogLevel.NORMAL);
+			m_bContextMissingLogged = false;
+			return true;
+		}
+		if (!m_bContextMissingLogged)
+		{
+			Print("[DCO-GM] context bridge waiting for an active editor-mode context component", LogLevel.WARNING);
+			m_bContextMissingLogged = true;
+		}
+		return false;
 	}
 
 	protected Widget FindVanillaMenu()
@@ -95,6 +127,7 @@ class DCO_GMContextMenuBridge
 
 	void Shutdown()
 	{
+		GetGame().GetCallqueue().Remove(PollContextComponent);
 		if (m_Ctx)
 		{
 			ScriptInvoker inv = m_Ctx.GetOnMenuOpen();
@@ -110,7 +143,7 @@ class DCO_GMContextMenuBridge
 		GetGame().GetCallqueue().Remove(BuildAndShowMenu);
 	}
 
-	// The engine menu is opening on a world right-click -> build + show ours instead, then hide the engine one.
+	// Replaces the engine world menu with Bifrost actions.
 	protected void OnVanillaMenuOpen(notnull array<SCR_BaseEditorAction> actions, vector cursorWorldPosition, out notnull array<ref SCR_EditorActionData> filteredActions, out int flags = 0)
 	{
 		if (!m_Ctx || !m_Menu)
@@ -124,7 +157,7 @@ class DCO_GMContextMenuBridge
 
 	protected void BuildAndShowMenu()
 	{
-		if (!m_Ctx || !m_Menu)
+		if (!ResolveContextComponent() || !m_Menu)
 			return;
 
 		if (ConsumeFreshClaim())

@@ -30,6 +30,7 @@ class DCO_GMGizmo
 	static void SetPreciseMode(bool on)
 	{
 		s_bPreciseMode = on;
+		Print(string.Format("[DCO-GM] precise mode=%1", on), LogLevel.NORMAL);
 		if (s_Inst)
 		{
 			if (on)
@@ -53,7 +54,7 @@ class DCO_GMGizmo
 		return s_Inst.m_Pin != null;
 	}
 
-	// A DELIBERATE pick re-pins the gizmo.
+	// A direct pick re-pins the gizmo.
 	static void NotifyDeliberatePick(SCR_EditableEntityComponent e)
 	{
 		if (!s_bPreciseMode || !s_Inst)
@@ -69,7 +70,7 @@ class DCO_GMGizmo
 	protected EDCO_GizmoSpace m_Space = EDCO_GizmoSpace.WORLD;
 	protected int m_Hover = -1;
 
-	// The PRECISE session pin: the entity the gizmo stays locked to until a deliberate exit.
+	// Holds the precise target until exit.
 	protected SCR_EditableEntityComponent m_Pin;
 
 	// Grid snap.
@@ -89,13 +90,15 @@ class DCO_GMGizmo
 	protected vector  m_StartOrigin;
 	protected IEntity m_DragOwner;
 
-	// The axis basis FROZEN at grab.
+	// Holds the grab-time axis basis.
 	protected vector m_GrabAxes[3];
 
 	// ROTATE drag state.
 	protected vector m_StartMat[4];	// target's world transform at grab.
 	protected float  m_GrabAngle;
 	protected bool   m_bGrabAngleOk;
+	protected bool   m_bWasRenderingTarget;
+	protected int    m_iLastNoTargetDiagAt;
 
 	static const float SCREEN_K = 0.14;
 	static const float VERT_MOTION_EPS = 0.3;
@@ -318,7 +321,7 @@ class DCO_GMGizmo
 		axes[2] = z;
 	}
 
-	// Handle length scaled by camera distance so the gizmo looks constant on-screen at any zoom.
+	// Keeps handle size stable across camera zoom.
 	protected bool ScreenScaledLength(vector origin, out float len)
 	{
 		SCR_ManualCamera cam = SCR_CameraEditorComponent.GetCameraInstance();
@@ -500,6 +503,13 @@ class DCO_GMGizmo
 		if (!m_Target)
 		{
 			PanelHide();
+			int now = System.GetTickCount();
+			if (m_bWasRenderingTarget || now - m_iLastNoTargetDiagAt >= 5000)
+			{
+				Print("[DCO-GM] precise renderer waiting: select exactly one movable entity", LogLevel.NORMAL);
+				m_iLastNoTargetDiagAt = now;
+			}
+			m_bWasRenderingTarget = false;
 			return;
 		}
 		IEntity owner = m_Target.GetOwner();
@@ -508,6 +518,9 @@ class DCO_GMGizmo
 			PanelHide();
 			return;
 		}
+		if (!m_bWasRenderingTarget)
+			Print("[DCO-GM] precise renderer drawing target: " + m_Target.GetDisplayName(), LogLevel.NORMAL);
+		m_bWasRenderingTarget = true;
 
 		if (DCO_GMAttach.IsArmed())
 		{

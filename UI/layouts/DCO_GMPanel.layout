@@ -4,12 +4,21 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
  Anchor 0 0 1 1
  }
  {
-  FrameWidgetClass "{DCOA100000000001}" {
+  FrameWidgetClass "{DC0A100000000001}" {
    Name "DCO_AIRoleMarkerLayer"
-   Slot FrameWidgetSlot "{DCOA100000000002}" {
+   Slot FrameWidgetSlot "{DC0A100000000002}" {
     Anchor 0 0 1 1
    }
    "Ignore Cursor" 1
+   {
+    CanvasWidgetClass "{DC0A100000000003}" {
+     Name "DCO_WorldCueCanvas"
+     Slot FrameWidgetSlot "{DC0A100000000004}" {
+      Anchor 0 0 1 1
+     }
+     "Ignore Cursor" 1
+    }
+   }
   }
   FrameWidgetClass "{0DC0000000001866}" {
    Name "DCO_NametagLayer"
@@ -12586,9 +12595,9 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
      VerticalAlign 0
      }
      {
-      SizeLayoutWidgetClass "{DCOF100000000001}" {
+      SizeLayoutWidgetClass "{DC0F100000000001}" {
        Name "DCO_MenuHeaderHost"
-       Slot LayoutSlot "{DCOF100000000002}" {
+       Slot LayoutSlot "{DC0F100000000002}" {
         Padding 2 2 2 3
         HorizontalAlign 3
        }
@@ -12597,42 +12606,42 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        AllowHeightOverride 1
        HeightOverride 34
        {
-        OverlayWidgetClass "{DCOF100000000003}" {
+        OverlayWidgetClass "{DC0F100000000003}" {
          Name "DCO_MenuHeader"
-         Slot AlignableSlot "{DCOF100000000004}" {
+         Slot AlignableSlot "{DC0F100000000004}" {
           HorizontalAlign 3
           VerticalAlign 3
          }
          {
-          ImageWidgetClass "{DCOF100000000005}" {
+          ImageWidgetClass "{DC0F100000000005}" {
            Name "DCO_MenuHeaderBand"
-           Slot OverlayWidgetSlot "{DCOF100000000006}" {
+           Slot OverlayWidgetSlot "{DC0F100000000006}" {
             HorizontalAlign 3
             VerticalAlign 3
            }
            Color 0.851 0.537 0.169 0.13
           }
-          ImageWidgetClass "{DCOF100000000007}" {
+          ImageWidgetClass "{DC0F100000000007}" {
            Name "DCO_MenuHeaderRail"
-           Slot OverlayWidgetSlot "{DCOF100000000008}" {
+           Slot OverlayWidgetSlot "{DC0F100000000008}" {
             HorizontalAlign 0
             VerticalAlign 3
            }
            Color 0.851 0.537 0.169 1
            Size 3 0
           }
-          ImageWidgetClass "{DCOF100000000009}" {
+          ImageWidgetClass "{DC0F100000000009}" {
            Name "DCO_MenuHeaderRule"
-           Slot OverlayWidgetSlot "{DCOF10000000000A}" {
+           Slot OverlayWidgetSlot "{DC0F10000000000A}" {
             HorizontalAlign 3
             VerticalAlign 2
            }
            Color 0.851 0.537 0.169 0.85
            Size 0 1
           }
-          TextWidgetClass "{DCOF10000000000B}" {
+          TextWidgetClass "{DC0F10000000000B}" {
            Name "DCO_MenuTitle"
-           Slot OverlayWidgetSlot "{DCOF10000000000C}" {
+           Slot OverlayWidgetSlot "{DC0F10000000000C}" {
             HorizontalAlign 0
             VerticalAlign 1
             Padding 13 0 34 0
@@ -12987,9 +12996,9 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         }
        }
       }
-      ImageWidgetClass "{DCOF10000000000F}" {
+      ImageWidgetClass "{DC0F10000000000F}" {
        Name "DCO_MenuFootRule"
-       Slot LayoutSlot "{DCOF100000000010}" {
+       Slot LayoutSlot "{DC0F100000000010}" {
         Padding 2 3 2 2
         HorizontalAlign 3
        }

@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased development candidate
+## 1.0.1 - 2026-08-26
+
+- Fixed dedicated-server simulation pause authority, replication, reconnect, and join-in-progress state.
+- Restored client-visible precision controls, tactical overlays, AI vision, and navigation paths without diagnostic shapes.
+- Fixed right-click and Escape editor lifecycle handling.
+- Added paging and authored symbols for modded factions.
+- Reduced role marker updates and prevented opacity settings from obscuring text and icons.
 
 - Consolidated the current Bifrost Game Master interface and scenario-editing feature set.
 - Added tactical AI, effects, trigger, arsenal, overlay, and precise-transform systems.

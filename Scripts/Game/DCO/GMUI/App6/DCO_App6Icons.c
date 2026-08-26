@@ -34,7 +34,7 @@ class DCO_App6Icons
 		return ResourceName.Empty;	// vehicle / object / system -> caller keeps the engine editor icon.
 	}
 
-	// Convenience: the APP-6 / role icon for a LIVE editable entity, extracting labels/name/faction/type from its UIInfo.
+	// Returns the best symbol for an editable entity.
 	static ResourceName ForEntity(SCR_EditableEntityComponent e)
 	{
 		if (!e)
@@ -49,7 +49,62 @@ class DCO_App6Icons
 
 	static ResourceName FactionIcon(FactionKey faction)
 	{
+		FactionManager manager = GetGame().GetFactionManager();
+		if (manager)
+		{
+			SCR_Faction authoredFaction = SCR_Faction.Cast(manager.GetFactionByKey(faction));
+			if (authoredFaction)
+			{
+				UIInfo uiInfo = authoredFaction.GetUIInfo();
+				if (uiInfo && !uiInfo.GetIconPath().IsEmpty())
+					return uiInfo.GetIconPath();
+				ResourceName flag = authoredFaction.GetFactionFlag();
+				if (!flag.IsEmpty())
+					return flag;
+			}
+		}
 		return DCO_App6Symbols.Get(AffilOf(faction) + "_FACTION");
+	}
+
+	// Prefers authored faction art before built-in fallbacks.
+	static bool SetFactionIcon(ImageWidget image, FactionKey faction, out string source)
+	{
+		source = "none";
+		if (!image)
+			return false;
+
+		FactionManager manager = GetGame().GetFactionManager();
+		if (manager)
+		{
+			SCR_Faction authoredFaction = SCR_Faction.Cast(manager.GetFactionByKey(faction));
+			if (authoredFaction)
+			{
+				UIInfo rawInfo = authoredFaction.GetUIInfo();
+				SCR_UIInfo authoredInfo;
+				if (rawInfo)
+					authoredInfo = SCR_UIInfo.CreateInfo(rawInfo);
+				if (authoredInfo && authoredInfo.HasIcon() && authoredInfo.SetIconTo(image))
+				{
+					source = "authored UIInfo icon";
+					return true;
+				}
+
+				ResourceName flag = authoredFaction.GetFactionFlag();
+				if (!flag.IsEmpty() && image.LoadImageTexture(0, flag))
+				{
+					source = "faction flag fallback";
+					return true;
+				}
+			}
+		}
+
+		ResourceName app6 = DCO_App6Symbols.Get(AffilOf(faction) + "_FACTION");
+		if (!app6.IsEmpty() && image.LoadImageTexture(0, app6))
+		{
+			source = "APP-6 fallback";
+			return true;
+		}
+		return false;
 	}
 
 

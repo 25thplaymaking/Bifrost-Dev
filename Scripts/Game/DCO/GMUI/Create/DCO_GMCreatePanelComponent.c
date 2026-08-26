@@ -16,7 +16,7 @@ class DCO_CreatePanelButtonHandler : ScriptedWidgetEventHandler
 		return false;
 	}
 
-	// Hover preview plumbing: enter arms the delayed popup for item rows; leave cancels/hides it.
+// Delays item previews until hover settles.
 	override bool OnMouseEnter(Widget w, int x, int y)
 	{
 		if (m_Owner)
@@ -142,6 +142,7 @@ class DCO_GMCreatePanelComponent
 
 	protected ref array<ref DCO_CatalogRow> m_QueryRows = {};
 	protected ref array<FactionKey> m_FactionKeys = {};
+	protected int m_FactionPage;
 
 	protected int m_Category = DCO_PlacementCatalog.CAT_ALL;
 	protected FactionKey m_Faction = "";
@@ -351,7 +352,7 @@ class DCO_GMCreatePanelComponent
 			Refresh();
 	}
 
-	// Bottom utility rail action: repeat the last placement through the exact same native placing pipeline as a row click.
+	// Repeats the last placement through the native placement path.
 	bool RepeatLastPlacement()
 	{
 		if (!m_Catalog || m_LastPlacedPrefab.IsEmpty())
@@ -378,64 +379,114 @@ class DCO_GMCreatePanelComponent
 		m_Budget.Init(m_wBrowser);
 
 		m_Catalog.GetFactionKeys(m_FactionKeys);
-		int shown = 0;
-		for (int i = 0; i < m_FacBtns.Count(); i++)
-		{
-			ButtonWidget b = m_FacBtns[i];
-			TextWidget lbl = m_FacLabels[i];
-			if (i == 0)
-			{
-				if (lbl)
-				{
-					lbl.SetText("ALL");
-					lbl.SetColor(DCO_GMTheme.Get().m_AccentColor);
-				}
-				if (b) b.SetVisible(true);
-				continue;
-			}
-			int fidx = i - 1;
-			if (fidx < m_FactionKeys.Count())
-			{
-				FactionKey key = m_FactionKeys[fidx];
-				if (lbl)
-				{
-					lbl.SetText(m_Catalog.GetFactionTabLabel(key));
-					lbl.SetColor(m_Catalog.GetFactionColor(key));
-				}
-				ImageWidget ic = ImageWidget.Cast(m_wBrowser.FindAnyWidget(string.Format("DCO_Fac_%1_Icon", i)));
-				if (ic)
-				{
-					ResourceName tex = DCO_App6Icons.FactionIcon(key);
-					if (!tex.IsEmpty() && ic.LoadImageTexture(0, tex))
-					{
-						ic.SetColor(Color.FromRGBA(255, 255, 255, 255));	// frame carries its own affiliation colour.
-						ic.SetSize(22, 22);	// bigger than the old 12px inline chip - it IS the tab now.
-						ic.SetVisible(true);
-						if (lbl)
-							lbl.SetVisible(false);	// icons only.
-					}
-					else
-					{
-						ic.SetVisible(false);
-						ic = null;	// highlight falls back to the label for this slot.
-					}
-				}
-				if (i < m_FacIcons.Count())
-					m_FacIcons[i] = ic;
-				if (b) b.SetVisible(true);
-				shown++;
-			}
-			else if (b)
-			{
-				b.SetVisible(false);	// no faction for this slot.
-			}
-		}
+		m_FactionPage = 0;
+		BindFactionPage();
 		if (m_FactionKeys.Count() > FAC_SLOTS - 1)
-			Print(string.Format("[DCO-GM] CREATE: %1 factions, swatch pool shows %2 (rest reachable via ALL + search)", m_FactionKeys.Count(), FAC_SLOTS - 1), LogLevel.NORMAL);
+			Print(string.Format("[DCO-GM] CREATE: %1 factions across %2 switchable pages", m_FactionKeys.Count(), FactionPageCount()), LogLevel.NORMAL);
 
 		HighlightCategory();
 		HighlightFaction(0);	// default selection = ALL; dims the unselected faction logos.
 		UpdateCategoryCounts();
+	}
+
+	protected int FactionPageSize()
+	{
+		if (m_FactionKeys.Count() > FAC_SLOTS - 1)
+			return FAC_SLOTS - 2;	// ALL + five factions + MORE.
+		return FAC_SLOTS - 1;
+	}
+
+	protected int FactionPageCount()
+	{
+		int size = FactionPageSize();
+		if (size <= 0)
+			return 1;
+		return Math.Max(1, (m_FactionKeys.Count() + size - 1) / size);
+	}
+
+	protected bool IsFactionMoreSlot(int slot)
+	{
+		return m_FactionKeys.Count() > FAC_SLOTS - 1 && slot == FAC_SLOTS - 1;
+	}
+
+	protected void BindFactionPage()
+	{
+		int pageSize = FactionPageSize();
+		int offset = m_FactionPage * pageSize;
+		for (int i = 0; i < m_FacBtns.Count(); i++)
+		{
+			ButtonWidget button = m_FacBtns[i];
+			TextWidget label = m_FacLabels[i];
+			ImageWidget icon = ImageWidget.Cast(m_wBrowser.FindAnyWidget(string.Format("DCO_Fac_%1_Icon", i)));
+			if (i < m_FacIcons.Count())
+				m_FacIcons[i] = null;
+
+			if (i == 0)
+			{
+				if (label)
+				{
+					label.SetText("ALL");
+					label.SetVisible(true);
+				}
+				if (icon)
+					icon.SetVisible(false);
+				if (button)
+					button.SetVisible(true);
+				continue;
+			}
+
+			if (IsFactionMoreSlot(i))
+			{
+				if (icon)
+					icon.SetVisible(false);
+				if (label)
+				{
+					label.SetText(string.Format("%1/%2  >", m_FactionPage + 1, FactionPageCount()));
+					label.SetColor(DCO_GMTheme.Get().m_AccentColor);
+					label.SetVisible(true);
+				}
+				if (button)
+					button.SetVisible(true);
+				continue;
+			}
+
+			int factionIndex = offset + i - 1;
+			if (factionIndex < 0 || factionIndex >= m_FactionKeys.Count())
+			{
+				if (button)
+					button.SetVisible(false);
+				if (icon)
+					icon.SetVisible(false);
+				continue;
+			}
+
+			FactionKey key = m_FactionKeys[factionIndex];
+			if (label)
+			{
+				label.SetText(m_Catalog.GetFactionTabLabel(key));
+				label.SetColor(m_Catalog.GetFactionColor(key));
+				label.SetVisible(true);
+			}
+			if (icon)
+			{
+				string iconSource;
+				if (DCO_App6Icons.SetFactionIcon(icon, key, iconSource))
+				{
+					icon.SetColor(Color.FromRGBA(255, 255, 255, 255));
+					icon.SetSize(22, 22);
+					icon.SetVisible(true);
+					Print(string.Format("[DCO-GM] faction tab icon: key=%1 source=%2", key, iconSource), LogLevel.NORMAL);
+					if (label)
+						label.SetVisible(false);
+					if (i < m_FacIcons.Count())
+						m_FacIcons[i] = icon;
+				}
+				else
+					icon.SetVisible(false);
+			}
+			if (button)
+				button.SetVisible(true);
+		}
 	}
 
 	// Re-run the query and repaint from the top.
@@ -493,7 +544,7 @@ class DCO_GMCreatePanelComponent
 		}
 	}
 
-	// The header band doubles as a breadcrumb: "CREATE · MEN · US" always names the active category tab and faction filter.
+	// Shows the active category and faction.
 	protected void UpdateHeaderCrumb()
 	{
 		TextWidget head = TextWidget.Cast(m_wBrowser.FindAnyWidget("DCO_CreateHeader"));
@@ -717,17 +768,26 @@ class DCO_GMCreatePanelComponent
 				if (bud) bud.SetText("");
 				if (ico)
 				{
-					ResourceName fico = FolderIcon(row);
-					if (!fico.IsEmpty())
+					bool factionIconLoaded;
+					if (row.m_Level == 1)
 					{
-						if (m_RowLoadedIcons[r] != fico)
+						string factionIconSource;
+						factionIconLoaded = DCO_App6Icons.SetFactionIcon(ico, row.m_Faction, factionIconSource);
+					}
+					ResourceName fico;
+					if (!factionIconLoaded)
+						fico = FolderIcon(row);
+					if (factionIconLoaded || !fico.IsEmpty())
+					{
+						if (!factionIconLoaded && m_RowLoadedIcons[r] != fico)
 						{
 							ico.LoadImageTexture(0, fico);
 							m_RowLoadedIcons[r] = fico;
 						}
-						// Level 1 folders are FACTIONS, and FolderIcon hands back an APP-6 affiliation symbol whose blue/red/green IS the information.
+						if (factionIconLoaded)
+							m_RowLoadedIcons[r] = ResourceName.Empty;
 						if (row.m_Level == 1)
-							ico.SetColor(Color.FromRGBA(255, 255, 255, 255));	// white multiply - show the symbol's own affiliation colour.
+							ico.SetColor(Color.FromRGBA(255, 255, 255, 255));
 						else
 							ico.SetColor(theme.m_AccentColor);
 						ico.SetVisible(true);
@@ -826,12 +886,18 @@ class DCO_GMCreatePanelComponent
 		{
 			if (w == m_FacBtns[i])
 			{
+				if (IsFactionMoreSlot(i))
+				{
+					m_FactionPage = (m_FactionPage + 1) % FactionPageCount();
+					BindFactionPage();
+					HighlightFaction(-1);
+					return true;
+				}
 				SelectFaction(i);
 				Refresh();
 				return true;
 			}
 		}
-		// (Pagination removed — the list scrolls now.
 		for (int r = 0; r < m_RowBtns.Count(); r++)
 		{
 			if (w == m_RowBtns[r])
@@ -909,7 +975,7 @@ class DCO_GMCreatePanelComponent
 		}
 	}
 
-	// The mouse rested on a row long enough - show the entity photo in the framed popup beside the panel.
+	// Shows the hovered entity preview.
 	protected void ShowHoverPreview()
 	{
 		int r = m_HoverRow;
@@ -967,7 +1033,7 @@ class DCO_GMCreatePanelComponent
 		}
 		else
 		{
-			int fidx = facIdx - 1;
+			int fidx = m_FactionPage * FactionPageSize() + facIdx - 1;
 			if (fidx >= 0 && fidx < m_FactionKeys.Count())
 				m_Faction = m_FactionKeys[fidx];
 			else
@@ -1004,7 +1070,7 @@ class DCO_GMCreatePanelComponent
 		return "";
 	}
 
-	// Faction logos keep their own affiliation colours, so selection is shown by OPACITY: selected = full, others dimmed.
+	// Uses opacity so faction artwork keeps its authored colour.
 	protected void HighlightFaction(int selIdx)
 	{
 		DCO_GMTheme theme = DCO_GMTheme.Get();
@@ -1034,7 +1100,7 @@ class DCO_GMCreatePanelComponent
 				lbl.SetColor(theme.m_TextColor);
 				continue;
 			}
-			int fidx = i - 1;
+			int fidx = m_FactionPage * FactionPageSize() + i - 1;
 			if (fidx >= 0 && fidx < m_FactionKeys.Count())
 				lbl.SetColor(m_Catalog.GetFactionColor(m_FactionKeys[fidx]));
 		}
