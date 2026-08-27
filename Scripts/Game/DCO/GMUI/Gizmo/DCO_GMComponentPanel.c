@@ -94,6 +94,7 @@ class DCO_GMComponentPanel
 	protected ref DCO_SimCloseHandler m_CloseHandler;
 
 	protected bool m_bOpen;
+	protected IEntity m_AuthorityStateTarget;
 
 	void Init(Widget root)
 	{
@@ -180,13 +181,17 @@ class DCO_GMComponentPanel
 	// Open/close.
 	void SetOpen(bool open)
 	{
+		bool wasOpen = m_bOpen;
 		m_bOpen = open;
 		if (m_wPanel)
 			m_wPanel.SetVisible(open);
+		if (!open && wasOpen)
+			DCO_GMUIController.ReleaseMenuFocus();
 
 		GetGame().GetCallqueue().Remove(Refresh);
 		if (open)
 		{
+			m_AuthorityStateTarget = null;
 			Refresh();	// paint immediately so the panel is never blank for a frame.
 			GetGame().GetCallqueue().CallLater(Refresh, REFRESH_MS, true);
 		}
@@ -289,6 +294,11 @@ class DCO_GMComponentPanel
 			return;
 
 		IEntity owner = TargetOwner();
+		if (owner != m_AuthorityStateTarget)
+		{
+			m_AuthorityStateTarget = owner;
+			DCO_GMToolsServer.RequestAuthorityState(owner);
+		}
 
 		if (m_wTargetLabel)
 		{

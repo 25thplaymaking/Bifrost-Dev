@@ -103,6 +103,15 @@ class DCO_GMPreciseBar
 			m_SimPanel.SetOpen(false);
 	}
 
+	bool CloseForBack()
+	{
+		if (!m_SimPanel || !m_SimPanel.IsOpen())
+			return false;
+		m_SimPanel.SetOpen(false);
+		RefreshModeTint();
+		return true;
+	}
+
 	bool OnButton(Widget w)
 	{
 		if (w == m_btnMove)

@@ -33,10 +33,33 @@ class DCO_GMUIController
 	protected int m_iViewportH;
 
 	protected static DCO_GMUIController s_Instance;
+	protected static int s_iPauseSuppressedUntil;
+	protected static const int PAUSE_SUPPRESS_MS = 200;
 
 	static bool IsActive()
 	{
 		return s_Instance != null && s_Instance.m_bBuilt;
+	}
+
+	static void ReleaseMenuFocus()
+	{
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (workspace)
+			workspace.SetFocusedWidget(null, true);
+	}
+
+	static bool ShouldSuppressPauseOpen()
+	{
+		int now = System.GetTickCount();
+		if (s_iPauseSuppressedUntil > now)
+			return true;
+		if (!s_Instance || !s_Instance.CloseTopCaptivatingMenu())
+		{
+			s_iPauseSuppressedUntil = 0;
+			return false;
+		}
+		s_iPauseSuppressedUntil = now + PAUSE_SUPPRESS_MS;
+		return true;
 	}
 
 	static void RevealInCreate(string name)
@@ -108,6 +131,85 @@ class DCO_GMUIController
 		Evaluate();
 	}
 
+	protected void AddMenuActionListeners()
+	{
+		InputManager im = GetGame().GetInputManager();
+		if (!im)
+			return;
+		im.AddActionListener(UIConstants.MENU_ACTION_OPEN, EActionTrigger.DOWN, OnMenuAction);
+		im.AddActionListener(UIConstants.MENU_ACTION_BACK, EActionTrigger.DOWN, OnMenuAction);
+		#ifdef WORKBENCH
+		im.AddActionListener(UIConstants.MENU_ACTION_OPEN_WB, EActionTrigger.DOWN, OnMenuAction);
+		im.AddActionListener(UIConstants.MENU_ACTION_BACK_WB, EActionTrigger.DOWN, OnMenuAction);
+		#endif
+	}
+
+	protected void RemoveMenuActionListeners()
+	{
+		InputManager im = GetGame().GetInputManager();
+		if (!im)
+			return;
+		im.RemoveActionListener(UIConstants.MENU_ACTION_OPEN, EActionTrigger.DOWN, OnMenuAction);
+		im.RemoveActionListener(UIConstants.MENU_ACTION_BACK, EActionTrigger.DOWN, OnMenuAction);
+		#ifdef WORKBENCH
+		im.RemoveActionListener(UIConstants.MENU_ACTION_OPEN_WB, EActionTrigger.DOWN, OnMenuAction);
+		im.RemoveActionListener(UIConstants.MENU_ACTION_BACK_WB, EActionTrigger.DOWN, OnMenuAction);
+		#endif
+	}
+
+	protected void OnMenuAction(float value, EActionTrigger reason)
+	{
+		int now = System.GetTickCount();
+		if (s_iPauseSuppressedUntil > now)
+			return;
+		if (CloseTopCaptivatingMenu())
+		{
+			InputManager im = GetGame().GetInputManager();
+			if (im)
+			{
+				im.SetActionValue(UIConstants.MENU_ACTION_OPEN, 0);
+				im.SetActionValue(UIConstants.MENU_ACTION_BACK, 0);
+				#ifdef WORKBENCH
+				im.SetActionValue(UIConstants.MENU_ACTION_OPEN_WB, 0);
+				im.SetActionValue(UIConstants.MENU_ACTION_BACK_WB, 0);
+				#endif
+			}
+			s_iPauseSuppressedUntil = now + PAUSE_SUPPRESS_MS;
+		}
+	}
+
+	protected bool CloseTopCaptivatingMenu()
+	{
+		// The full-screen outside-click catcher is always the topmost captor.
+		if (m_Menu && m_Menu.IsOpen())
+		{
+			m_Menu.Hide();
+			return true;
+		}
+		if (DCO_GMTutorial.IsOpen())
+		{
+			DCO_GMTutorial.Close();
+			return true;
+		}
+		if (DCO_GMArsenalPanel.Get().IsOpen())
+		{
+			DCO_GMArsenalPanel.Get().CloseSilent();
+			return true;
+		}
+		if (m_Scenario && m_Scenario.CloseForBack())
+			return true;
+		if (DCO_GMTacticsPanel.Get().IsOpen())
+		{
+			DCO_GMTacticsPanel.Get().CloseSilent();
+			return true;
+		}
+		if (m_PreciseBar && m_PreciseBar.CloseForBack())
+			return true;
+		if (m_Options && m_Options.CloseForBack())
+			return true;
+		return false;
+	}
+
 	// Build for mouse+keyboard, tear down for gamepad.
 	protected void Evaluate()
 	{
@@ -157,6 +259,7 @@ class DCO_GMUIController
 
 		DCO_GMTacticsPanel.Get().Init(m_wRoot);
 		DCO_GMTacticsFlow.Get().Init(m_wRoot);
+		DCO_ArsenalAccessPlacement.Get().Init();
 
 		DCO_GMArsenalPanel.Get().Init(m_wRoot);
 
@@ -314,6 +417,7 @@ class DCO_GMUIController
 		}
 
 		AddMasterHideListener();
+		AddMenuActionListeners();
 
 		m_PeelAttempts = 0;
 		GetGame().GetCallqueue().CallLater(PeelVanillaPoll, 100, true);
@@ -757,6 +861,8 @@ class DCO_GMUIController
 
 	protected void Teardown()
 	{
+		RemoveMenuActionListeners();
+		s_iPauseSuppressedUntil = 0;
 		RemoveMasterHideListener();
 		DCO_GMTheme.Get().ClearMasterHide();	// restore parked world-cue state before the shell lifetime ends.
 		GetGame().GetCallqueue().Remove(PeelVanillaPoll);	// stop the peel poll if it's still running.
@@ -837,6 +943,7 @@ class DCO_GMUIController
 			m_Bridge.Shutdown();
 			m_Bridge = null;
 		}
+		DCO_ArsenalAccessPlacement.Get().Shutdown();
 		DCO_GMTacticsFlow.Get().Shutdown();	// disarm any in-flight placement before its widgets die.
 		DCO_GMTacticsPanel.Get().Shutdown();
 		DCO_GMArsenalPanel.Get().Shutdown();

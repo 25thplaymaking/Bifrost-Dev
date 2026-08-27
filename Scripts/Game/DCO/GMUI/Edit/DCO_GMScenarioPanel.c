@@ -1456,8 +1456,24 @@ class DCO_GMScenarioPanel
 		RenderAttributes(m_aSessionAttributes, true);
 	}
 
+	bool CloseForBack()
+	{
+		if (!m_bOpen)
+			return false;
+		if (m_wPresetMenu && m_wPresetMenu.IsVisible())
+		{
+			m_wPresetMenu.SetVisible(false);
+			return true;
+		}
+		SetOpen(false);
+		return true;
+	}
+
 	protected void SetOpen(bool open)
 	{
+		bool wasOpen = m_bOpen;
+		if (!open && wasOpen)
+			DCO_GMUIController.ReleaseMenuFocus();
 		m_bOpen = open;
 		if (m_wPanel)
 			m_wPanel.SetVisible(open);

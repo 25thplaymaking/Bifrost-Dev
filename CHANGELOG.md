@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 1.0.25 - 2026-08-26
+
+- Added a GM-placeable Arsenal Access system that attaches a replicated F interaction to placed items, vehicles, and other editable entities.
+- Restored mouse-wheel scrolling and correctly sized content in both Edit Loadout arsenal columns.
+- Repaired Escape, close-button, and focus release handling across Bifrost menus so leaving one menu does not block the others.
+- Restored dedicated-server AI resume by retaining and reapplying each paused entity's authoritative pre-pause state.
+- Routed precise transform previews and commits through the replicated editable-entity path.
+- Shortened the CREATE deployment prompt so it remains readable at the bottom of the panel.
+- Added per-order completion radius and approach controls, including Tactical, Rush, Charge, DCO Flank, and DCO Covered behaviours.
+
 ## 1.0.23 - 2026-08-26
 
 - Added visible draggable scrollbars and reliable wheel capture to both Edit Loadout columns.

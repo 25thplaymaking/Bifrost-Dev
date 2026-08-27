@@ -49,6 +49,16 @@ class DCO_GMToolsServer
 		pc.DCO_SendGMTool(toolId, rpl.Id(), pos);
 	}
 
+	static void RequestAuthorityState(IEntity target)
+	{
+		if (!target || Replication.IsServer())
+			return;
+		SCR_PlayerController pc = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		RplComponent rpl = RplComponent.Cast(target.FindComponent(RplComponent));
+		if (pc && rpl && rpl.Id().IsValid())
+			pc.DCO_RequestGMToolState(rpl.Id());
+	}
+
 	// Server side: resolve the wire id back to the entity and apply.
 	static bool Apply(int toolId, RplId targetId, vector pos, out bool confirmedState)
 	{
@@ -108,39 +118,42 @@ class DCO_GMToolsServer
 	}
 
 
-	// Client-side entry: write the object's transform on the authority.
-	static void RouteTransform(IEntity target, vector pos, vector anglesDeg)
+	// Client-side entry: route the editable entity's transform through server authority.
+	static void RouteTransform(IEntity target, vector pos, vector anglesDeg, bool finalCommit = true)
 	{
 		if (!target)
+			return;
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(target.FindComponent(SCR_EditableEntityComponent));
+		if (!editable)
 			return;
 
 		if (Replication.IsServer())
 		{
-			SetEntityTransform(target, pos, anglesDeg);	// listen/SP: proven direct path.
+			ApplyTransform(editable, pos, anglesDeg, finalCommit);
 			return;
 		}
 
 		SCR_PlayerController pc = SCR_PlayerController.Cast(GetGame().GetPlayerController());
 		if (!pc)
 			return;
-		RplComponent rpl = RplComponent.Cast(target.FindComponent(RplComponent));
-		if (!rpl || !rpl.Id().IsValid())
+		RplId editableId;
+		if (!editable.IsReplicated(editableId) || !editableId.IsValid())
 			return;	// local-only entity has nothing to move on the server.
-		pc.DCO_SendGMTransform(rpl.Id(), pos, anglesDeg);
+		pc.DCO_SendGMTransform(editableId, pos, anglesDeg, finalCommit);
 	}
 
-	// Server side: resolve the wire id and apply the transform.
-	static void ApplyTransform(RplId targetId, vector pos, vector anglesDeg)
+	// Server side: resolve the editable component and use its replicated transform path.
+	static void ApplyTransform(RplId editableId, vector pos, vector anglesDeg, bool finalCommit)
 	{
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
-		if (!rpl)
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(editableId));
+		if (!editable)
 			return;
-		SetEntityTransform(rpl.GetEntity(), pos, anglesDeg);
+		ApplyTransform(editable, pos, anglesDeg, finalCommit);
 	}
 
-	static void SetEntityTransform(IEntity target, vector pos, vector anglesDeg)
+	protected static void ApplyTransform(SCR_EditableEntityComponent editable, vector pos, vector anglesDeg, bool finalCommit)
 	{
-		if (!target)
+		if (!editable || !editable.GetOwner())
 			return;
 		vector rot[3];
 		Math3D.AnglesToMatrix(anglesDeg, rot);
@@ -149,19 +162,8 @@ class DCO_GMToolsServer
 		mat[1] = rot[1];
 		mat[2] = rot[2];
 		mat[3] = pos;
-		float sc = target.GetScale();
-		BaseGameEntity bge = BaseGameEntity.Cast(target);
-		if (bge)
-			bge.Teleport(mat);
-		else
-			target.SetWorldTransform(mat);
-		target.SetScale(sc);
-		Physics ph = target.GetPhysics();
-		if (ph)
-			ph.SetVelocity(vector.Zero);
-		target.Update();
-
-		DCO_GMTools.Get().ReanchorFrozen(target);
+		if (editable.SetTransform(mat, finalCommit))
+			DCO_GMTools.Get().ReanchorFrozen(editable.GetOwner());
 	}
 }
 
@@ -218,6 +220,35 @@ modded class SCR_PlayerController
 		Print(string.Format("[DCO-GM] tool authority ACK: tool=%1 target=%2 state=%3", toolId, targetId, confirmedState), LogLevel.NORMAL);
 	}
 
+	void DCO_RequestGMToolState(RplId targetId)
+	{
+		Rpc(DCO_RpcRequestGMToolState, targetId);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcRequestGMToolState(RplId targetId)
+	{
+		if (!DCO_GMRights.Allow(GetPlayerId(), "GM tool state"))
+			return;
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
+		if (!rpl)
+			return;
+		IEntity target = rpl.GetEntity();
+		DCO_GMTools tools = DCO_GMTools.Get();
+		Rpc(DCO_RpcGMToolState, targetId, tools.IsSimOn(target), tools.IsAIOn(target));
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMToolState(RplId targetId, bool simOn, bool aiOn)
+	{
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
+		if (!rpl)
+			return;
+		IEntity target = rpl.GetEntity();
+		DCO_GMTools.Get().MirrorAuthorityState(target, DCO_GMToolsServer.TOOL_SIM, simOn);
+		DCO_GMTools.Get().MirrorAuthorityState(target, DCO_GMToolsServer.TOOL_AI, aiOn);
+	}
+
 	// Relays gameplay pause and clock controls.
 	void DCO_SendGMPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
 	{
@@ -227,9 +258,21 @@ modded class SCR_PlayerController
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
 	{
-		if (on && !DCO_GMRights.Allow(GetPlayerId(), "GM pause"))
+		int playerId = GetPlayerId();
+		DCO_GMPauseCore pauseCore = DCO_GMPauseCore.Get();
+		if (on)
+		{
+			if (!DCO_GMRights.Allow(playerId, "GM pause"))
+				return;
+		}
+		else if (!DCO_GMRights.IsGameMaster(playerId) && !pauseCore.IsRequestOwner(playerId))
+		{
+			Print(string.Format("[DCO-GM] REFUSED GM resume from player %1 - not the active pause owner", playerId), LogLevel.WARNING);
 			return;
+		}
 		int frozenCount = DCO_GMPauseServer.ApplyPause(scope, aspectMask, on, selectedTargetId);
+		if (on && frozenCount > 0)
+			pauseCore.NoteRequestOwner(playerId);
 		Rpc(DCO_RpcGMPauseConfirmed, frozenCount > 0, frozenCount);
 	}
 
@@ -326,17 +369,17 @@ modded class SCR_PlayerController
 		DCO_GMGroupOrders.ApplyRelayed(groupId, actionId);
 	}
 
-	void DCO_SendGMTransform(RplId targetId, vector pos, vector anglesDeg)
+	void DCO_SendGMTransform(RplId editableId, vector pos, vector anglesDeg, bool finalCommit)
 	{
-		Rpc(DCO_RpcGMTransform, targetId, pos, anglesDeg);
+		Rpc(DCO_RpcGMTransform, editableId, pos, anglesDeg, finalCommit);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void DCO_RpcGMTransform(RplId targetId, vector pos, vector anglesDeg)
+	protected void DCO_RpcGMTransform(RplId editableId, vector pos, vector anglesDeg, bool finalCommit)
 	{
 		if (!DCO_GMRights.Allow(GetPlayerId(), "GM transform"))
 			return;
-		DCO_GMToolsServer.ApplyTransform(targetId, pos, anglesDeg);
+		DCO_GMToolsServer.ApplyTransform(editableId, pos, anglesDeg, finalCommit);
 	}
 
 
@@ -404,6 +447,19 @@ modded class SCR_PlayerController
 	void DCO_SendGMArsenal(int verb, RplId targetId, string payload)
 	{
 		Rpc(DCO_RpcGMArsenal, verb, targetId, payload);
+	}
+
+	void DCO_SendGMArsenalAccessAttach(RplId accessId, RplId targetId)
+	{
+		Rpc(DCO_RpcGMArsenalAccessAttach, accessId, targetId);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcGMArsenalAccessAttach(RplId accessId, RplId targetId)
+	{
+		if (!DCO_GMRights.Allow(GetPlayerId(), "arsenal access placement"))
+			return;
+		DCO_ArsenalAccessPlacement.ApplyRelayed(accessId, targetId);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]

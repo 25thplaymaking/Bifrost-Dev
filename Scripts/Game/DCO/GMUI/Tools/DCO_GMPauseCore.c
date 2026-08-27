@@ -11,6 +11,14 @@ class EDCO_PauseAspect
 	static const int PHYSICS = 2;
 }
 
+class DCO_GMPauseRecord
+{
+	IEntity m_Entity;
+	int m_AspectMask;
+	bool m_bAIWasOn;
+	bool m_bSimWasOn;
+}
+
 class DCO_GMPauseCore
 {
 	protected static ref DCO_GMPauseCore s_Instance;
@@ -21,10 +29,17 @@ class DCO_GMPauseCore
 		return s_Instance;
 	}
 
-	protected ref set<IEntity> m_Frozen = new set<IEntity>();
+	protected ref array<ref DCO_GMPauseRecord> m_Frozen = {};
+	protected int m_iRequestOwnerPlayerId = -1;
 
-	bool IsActive() { return m_Frozen.Count() > 0; }
-	int GetFrozenCount() { return m_Frozen.Count(); }	// live feedback for the GAMEPLAY panel's status line.
+	bool IsActive() { PruneDeadRecords(); return m_Frozen.Count() > 0; }
+	int GetFrozenCount() { PruneDeadRecords(); return m_Frozen.Count(); }	// live feedback for the GAMEPLAY panel's status line.
+	bool IsRequestOwner(int playerId) { return playerId > 0 && playerId == m_iRequestOwnerPlayerId; }
+	void NoteRequestOwner(int playerId)
+	{
+		if (playerId > 0 && m_iRequestOwnerPlayerId <= 0)
+			m_iRequestOwnerPlayerId = playerId;
+	}
 
 	// True while game time itself is stopped.
 	static bool IsWorldPaused()
@@ -79,54 +94,94 @@ class DCO_GMPauseCore
 		}
 
 		// LIFT: a resume lifts EXACTLY the remembered set, ignoring the current scope/selection.
-		array<IEntity> frozen = {};
-		foreach (IEntity fe : m_Frozen)
-			frozen.Insert(fe);
-
 		int lifted = 0;
-		foreach (IEntity e : frozen)
+		DCO_GMTools tools = DCO_GMTools.Get();
+		foreach (DCO_GMPauseRecord record : m_Frozen)
 		{
+			if (!record)
+				continue;
+			IEntity e = record.m_Entity;
 			if (!e || DCO_PlayerUtil.IsPlayer(e))
 				continue;
-			UnfreezeOne(e);
+			if (record.m_AspectMask & EDCO_PauseAspect.AI)
+				tools.SetCharacterFrozen(e, !record.m_bAIWasOn);
+			if (record.m_AspectMask & EDCO_PauseAspect.PHYSICS)
+				tools.SetSimFrozen(e, !record.m_bSimWasOn);
 			lifted++;
 		}
 		m_Frozen.Clear();
+		m_iRequestOwnerPlayerId = -1;
 
 		Print(string.Format("[DCO-GM] pause LIFT: released=%1 (scope arg %2 ignored on resume)",
 			lifted, scope), LogLevel.NORMAL);
 	}
 
-	// Freeze one entity per the aspect mask; record it so the lift can reverse exactly this.
+	// Freeze one entity per the aspect mask while retaining its pre-pause state.
 	protected bool FreezeOne(IEntity e, int aspectMask)
 	{
-		bool did = false;
+		if (!e)
+			return false;
 		bool isChar = CharacterAnimationComponent.Cast(e.FindComponent(CharacterAnimationComponent)) != null;
+		bool canAI = isChar && AIControlComponent.Cast(e.FindComponent(AIControlComponent));
+		bool canSim = isChar || e.GetPhysics();
+		int applicableMask = 0;
+		if ((aspectMask & EDCO_PauseAspect.AI) && canAI)
+			applicableMask |= EDCO_PauseAspect.AI;
+		if ((aspectMask & EDCO_PauseAspect.PHYSICS) && canSim)
+			applicableMask |= EDCO_PauseAspect.PHYSICS;
+		if (applicableMask == 0)
+			return false;
 
-		if ((aspectMask & EDCO_PauseAspect.AI) && isChar
-			&& AIControlComponent.Cast(e.FindComponent(AIControlComponent)))
+		DCO_GMPauseRecord record = FindRecord(e);
+		if (!record)
 		{
-			DCO_GMTools.Get().SetCharacterFrozen(e, true);
-			did = true;
-		}
-		if ((aspectMask & EDCO_PauseAspect.PHYSICS) && !isChar && e.GetPhysics())
-		{
-			DCO_GMTools.Get().SetSimFrozen(e, true);
-			did = true;
+			record = new DCO_GMPauseRecord();
+			record.m_Entity = e;
+			m_Frozen.Insert(record);
 		}
 
-		if (did)
-			m_Frozen.Insert(e);
-		return did;
+		DCO_GMTools tools = DCO_GMTools.Get();
+		if ((applicableMask & EDCO_PauseAspect.AI)
+			&& !(record.m_AspectMask & EDCO_PauseAspect.AI))
+		{
+			record.m_bAIWasOn = tools.IsAIOn(e);
+			record.m_AspectMask |= EDCO_PauseAspect.AI;
+			if (record.m_bAIWasOn)
+				tools.SetCharacterFrozen(e, true);
+		}
+
+		if ((applicableMask & EDCO_PauseAspect.PHYSICS)
+			&& !(record.m_AspectMask & EDCO_PauseAspect.PHYSICS))
+		{
+			record.m_bSimWasOn = tools.IsSimOn(e);
+			record.m_AspectMask |= EDCO_PauseAspect.PHYSICS;
+			if (record.m_bSimWasOn)
+				tools.SetSimFrozen(e, true);
+		}
+
+		return true;
 	}
 
-	protected void UnfreezeOne(IEntity e)
+	protected DCO_GMPauseRecord FindRecord(IEntity entity)
 	{
-		bool isChar = CharacterAnimationComponent.Cast(e.FindComponent(CharacterAnimationComponent)) != null;
-		if (isChar)
-			DCO_GMTools.Get().SetCharacterFrozen(e, false);
-		else
-			DCO_GMTools.Get().SetSimFrozen(e, false);
+		foreach (DCO_GMPauseRecord record : m_Frozen)
+		{
+			if (record && record.m_Entity == entity)
+				return record;
+		}
+		return null;
+	}
+
+	protected void PruneDeadRecords()
+	{
+		for (int i = m_Frozen.Count() - 1; i >= 0; i--)
+		{
+			DCO_GMPauseRecord record = m_Frozen[i];
+			if (!record || !record.m_Entity)
+				m_Frozen.Remove(i);
+		}
+		if (m_Frozen.IsEmpty())
+			m_iRequestOwnerPlayerId = -1;
 	}
 
 	protected void CollectScope(int scope, out array<IEntity> outList)

@@ -274,11 +274,14 @@ class DCO_GMTacticsPanel
 
 	protected void SetOpen(bool open)
 	{
+		bool wasOpen = m_bOpen;
 		if (open && !DCO_GMTheme.Get().IsElementEnabled(DCO_GMTheme.UI_TACTICS))
 			DCO_GMTheme.Get().SetElementEnabled(DCO_GMTheme.UI_TACTICS, true, m_wRoot, false);
 		m_bOpen = open;
 		if (m_wPanel)
 			m_wPanel.SetVisible(open);
+		if (!open && wasOpen)
+			DCO_GMUIController.ReleaseMenuFocus();
 		GetGame().GetCallqueue().Remove(Poll);
 		if (open)
 		{

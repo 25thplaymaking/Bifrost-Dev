@@ -86,9 +86,10 @@ class DCO_GMArsenalPanel
 	protected static const int POLL_MS = 500;
 	protected static const float CAM_DRIFT_M = 9.0;
 	protected static const int MAX_DYN_ROWS = 250;	// dynamic-list creation cap; the title reports the cut, never silent.
-	protected static const float WHEEL_STEP_PX = 120.0;
 	protected static const float BAR_WIDTH = 8.0;
 	protected static const float BAR_MIN_THUMB = 36.0;
+	protected static const float ROW_HEIGHT = 42.0;
+	protected static const float WHEEL_STEP_NORMALIZED = 0.08;
 
 	protected static const int BTN_ROWL_BASE = 1000;
 	protected static const int BTN_ROWR_BASE = 2000;
@@ -160,6 +161,8 @@ class DCO_GMArsenalPanel
 	protected TextWidget m_wLoPage;
 	protected ScrollLayoutWidget m_wScrollL;
 	protected ScrollLayoutWidget m_wScrollR;
+	protected SizeLayoutWidget m_wListSizeL;
+	protected SizeLayoutWidget m_wListSizeR;
 	protected Widget m_wListL;
 	protected Widget m_wListR;
 	protected Widget m_wBarL;
@@ -225,6 +228,8 @@ class DCO_GMArsenalPanel
 		m_wLoPage     = TextWidget.Cast(shellRoot.FindAnyWidget("DCO_ArsLoPage"));
 		m_wScrollL    = ScrollLayoutWidget.Cast(shellRoot.FindAnyWidget("DCO_ArsScrollL"));
 		m_wScrollR    = ScrollLayoutWidget.Cast(shellRoot.FindAnyWidget("DCO_ArsScrollR"));
+		m_wListSizeL  = SizeLayoutWidget.Cast(shellRoot.FindAnyWidget("DCO_ArsListSizeL"));
+		m_wListSizeR  = SizeLayoutWidget.Cast(shellRoot.FindAnyWidget("DCO_ArsListSizeR"));
 		m_wListL      = shellRoot.FindAnyWidget("DCO_ArsListL");
 		m_wListR      = shellRoot.FindAnyWidget("DCO_ArsListR");
 		m_wBarL       = shellRoot.FindAnyWidget("DCO_ArsBarL");
@@ -381,8 +386,8 @@ class DCO_GMArsenalPanel
 			return false;
 		float x;
 		float y;
-		scroll.GetSliderPosPixels(x, y);
-		scroll.SetSliderPosPixels(x, Math.Max(0, y - wheel * WHEEL_STEP_PX));
+		scroll.GetSliderPos(x, y);
+		scroll.SetSliderPos(x, Math.Clamp(y - wheel * WHEEL_STEP_NORMALIZED, 0.0, 1.0));
 		UpdateScrollBar(right);
 		return true;
 	}
@@ -397,6 +402,16 @@ class DCO_GMArsenalPanel
 	{
 		UpdateScrollBar(false);
 		UpdateScrollBar(true);
+	}
+
+	protected void SetListContentHeight(bool right, int rowCount)
+	{
+		SizeLayoutWidget sizeHost = m_wListSizeL;
+		if (right)
+			sizeHost = m_wListSizeR;
+		if (!sizeHost)
+			return;
+		sizeHost.SetHeightOverride(Math.Max(1.0, rowCount * ROW_HEIGHT));
 	}
 
 	protected void UpdateScrollBar(bool right)
@@ -603,6 +618,7 @@ class DCO_GMArsenalPanel
 	{
 		if (open == m_bOpen && open)
 			return;
+		bool wasOpen = m_bOpen;
 		m_bOpen = open;
 		HideShell(open);
 		if (m_wScreen)
@@ -614,6 +630,8 @@ class DCO_GMArsenalPanel
 		}
 		else
 		{
+			if (wasOpen)
+				DCO_GMUIController.ReleaseMenuFocus();
 			StopScrollBarDrag();
 			if (m_Target && m_Target.GetOwner())
 				RouteVerb(DCO_ArsenalServer.VERB_RELEASE, "");
@@ -993,6 +1011,7 @@ class DCO_GMArsenalPanel
 			m_wCtxBack.SetVisible(false);
 
 		EnsureRows(m_DynR, m_wListR, shown, true);
+		SetListContentHeight(true, shown);
 
 		ItemPreviewManagerEntity pm;
 		ChimeraWorld cw = ChimeraWorld.CastFrom(GetGame().GetWorld());
@@ -1138,6 +1157,7 @@ class DCO_GMArsenalPanel
 		if (shown < filtered.Count())
 			Print(string.Format("[DCO-ARS] list capped at %1 of %2 - refine the search", shown, filtered.Count()), LogLevel.NORMAL);
 		EnsureRows(pool, list, shown, right);
+		SetListContentHeight(right, shown);
 
 		ItemPreviewManagerEntity pm;
 		ChimeraWorld cw = ChimeraWorld.CastFrom(GetGame().GetWorld());
@@ -1541,6 +1561,8 @@ class DCO_GMArsenalPanel
 		m_wLoPage = null;
 		m_wScrollL = null;
 		m_wScrollR = null;
+		m_wListSizeL = null;
+		m_wListSizeR = null;
 		m_wListL = null;
 		m_wListR = null;
 		m_wBarL = null;

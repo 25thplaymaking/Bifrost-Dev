@@ -106,6 +106,12 @@ class DCO_GMTutorial
 		return s_Inst != null && s_Inst.m_bOpen;
 	}
 
+	static void Close()
+	{
+		if (s_Inst)
+			s_Inst.SetOpen(false);
+	}
+
 	// Master-hide hook: the cinematic hide must take the INFO chip with it and never leave the overlay up.
 	static void SetHidden(bool hidden)
 	{
@@ -200,7 +206,6 @@ class DCO_GMTutorial
 
 	void Shutdown()
 	{
-		RemoveCloseListener();
 		m_bOpen = false;
 		m_bHidden = false;
 		m_bOpenBeforeHidden = false;
@@ -278,30 +283,9 @@ class DCO_GMTutorial
 		if (open)
 		{
 			ShowSection(m_iSection);
-			AddCloseListener();
 			return;
 		}
-		RemoveCloseListener();
-	}
-
-	// ESC closes.
-	protected void AddCloseListener()
-	{
-		InputManager im = GetGame().GetInputManager();
-		if (im)
-			im.AddActionListener(UIConstants.MENU_ACTION_BACK, EActionTrigger.DOWN, OnCloseAction);
-	}
-
-	protected void RemoveCloseListener()
-	{
-		InputManager im = GetGame().GetInputManager();
-		if (im)
-			im.RemoveActionListener(UIConstants.MENU_ACTION_BACK, EActionTrigger.DOWN, OnCloseAction);
-	}
-
-	protected void OnCloseAction(float value, EActionTrigger reason)
-	{
-		SetOpen(false);
+		DCO_GMUIController.ReleaseMenuFocus();
 	}
 
 	// Paint one section: light its tab, retitle the right column, fill the row pool and hide the spares.

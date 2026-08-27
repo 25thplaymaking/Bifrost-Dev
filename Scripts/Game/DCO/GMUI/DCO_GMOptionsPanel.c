@@ -286,8 +286,17 @@ class DCO_GMOptionsPanel
 		return false;
 	}
 
+	bool CloseForBack()
+	{
+		if (!m_bOpen)
+			return false;
+		SetOpen(false);
+		return true;
+	}
+
 	protected void SetOpen(bool open)
 	{
+		bool wasOpen = m_bOpen;
 		m_bOpen = open;
 		if (open && !m_bGeomInit)	// position sensibly the first time, then keep wherever the GM drags/resizes it.
 		{
@@ -298,6 +307,8 @@ class DCO_GMOptionsPanel
 		}
 		if (m_wPanel)
 			m_wPanel.SetVisible(open);
+		if (!open && wasOpen)
+			DCO_GMUIController.ReleaseMenuFocus();
 		if (open)
 			GetGame().GetCallqueue().CallLater(RefreshControls, 60);	// after the panel is laid out, size the slider fills.
 	}

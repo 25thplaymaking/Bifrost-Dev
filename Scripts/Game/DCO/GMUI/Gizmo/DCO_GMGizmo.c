@@ -89,6 +89,10 @@ class DCO_GMGizmo
 	protected vector  m_GrabRo, m_GrabRd;	// cursor ray captured at grab.
 	protected vector  m_StartOrigin;
 	protected IEntity m_DragOwner;
+	protected vector  m_LastDragPos;
+	protected vector  m_LastDragAngles;
+	protected bool    m_bHasDragTransform;
+	protected int     m_iLastPreviewAt;
 
 	// Holds the grab-time axis basis.
 	protected vector m_GrabAxes[3];
@@ -102,6 +106,7 @@ class DCO_GMGizmo
 
 	static const float SCREEN_K = 0.14;
 	static const float VERT_MOTION_EPS = 0.3;
+	static const int PREVIEW_INTERVAL_MS = 50;
 
 	void Start(DCO_GMRenderManager render)
 	{
@@ -134,6 +139,7 @@ class DCO_GMGizmo
 		m_bDragging = false;
 		m_GrabHandle = -1;
 		m_DragOwner = null;
+		m_bHasDragTransform = false;
 		PanelHide();	// blank the readout before we let go of it, so a rebuilt shell never inherits stale numbers.
 		m_Panel = null;
 	}
@@ -388,6 +394,8 @@ class DCO_GMGizmo
 		m_GrabRd = rd;
 		m_StartOrigin = origin;
 		m_DragOwner = owner;
+		m_bHasDragTransform = false;
+		m_iLastPreviewAt = 0;
 		m_GrabAxes[0] = axes[0];
 		m_GrabAxes[1] = axes[1];
 		m_GrabAxes[2] = axes[2];
@@ -405,9 +413,12 @@ class DCO_GMGizmo
 	{
 		if (!m_bDragging)
 			return;
+		if (m_DragOwner && m_bHasDragTransform)
+			DCO_GMToolsServer.RouteTransform(m_DragOwner, m_LastDragPos, m_LastDragAngles, true);
 		m_bDragging = false;
 		m_GrabHandle = -1;
 		m_DragOwner = null;
+		m_bHasDragTransform = false;
 	}
 
 	protected void AbortDrag()
@@ -415,6 +426,19 @@ class DCO_GMGizmo
 		m_bDragging = false;
 		m_GrabHandle = -1;
 		m_DragOwner = null;
+		m_bHasDragTransform = false;
+	}
+
+	protected void RouteDragTransform(vector pos, vector anglesDeg)
+	{
+		m_LastDragPos = pos;
+		m_LastDragAngles = anglesDeg;
+		m_bHasDragTransform = true;
+		int now = System.GetTickCount();
+		if (m_iLastPreviewAt && now - m_iLastPreviewAt < PREVIEW_INTERVAL_MS)
+			return;
+		m_iLastPreviewAt = now;
+		DCO_GMToolsServer.RouteTransform(m_DragOwner, pos, anglesDeg, false);
 	}
 
 	protected vector ApplySurfaceSnap(vector pos)
@@ -465,7 +489,7 @@ class DCO_GMGizmo
 		vector rot[3];
 		rot[0] = m[0]; rot[1] = m[1]; rot[2] = m[2];
 		vector angles = Math3D.MatrixToAngles(rot);
-		DCO_GMToolsServer.RouteTransform(m_DragOwner, newOrigin, angles);
+		RouteDragTransform(newOrigin, angles);
 	}
 
 	// Push the target's live transform to the readout box, or blank it when there is nothing to report.
@@ -550,7 +574,7 @@ class DCO_GMGizmo
 					{
 						float delta = DCO_GMGizmoMath.WrapAngle(nowAngle - m_GrabAngle);
 						vector angles = DCO_GMGizmoRotate.ApplyRotation(m_StartMat, m_StartOrigin, m_GrabAxes[m_GrabHandle], delta);
-						DCO_GMToolsServer.RouteTransform(m_DragOwner, m_StartOrigin, angles);
+						RouteDragTransform(m_StartOrigin, angles);
 					}
 				}
 				else

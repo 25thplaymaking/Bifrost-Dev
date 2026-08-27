@@ -12,32 +12,49 @@ modded class SCR_AIMoveActivity
 		}
 
 		DCO_TacticalMoveSettings cfg = DCO_TacticalMoveSettings.Get();
+		int approach = EDCO_WaypointApproach.NATIVE;
+		SCR_AIWaypoint waypoint = SCR_AIWaypoint.Cast(m_RelatedWaypoint);
+		if (waypoint)
+			approach = waypoint.DCO_GetApproach();
 
-		if (cfg && cfg.m_bEnableTacticalMove && Replication.IsServer())
+		bool directApproach = approach == EDCO_WaypointApproach.RUSH || approach == EDCO_WaypointApproach.CHARGE;
+		if (approach == EDCO_WaypointApproach.TACTICAL || approach == EDCO_WaypointApproach.DCO_FLANK || approach == EDCO_WaypointApproach.DCO_COVERED)
+			chosen = EMovementType.WALK;
+		else if (approach == EDCO_WaypointApproach.RUSH)
+			chosen = EMovementType.RUN;
+		else if (approach == EDCO_WaypointApproach.CHARGE)
+			chosen = EMovementType.SPRINT;
+
+		float threat = -1;
+		float dist = -1;
+		vector groupPos = vector.Zero;
+		bool haveGroup = false;
+		if (Replication.IsServer() && m_Utility)
 		{
-			float threat = -1;
-			float dist = -1;
-			vector groupPos = vector.Zero;
-			bool haveGroup = false;
-			if (m_Utility)
+			threat = m_Utility.GetThreatMeasure();
+			IEntity groupOwner = m_Utility.GetOwner();
+			if (groupOwner)
 			{
-				threat = m_Utility.GetThreatMeasure();
-				IEntity groupOwner = m_Utility.GetOwner();
-				if (groupOwner)
-				{
-					groupPos = groupOwner.GetOrigin();
-					haveGroup = true;
-					dist = vector.Distance(groupPos, position);
-				}
+				groupPos = groupOwner.GetOrigin();
+				haveGroup = true;
+				dist = vector.Distance(groupPos, position);
 			}
+		}
 
-			bool threatOk = cfg.m_bForceIgnoreThreat || threat >= cfg.m_fThreatActivation;
-			bool longMove = dist >= cfg.m_fMinMoveDistance;
+		bool threatOk = false;
+		bool longMove = false;
+		if (cfg)
+		{
+			threatOk = cfg.m_bForceIgnoreThreat || threat >= cfg.m_fThreatActivation;
+			longMove = dist >= cfg.m_fMinMoveDistance;
+		}
 
+		if (cfg && cfg.m_bEnableTacticalMove && Replication.IsServer() && !directApproach)
+		{
 			if (movementType == EMovementType.RUN && !entity && m_Utility && threatOk && longMove)
 				chosen = EMovementType.WALK;
 
-			if (cfg.m_bAvoidThreatFunnel && !entity && haveGroup && threatOk && longMove)
+			if (cfg.m_bAvoidThreatFunnel && approach != EDCO_WaypointApproach.DCO_COVERED && !entity && haveGroup && threatOk && longMove)
 			{
 				vector threatPos;
 				SCR_AIGroupUtilityComponent groupUtil = m_Utility;
@@ -45,7 +62,7 @@ modded class SCR_AIMoveActivity
 					chosenPos = DCO_SidestepFunnel(groupPos, position, threatPos, cfg);
 			}
 
-			if (cfg.m_bEnableFlanking && !entity && haveGroup && threatOk)
+			if (cfg.m_bEnableFlanking && approach != EDCO_WaypointApproach.DCO_FLANK && !entity && haveGroup && threatOk)
 			{
 				vector flThreat;
 				SCR_AIGroupUtilityComponent flUtil = m_Utility;
@@ -53,7 +70,7 @@ modded class SCR_AIMoveActivity
 					chosenPos = DCO_FlankApproach(groupPos, chosenPos, flThreat, cfg);
 			}
 
-			if (cfg.m_bEnableExposureScoring && !entity && haveGroup && threatOk && longMove)
+			if (cfg.m_bEnableExposureScoring && approach != EDCO_WaypointApproach.DCO_COVERED && !entity && haveGroup && threatOk && longMove)
 			{
 				vector exThreat;
 				SCR_AIGroupUtilityComponent exUtil = m_Utility;
@@ -61,12 +78,28 @@ modded class SCR_AIMoveActivity
 					chosenPos = DCO_PickLeastExposed(groupPos, chosenPos, exThreat, cfg);
 			}
 
-			if (cfg.m_bDebugLog)
-				Print(string.Format("[DCO TacMove] init: inType=%1 hasEntity=%2 threat=%3 dist=%4 -> outType=%5 posMoved=%6 (0=IDLE 1=WALK 2=RUN 3=SPRINT)",
-					movementType, entity != null, threat, dist, chosen, vector.Distance(chosenPos, position) > 0.1), LogLevel.NORMAL);
 		}
 
-		if (cfg && cfg.m_bEnableProceduralPath && !entity && m_Utility && Replication.IsServer())
+		if (cfg && Replication.IsServer() && !entity && haveGroup && threatOk)
+		{
+			vector waypointThreat;
+			if (m_Utility.DCO_GetThreatOrLastPosition(waypointThreat))
+			{
+				if (approach == EDCO_WaypointApproach.DCO_FLANK)
+					chosenPos = DCO_FlankApproach(groupPos, chosenPos, waypointThreat, cfg);
+				else if (approach == EDCO_WaypointApproach.DCO_COVERED && longMove)
+				{
+					chosenPos = DCO_SidestepFunnel(groupPos, chosenPos, waypointThreat, cfg);
+					chosenPos = DCO_PickLeastExposed(groupPos, chosenPos, waypointThreat, cfg);
+				}
+			}
+		}
+
+		if (cfg && cfg.m_bDebugLog && Replication.IsServer())
+			Print(string.Format("[DCO TacMove] init: approach=%1 inType=%2 hasEntity=%3 threat=%4 dist=%5 -> outType=%6 posMoved=%7 (0=IDLE 1=WALK 2=RUN 3=SPRINT)",
+				approach, movementType, entity != null, threat, dist, chosen, vector.Distance(chosenPos, position) > 0.1), LogLevel.NORMAL);
+
+		if (cfg && cfg.m_bEnableProceduralPath && !directApproach && !entity && m_Utility && Replication.IsServer())
 			m_Utility.DCO_SetPathDestination(chosenPos);
 
 		super.InitParameters(chosenPos, entity, chosen, useVehicles, priorityLevel);

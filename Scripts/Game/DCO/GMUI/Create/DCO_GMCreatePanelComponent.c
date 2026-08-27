@@ -228,7 +228,7 @@ class DCO_GMCreatePanelComponent
 			m_wSearch.AddHandler(m_SearchHandler);
 		}
 		if (m_wBudgetLine)
-			m_wBudgetLine.SetText("DEPLOYMENT READY  ·  SELECT AN ASSET");
+			m_wBudgetLine.SetText("READY  ·  SELECT ASSET");
 		if (m_wBarThumb)
 			m_wBarThumb.AddHandler(m_Handler);
 
@@ -368,7 +368,7 @@ class DCO_GMCreatePanelComponent
 	void ShowRedeployPrompt()
 	{
 		if (m_wBudgetLine)
-			m_wBudgetLine.SetText("SELECT AN ASSET ONCE  ·  REDEPLOY WILL REPEAT IT");
+			m_wBudgetLine.SetText("SELECT ASSET  ·  THEN USE REDEPLOY");
 	}
 
 	protected void BuildCatalog()

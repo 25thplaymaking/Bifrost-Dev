@@ -16,6 +16,7 @@ class DCO_GMPauseServer
 		}
 		if (scope == EDCO_PauseScope.SELECTED && on)
 		{
+			int sent = 0;
 			set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
 			SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
 			foreach (SCR_EditableEntityComponent editable : selected)
@@ -24,8 +25,13 @@ class DCO_GMPauseServer
 					continue;
 				RplComponent rpl = RplComponent.Cast(editable.GetOwner().FindComponent(RplComponent));
 				if (rpl && rpl.Id().IsValid())
+				{
 					pc.DCO_SendGMPause(scope, aspectMask, true, rpl.Id());
+					sent++;
+				}
 			}
+			if (sent == 0)
+				pc.DCO_SendGMPause(scope, aspectMask, true, RplId.Invalid());
 			return;
 		}
 		pc.DCO_SendGMPause(scope, aspectMask, on, RplId.Invalid());
@@ -33,11 +39,14 @@ class DCO_GMPauseServer
 
 	static int ApplyPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
 	{
-		if (scope == EDCO_PauseScope.SELECTED && on && selectedTargetId.IsValid())
+		if (scope == EDCO_PauseScope.SELECTED && on)
 		{
-			RplComponent rpl = RplComponent.Cast(Replication.FindItem(selectedTargetId));
-			if (rpl)
-				DCO_GMPauseCore.Get().ApplySelected(rpl.GetEntity(), aspectMask);
+			if (selectedTargetId.IsValid())
+			{
+				RplComponent rpl = RplComponent.Cast(Replication.FindItem(selectedTargetId));
+				if (rpl)
+					DCO_GMPauseCore.Get().ApplySelected(rpl.GetEntity(), aspectMask);
+			}
 		}
 		else
 		{

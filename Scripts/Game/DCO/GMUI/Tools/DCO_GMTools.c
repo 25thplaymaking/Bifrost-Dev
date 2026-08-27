@@ -308,11 +308,20 @@ class DCO_GMTools
 		if (m_SimOff.Contains(owner) == frozen)
 			return;	// already in the requested state — idempotent.
 
-	// Characters use a command freeze instead of vehicle simulation state.
+		// Vehicle simulation APIs do not control character gravity.
 		CharacterAnimationComponent anim = CharacterAnimationComponent.Cast(owner.FindComponent(CharacterAnimationComponent));
 		if (anim)
 		{
-			anim.PhysicsEnableGravity(!frozen);
+			anim.PhysicsEnableGravity(!frozen && IsAIOn(owner));
+			if (frozen)
+			{
+				Physics characterPhysics = owner.GetPhysics();
+				if (characterPhysics)
+				{
+					characterPhysics.SetVelocity(vector.Zero);
+					characterPhysics.SetAngularVelocity(vector.Zero);
+				}
+			}
 			string cstate = "ON (restored)";
 			if (frozen)
 			{
@@ -381,6 +390,9 @@ class DCO_GMTools
 				agent.SetPermanentLOD(AIAgent.GetMaxLOD());
 			if (ctrl.IsAIActivated())
 				ctrl.DeactivateAI();
+			CharacterAnimationComponent frozenAnim = CharacterAnimationComponent.Cast(owner.FindComponent(CharacterAnimationComponent));
+			if (frozenAnim)
+				frozenAnim.PhysicsEnableGravity(false);
 
 			InstallFreezeCommand(owner);	// layer 3 - the one that actually holds the BODY still.
 			Print("[DCO-GM] ai toggled: OFF (MAX LOD + brain off + body pinned by freeze command)", LogLevel.NORMAL);
@@ -393,6 +405,9 @@ class DCO_GMTools
 		AIAgent back = ctrl.GetAIAgent();
 		if (back)
 			back.SetPermanentLOD(-1);
+		CharacterAnimationComponent restoredAnim = CharacterAnimationComponent.Cast(owner.FindComponent(CharacterAnimationComponent));
+		if (restoredAnim)
+			restoredAnim.PhysicsEnableGravity(!m_SimOff.Contains(owner));
 
 		// Returns stance control to the AI.
 		DCO_StanceUtil.SetGMStanceLock(owner, -1);	// <0 releases.

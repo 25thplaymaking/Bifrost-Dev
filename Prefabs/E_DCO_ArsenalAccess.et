@@ -1,6 +1,16 @@
 GenericEntity {
  ID "7C8E5B2F913A4D60"
  components {
+  MeshObject "{6D3A20B7E1F54C89}" {
+   Object "{56326B665211D386}Assets/Props/Military/AmmoBox/ArsenalBox_01/ArsenalBox_01.xob"
+  }
+  RigidBody "{B40E7C12D3964FA8}" {
+   Mass 1
+   ModelGeometry 1
+   Static 1
+  }
+  DCO_ArsenalAccessComponent "{ED6248F1A3C75B90}" {
+  }
   SCR_ArsenalComponent "{A2185E7C40D34F96}" {
    m_eSupportedArsenalItemTypes 2097150
    m_eSupportedArsenalItemModes 254
@@ -11,7 +21,7 @@ GenericEntity {
    Attributes SCR_ItemAttributeCollection "{E4A8621F5C9D4730}" {
     ItemDisplayName SCR_InventoryUIInfo "{91D4B7E63A204F85}" {
      Name "Bifrost Arsenal"
-     Description "Place this system on a prop to provide a replicated arsenal interaction."
+     Description "Place this system directly on a GM entity to attach a replicated arsenal interaction."
     }
     ItemPhysAttributes ItemPhysicalAttributes "{6E38C1A95B724DF0}" {
      DimensionScaler 0.9
@@ -53,7 +63,7 @@ GenericEntity {
    m_EntityType GENERIC
    m_UIInfo SCR_EditableEntityUIInfo "{B146E8A35D7C4092}" {
     Name "Arsenal Access"
-    Description "Place on or inside a prop to give nearby players a server-ready arsenal interaction."
+    Description "Click a placed item, vehicle, or other GM entity to attach an F arsenal interaction."
     Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
     m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
     m_EntityBudgetCost {

@@ -316,11 +316,14 @@ class DCO_GMContextMenu
 
 	void Hide()
 	{
+		bool wasOpen = IsOpen();
 		GetGame().GetCallqueue().Remove(PositionMenu);
 		if (m_wMenu)
 			m_wMenu.SetVisible(false);
 		if (m_wBackdrop)
 			m_wBackdrop.SetVisible(false);
+		if (wasOpen)
+			DCO_GMUIController.ReleaseMenuFocus();
 	}
 
 	// Subtle row response without replacing the semantic order colours.

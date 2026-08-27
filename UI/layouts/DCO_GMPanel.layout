@@ -4947,9 +4947,11 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         Padding 10 5 10 7
         HorizontalAlign 3
        }
-       Text "DEPLOYMENT READY  ·  SELECT AN ASSET"
+       Clipping True
+       Text "READY  ·  SELECT ASSET"
        Color 0.45 0.48 0.52 1
        "Font Size" 16
+       "Min Font Size" 12
       }
      }
     }
@@ -11604,12 +11606,22 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               SizeMode Fill
              }
              {
-              VerticalLayoutWidgetClass "{0DC00000000A7B02}" {
-               Name "DCO_ArsListL"
-               Slot AlignableSlot "{0DC00000000A7B03}" {
+              SizeLayoutWidgetClass "{A1157A0000000001}" {
+               Name "DCO_ArsListSizeL"
+               Slot AlignableSlot "{A1157A0000000002}" {
                 HorizontalAlign 3
-                VerticalAlign 3
                }
+               AllowHeightOverride 1
+               HeightOverride 1
+               {
+                VerticalLayoutWidgetClass "{0DC00000000A7B02}" {
+                 Name "DCO_ArsListL"
+                 Slot AlignableSlot "{0DC00000000A7B03}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                }
+              }
               }
              }
             }
@@ -11748,12 +11760,22 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               SizeMode Fill
              }
              {
-              VerticalLayoutWidgetClass "{0DC00000000A7B0A}" {
-               Name "DCO_ArsListR"
-               Slot AlignableSlot "{0DC00000000A7B0B}" {
+              SizeLayoutWidgetClass "{A1157A0000000003}" {
+               Name "DCO_ArsListSizeR"
+               Slot AlignableSlot "{A1157A0000000004}" {
                 HorizontalAlign 3
-                VerticalAlign 3
                }
+               AllowHeightOverride 1
+               HeightOverride 1
+               {
+                VerticalLayoutWidgetClass "{0DC00000000A7B0A}" {
+                 Name "DCO_ArsListR"
+                 Slot AlignableSlot "{0DC00000000A7B0B}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                }
+              }
               }
              }
             }
