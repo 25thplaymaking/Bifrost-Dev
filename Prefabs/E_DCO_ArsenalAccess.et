@@ -1,0 +1,76 @@
+GenericEntity {
+ ID "7C8E5B2F913A4D60"
+ components {
+  SCR_ArsenalComponent "{A2185E7C40D34F96}" {
+   m_eSupportedArsenalItemTypes 2097150
+   m_eSupportedArsenalItemModes 254
+   m_eEditableAttributeGroups 30
+   m_eArsenalSaveType NO_RESTRICTIONS
+  }
+  UniversalInventoryStorageComponent "{C5F13A8D729E4B01}" {
+   Attributes SCR_ItemAttributeCollection "{E4A8621F5C9D4730}" {
+    ItemDisplayName SCR_InventoryUIInfo "{91D4B7E63A204F85}" {
+     Name "Bifrost Arsenal"
+     Description "Place this system on a prop to provide a replicated arsenal interaction."
+    }
+    ItemPhysAttributes ItemPhysicalAttributes "{6E38C1A95B724DF0}" {
+     DimensionScaler 0.9
+    }
+    m_Size SLOT_2x2
+    m_SlotType SLOT_LOADOUT_STORAGE
+    m_bDraggable 0
+   }
+   Priority 1000
+  }
+  SCR_ArsenalInventoryStorageManagerComponent "{F230B68D14A94C75}" {
+  }
+  ActionsManagerComponent "{3B9D7A6E51C248F0}" {
+   Enabled 1
+   ActionContexts {
+    UserActionContext "{D5A1C37E8F604B29}" {
+     ContextName "default"
+     Position PointInfo "{82E7B1D64A394CF5}" {
+      Offset 0 0.8 0
+     }
+     Radius 2
+    }
+   }
+   additionalActions {
+    SCR_OpenStorageAction "{4C91F7A2E63845BD}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{A7E2459C30D14F68}" {
+      Name "Open Arsenal"
+     }
+    }
+   }
+  }
+  SCR_EditableEntityVisibilityChildComponent "{9E63A4B1D7204F58}" {
+   m_State 96
+  }
+  SCR_EditableSystemComponent "{2F8D51C7A46943BE}" {
+   m_EntityType GENERIC
+   m_UIInfo SCR_EditableEntityUIInfo "{B146E8A35D7C4092}" {
+    Name "Arsenal Access"
+    Description "Place on or inside a prop to give nearby players a server-ready arsenal interaction."
+    Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
+    m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
+    m_EntityBudgetCost {
+     SCR_EntityBudgetValue "{71C5B2E94A0D483F}" {
+      m_BudgetType SYSTEMS
+     }
+    }
+   }
+   m_bAutoRegister ALWAYS
+   m_bStatic 1
+   m_Flags 67
+  }
+  RplComponent "{58B3E7D1C6294A0F}" {
+   Streamable Disabled
+   "Rpl State Override" Runtime
+  }
+  Hierarchy "{C094F2A76E1B435D}" {
+  }
+ }
+}

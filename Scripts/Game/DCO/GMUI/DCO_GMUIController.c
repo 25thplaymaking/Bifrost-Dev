@@ -236,7 +236,6 @@ class DCO_GMUIController
 		DCO_GMHover.Clear();
 		array<string> hoverBtns = {
 			"DCO_ETCat_ALL", "DCO_ETCat_UNIT", "DCO_ETCat_VEH", "DCO_ETCat_OBJ", "DCO_ETCat_LOC", "DCO_ETCat_AREA",
-			"DCO_Cat_ALL", "DCO_Cat_MEN", "DCO_Cat_GRP", "DCO_Cat_OBJ", "DCO_Cat_SYS", "DCO_Cat_FX",
 			"DCO_Btn_Pause", "DCO_Btn_Resume",
 			"DCO_Clk_STOP", "DCO_Clk_1", "DCO_Clk_4", "DCO_Clk_12", "DCO_Clk_60",
 			"DCO_Btn_ScopeSelected", "DCO_Btn_ScopeAI",
@@ -248,6 +247,9 @@ class DCO_GMUIController
 		{
 			DCO_GMHover.Wire(m_wRoot, hb, hb + "_Label");
 		}
+		array<string> createCatBtns = {"DCO_Cat_ALL", "DCO_Cat_MEN", "DCO_Cat_GRP", "DCO_Cat_OBJ", "DCO_Cat_SYS", "DCO_Cat_FX"};
+		foreach (string cb : createCatBtns)
+			DCO_GMHover.Wire(m_wRoot, cb, cb + "_Icon");
 		DCO_GMHover.WirePool(m_wRoot, "DCO_OV_Row%1_Toggle", "DCO_OV_Row%1_TLabel", 0, 6);
 		DCO_GMHover.WirePool(m_wRoot, "DCO_OV_Row%1_Scope",  "DCO_OV_Row%1_SLabel", 0, 6);
 

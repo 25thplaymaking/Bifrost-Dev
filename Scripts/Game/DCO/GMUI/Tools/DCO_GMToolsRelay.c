@@ -1,4 +1,4 @@
-// Routes GM entity tools through server authority.
+// Routes GM entity changes through server authority.
 class DCO_GMToolsServer
 {
 	static const int TOOL_INVULN   = 1;
@@ -80,7 +80,7 @@ class DCO_GMToolsServer
 		return false;
 	}
 
-	// Applies the requested tool on authority.
+	// Applies the requested change on authority.
 	static void ApplyOn(IEntity target, int toolId, vector pos)
 	{
 		if (!target)
@@ -193,7 +193,7 @@ modded class SCR_PlayerController
 		DCO_GMPausePresentationState.SetPaused(m_bDCO_PauseState);
 	}
 
-	// Sends the GM tool request to authority.
+	// Sends the GM request to authority.
 	void DCO_SendGMTool(int toolId, RplId targetId, vector pos)
 	{
 		Rpc(DCO_RpcGMTool, toolId, targetId, pos);

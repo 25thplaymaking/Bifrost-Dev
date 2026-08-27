@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.0.23 - 2026-08-26
+
+- Added visible draggable scrollbars and reliable wheel capture to both Edit Loadout columns.
+- Added the replicated Arsenal Access system for turning any prop location into an interactable arsenal.
+- Removed redundant CREATE category asset totals and centered all six category icons.
 - Increased tactical overlays and role markers to a 30 Hz client update while caching expensive discovery and trace work.
 - Increased dedicated-server AI overlay snapshots to 4 Hz and kept visible targets attached to their local replicated entities.
 - Grounded movement routes into an overhead GPS-style path and clipped lines cleanly across the camera plane.

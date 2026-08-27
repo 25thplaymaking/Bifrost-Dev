@@ -292,7 +292,7 @@ class DCO_GMContextMenuBridge
 				m_Picker.Open(m_CursorPos);
 			return;
 		}
-		// GM sandbox tools — act at the captured cursor world position.
+		// Apply sandbox actions at the captured cursor position.
 		if (actionId == ID_HIDE_TERRAIN)    { DCO_GMTools.Get().HideTerrainAt(m_CursorPos); return; }
 		if (actionId == ID_RESTORE_TERRAIN) { DCO_GMTools.Get().RestoreTerrain();           return; }
 		if (actionId == ID_MARKER)          { DCO_GMTools.Get().PlaceMarkerAt(m_CursorPos); return; }

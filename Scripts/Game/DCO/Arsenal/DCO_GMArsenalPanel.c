@@ -30,6 +30,34 @@ class DCO_ArsBtnHandler : ScriptedWidgetEventHandler
 			m_Owner.OnHoverBtn(m_Id, w, false);
 		return false;
 	}
+
+}
+
+class DCO_ArsWheelHandler : ScriptedWidgetEventHandler
+{
+	protected DCO_GMArsenalPanel m_Owner;
+	protected bool m_bRight;
+
+	void DCO_ArsWheelHandler(DCO_GMArsenalPanel owner, bool right)
+	{
+		m_Owner = owner;
+		m_bRight = right;
+	}
+
+	override bool OnMouseWheel(Widget w, int x, int y, int wheel)
+	{
+		return m_Owner && m_Owner.ScrollColumn(m_bRight, wheel);
+	}
+
+	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
+	{
+		return m_Owner && m_Owner.OnScrollBarMouseDown(m_bRight, w, button);
+	}
+
+	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
+	{
+		return m_Owner && m_Owner.OnScrollBarMouseUp(button);
+	}
 }
 
 class DCO_ArsDynRow
@@ -58,6 +86,9 @@ class DCO_GMArsenalPanel
 	protected static const int POLL_MS = 500;
 	protected static const float CAM_DRIFT_M = 9.0;
 	protected static const int MAX_DYN_ROWS = 250;	// dynamic-list creation cap; the title reports the cut, never silent.
+	protected static const float WHEEL_STEP_PX = 120.0;
+	protected static const float BAR_WIDTH = 8.0;
+	protected static const float BAR_MIN_THUMB = 36.0;
 
 	protected static const int BTN_ROWL_BASE = 1000;
 	protected static const int BTN_ROWR_BASE = 2000;
@@ -131,6 +162,12 @@ class DCO_GMArsenalPanel
 	protected ScrollLayoutWidget m_wScrollR;
 	protected Widget m_wListL;
 	protected Widget m_wListR;
+	protected Widget m_wBarL;
+	protected Widget m_wBarR;
+	protected Widget m_wBarSpacerL;
+	protected Widget m_wBarSpacerR;
+	protected Widget m_wBarThumbL;
+	protected Widget m_wBarThumbR;
 	protected Widget m_wHover;
 	protected TextWidget m_wHoverTxt;
 	protected ref array<ImageWidget> m_CatIcons = {};
@@ -144,7 +181,13 @@ class DCO_GMArsenalPanel
 	protected ref array<int> m_InvCounts = {};
 	protected bool m_bInvMode;
 	protected ref array<ref DCO_ArsBtnHandler> m_Handlers = {};
+	protected ref DCO_ArsWheelHandler m_WheelLeft;
+	protected ref DCO_ArsWheelHandler m_WheelRight;
 	protected ref array<Widget> m_HiddenSiblings = {};
+	protected bool m_bBarDragging;
+	protected bool m_bBarDragRight;
+	protected int m_iBarStartMouseY;
+	protected float m_fBarStartPos;
 
 	protected bool m_bOpen;
 	protected SCR_EditableEntityComponent m_Target;
@@ -184,8 +227,20 @@ class DCO_GMArsenalPanel
 		m_wScrollR    = ScrollLayoutWidget.Cast(shellRoot.FindAnyWidget("DCO_ArsScrollR"));
 		m_wListL      = shellRoot.FindAnyWidget("DCO_ArsListL");
 		m_wListR      = shellRoot.FindAnyWidget("DCO_ArsListR");
+		m_wBarL       = shellRoot.FindAnyWidget("DCO_ArsBarL");
+		m_wBarR       = shellRoot.FindAnyWidget("DCO_ArsBarR");
+		m_wBarSpacerL = shellRoot.FindAnyWidget("DCO_ArsBarSpacerL");
+		m_wBarSpacerR = shellRoot.FindAnyWidget("DCO_ArsBarSpacerR");
+		m_wBarThumbL  = shellRoot.FindAnyWidget("DCO_ArsBarThumbL");
+		m_wBarThumbR  = shellRoot.FindAnyWidget("DCO_ArsBarThumbR");
 		m_wHover      = shellRoot.FindAnyWidget("DCO_ArsHover");
 		m_wHoverTxt   = TextWidget.Cast(shellRoot.FindAnyWidget("DCO_ArsHoverTxt"));
+		m_WheelLeft = new DCO_ArsWheelHandler(this, false);
+		m_WheelRight = new DCO_ArsWheelHandler(this, true);
+		BindWheelTree(m_wScrollL, false);
+		BindWheelTree(m_wScrollR, true);
+		BindWheelTree(m_wBarL, false);
+		BindWheelTree(m_wBarR, true);
 		if (m_wHover)
 			m_wHover.SetVisible(false);
 
@@ -297,6 +352,181 @@ class DCO_GMArsenalPanel
 		m_Handlers.Insert(h);
 	}
 
+	protected void BindWheelTree(Widget widget, bool right)
+	{
+		if (!widget)
+			return;
+		DCO_ArsWheelHandler handler = m_WheelLeft;
+		if (right)
+			handler = m_WheelRight;
+		if (!handler)
+			return;
+		widget.AddHandler(handler);
+		Widget child = widget.GetChildren();
+		while (child)
+		{
+			BindWheelTree(child, right);
+			child = child.GetSibling();
+		}
+	}
+
+	bool ScrollColumn(bool right, int wheel)
+	{
+		if (!m_bOpen || wheel == 0)
+			return false;
+		ScrollLayoutWidget scroll = m_wScrollL;
+		if (right)
+			scroll = m_wScrollR;
+		if (!scroll)
+			return false;
+		float x;
+		float y;
+		scroll.GetSliderPosPixels(x, y);
+		scroll.SetSliderPosPixels(x, Math.Max(0, y - wheel * WHEEL_STEP_PX));
+		UpdateScrollBar(right);
+		return true;
+	}
+
+	protected void ScheduleScrollBarUpdate()
+	{
+		GetGame().GetCallqueue().Remove(UpdateScrollBars);
+		GetGame().GetCallqueue().CallLater(UpdateScrollBars, 0, false);
+	}
+
+	protected void UpdateScrollBars()
+	{
+		UpdateScrollBar(false);
+		UpdateScrollBar(true);
+	}
+
+	protected void UpdateScrollBar(bool right)
+	{
+		ScrollLayoutWidget scroll = m_wScrollL;
+		Widget list = m_wListL;
+		Widget bar = m_wBarL;
+		ImageWidget spacer = ImageWidget.Cast(m_wBarSpacerL);
+		ImageWidget thumb = ImageWidget.Cast(m_wBarThumbL);
+		if (right)
+		{
+			scroll = m_wScrollR;
+			list = m_wListR;
+			bar = m_wBarR;
+			spacer = ImageWidget.Cast(m_wBarSpacerR);
+			thumb = ImageWidget.Cast(m_wBarThumbR);
+		}
+		if (!scroll || !list || !bar || !spacer || !thumb)
+			return;
+
+		float viewportW;
+		float viewportH;
+		float contentW;
+		float contentH;
+		scroll.GetScreenSize(viewportW, viewportH);
+		list.GetScreenSize(contentW, contentH);
+		bool needed = contentH > viewportH + 1;
+		bar.SetVisible(needed);
+		if (!needed)
+			return;
+
+		float trackW;
+		float trackH;
+		bar.GetScreenSize(trackW, trackH);
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (workspace)
+			trackH = workspace.DPIUnscale(trackH);
+		if (trackH < 1 || contentH < 1)
+			return;
+
+		float thumbH = Math.Max(BAR_MIN_THUMB, trackH * Math.Min(1.0, viewportH / contentH));
+		float sliderX;
+		float sliderY;
+		scroll.GetSliderPos(sliderX, sliderY);
+		spacer.SetSize(BAR_WIDTH, (trackH - thumbH) * sliderY);
+		thumb.SetSize(BAR_WIDTH, thumbH);
+	}
+
+	bool OnScrollBarMouseDown(bool right, Widget widget, int button)
+	{
+		Widget thumb = m_wBarThumbL;
+		ScrollLayoutWidget scroll = m_wScrollL;
+		if (right)
+		{
+			thumb = m_wBarThumbR;
+			scroll = m_wScrollR;
+		}
+		if (button != 0 || widget != thumb || !scroll)
+			return false;
+
+		int mouseX;
+		int mouseY;
+		WidgetManager.GetMousePos(mouseX, mouseY);
+		float sliderX;
+		scroll.GetSliderPos(sliderX, m_fBarStartPos);
+		m_iBarStartMouseY = mouseY;
+		m_bBarDragRight = right;
+		m_bBarDragging = true;
+		GetGame().GetCallqueue().Remove(ScrollBarDragTick);
+		GetGame().GetCallqueue().CallLater(ScrollBarDragTick, 0, true);
+		return true;
+	}
+
+	bool OnScrollBarMouseUp(int button)
+	{
+		if (button != 0 || !m_bBarDragging)
+			return false;
+		StopScrollBarDrag();
+		return true;
+	}
+
+	protected void ScrollBarDragTick()
+	{
+		if (!m_bBarDragging)
+			return;
+		Widget bar = m_wBarL;
+		Widget thumb = m_wBarThumbL;
+		ScrollLayoutWidget scroll = m_wScrollL;
+		if (m_bBarDragRight)
+		{
+			bar = m_wBarR;
+			thumb = m_wBarThumbR;
+			scroll = m_wScrollR;
+		}
+		if (!bar || !thumb || !scroll)
+		{
+			StopScrollBarDrag();
+			return;
+		}
+
+		float trackW;
+		float trackH;
+		float thumbW;
+		float thumbH;
+		bar.GetScreenSize(trackW, trackH);
+		thumb.GetScreenSize(thumbW, thumbH);
+		float range = trackH - thumbH;
+		if (range < 1)
+		{
+			StopScrollBarDrag();
+			return;
+		}
+
+		int mouseX;
+		int mouseY;
+		WidgetManager.GetMousePos(mouseX, mouseY);
+		float position = Math.Max(0.0, Math.Min(1.0, m_fBarStartPos + (mouseY - m_iBarStartMouseY) / range));
+		float sliderX;
+		float sliderY;
+		scroll.GetSliderPos(sliderX, sliderY);
+		scroll.SetSliderPos(sliderX, position);
+		UpdateScrollBar(m_bBarDragRight);
+	}
+
+	protected void StopScrollBarDrag()
+	{
+		m_bBarDragging = false;
+		GetGame().GetCallqueue().Remove(ScrollBarDragTick);
+	}
+
 	protected int LoadIcon(Widget root, string name, ResourceName tex)
 	{
 		ImageWidget w = ImageWidget.Cast(root.FindAnyWidget(name));
@@ -384,6 +614,7 @@ class DCO_GMArsenalPanel
 		}
 		else
 		{
+			StopScrollBarDrag();
 			if (m_Target && m_Target.GetOwner())
 				RouteVerb(DCO_ArsenalServer.VERB_RELEASE, "");
 			m_Target = null;
@@ -457,6 +688,7 @@ class DCO_GMArsenalPanel
 		RefreshContextItems();
 		RefreshWeight();
 		LockCamera();
+		UpdateScrollBars();
 
 		if (m_bInvMode)
 		{
@@ -786,6 +1018,7 @@ class DCO_GMArsenalPanel
 			if (row.m_BagIco)
 				row.m_BagIco.LoadImageTexture(0, ICO_TRASH);
 		}
+		ScheduleScrollBarUpdate();
 	}
 
 	protected void BuildInvAggregation()
@@ -929,6 +1162,7 @@ class DCO_GMArsenalPanel
 			if (row.m_Img && pm)
 				pm.SetPreviewItemFromPrefab(row.m_Img, e.m_Prefab);
 		}
+		ScheduleScrollBarUpdate();
 	}
 
 	protected void EnsureRows(array<ref DCO_ArsDynRow> pool, Widget list, int count, bool right)
@@ -954,6 +1188,7 @@ class DCO_GMArsenalPanel
 			row.m_Txt = TextWidget.Cast(rowRoot.FindAnyWidget("DCO_ArsDynTxt"));
 			row.m_Bag = ButtonWidget.Cast(rowRoot.FindAnyWidget("DCO_ArsDynBag"));
 			row.m_BagIco = ImageWidget.Cast(rowRoot.FindAnyWidget("DCO_ArsDynBagIco"));
+			BindWheelTree(row.m_Root, right);
 			if (row.m_Btn)
 			{
 				if (right)
@@ -977,6 +1212,7 @@ class DCO_GMArsenalPanel
 			m_wScrollL.SetSliderPos(0, 0);
 		if (m_wScrollR)
 			m_wScrollR.SetSliderPos(0, 0);
+		ScheduleScrollBarUpdate();
 	}
 
 	void OnHoverBtn(int id, Widget w, bool entering)
@@ -1268,6 +1504,8 @@ class DCO_GMArsenalPanel
 			RouteVerb(DCO_ArsenalServer.VERB_RELEASE, "");
 		HideShell(false);
 		GetGame().GetCallqueue().Remove(Poll);
+		GetGame().GetCallqueue().Remove(UpdateScrollBars);
+		StopScrollBarDrag();
 		DCO_ArsenalLoadouts.Get().GetOnChanged().Remove(OnLoadoutsChanged);
 		m_bOpen = false;
 		m_bLoOpen = false;
@@ -1279,6 +1517,8 @@ class DCO_GMArsenalPanel
 		m_LoRecs.Clear();
 		m_HiddenSiblings.Clear();
 		m_Handlers.Clear();
+		m_WheelLeft = null;
+		m_WheelRight = null;
 		m_CatIcons.Clear();
 		m_DynL.Clear();
 		m_DynR.Clear();
@@ -1303,6 +1543,12 @@ class DCO_GMArsenalPanel
 		m_wScrollR = null;
 		m_wListL = null;
 		m_wListR = null;
+		m_wBarL = null;
+		m_wBarR = null;
+		m_wBarSpacerL = null;
+		m_wBarSpacerR = null;
+		m_wBarThumbL = null;
+		m_wBarThumbR = null;
 		m_wHover = null;
 		m_wHoverTxt = null;
 		m_wRoot = null;

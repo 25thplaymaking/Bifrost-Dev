@@ -77,7 +77,7 @@ class DCO_GMPreciseBar
 			m_SimPanel.Shutdown();	// stops its refresh poll — a stray CallLater would outlive the GM UI.
 			m_SimPanel = null;
 		}
-		// Every button holds m_Handler and m_Handler holds the bar: leaving those refs in place leaked one whole toolbar per GM enter/exit.
+		// Break the handler cycle during teardown.
 		m_Handler = null;
 		m_btnMove = null;
 		m_btnRotate = null;
@@ -89,7 +89,7 @@ class DCO_GMPreciseBar
 		m_wRoot = null;
 	}
 
-	// Precise mode flipped: show or hide the whole toolbar group.
+	// Keeps the toolbar aligned with precise mode.
 	protected void OnPreciseChanged(bool on)
 	{
 		if (m_wTools)

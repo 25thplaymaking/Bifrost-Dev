@@ -245,6 +245,7 @@ class DCO_GMCreatePanelComponent
 			m_CatValues.Insert(catVals[i]);
 
 			ImageWidget ic = ImageWidget.Cast(m_wBrowser.FindAnyWidget(catIconNames[i]));
+			TextWidget lbl = TextWidget.Cast(b.FindAnyWidget(catNames[i] + "_Label"));
 			bool loaded = false;
 			ResourceName tabTex = CategoryIconTexture(catVals[i]);
 			if (ic && !tabTex.IsEmpty())
@@ -252,17 +253,18 @@ class DCO_GMCreatePanelComponent
 			if (ic && loaded)
 			{
 				ic.SetVisible(true);
-				TextWidget lbl = TextWidget.Cast(b.FindAnyWidget(catNames[i] + "_Label"));
 				if (lbl)
-					lbl.SetVisible(true);	// numeric result badge, populated by UpdateCategoryCounts.
+					lbl.SetVisible(false);
 			}
 			else
 			{
 				if (ic)
 					ic.SetVisible(false);
 				ic = null;	// no icon for this tab -> highlighting falls back to the label.
+				if (lbl)
+					lbl.SetVisible(true);
 				if (!tabTex.IsEmpty())
-					Print("[DCO-GM] CREATE: category glyph failed to load for " + catNames[i] + " (text fallback kept)", LogLevel.WARNING);
+					Print("[DCO-GM] CREATE: category glyph failed to load for " + catNames[i] + " (text fallback shown)", LogLevel.WARNING);
 			}
 			m_CatIcons.Insert(ic);
 		}
@@ -386,7 +388,6 @@ class DCO_GMCreatePanelComponent
 
 		HighlightCategory();
 		HighlightFaction(0);	// default selection = ALL; dims the unselected faction logos.
-		UpdateCategoryCounts();
 	}
 
 	protected int FactionPageSize()
@@ -504,44 +505,7 @@ class DCO_GMCreatePanelComponent
 		}
 		m_ScrollOffset = 0;
 		UpdateHeaderCrumb();
-		UpdateCategoryCounts();
 		Repaint();
-	}
-
-	protected int AssetRowCount()
-	{
-		int count;
-		foreach (DCO_CatalogRow row : m_QueryRows)
-		{
-			if (!row)
-				continue;
-			if (!row.m_bHeader)
-				count++;
-		}
-		return count;
-	}
-
-	protected void UpdateCategoryCounts()
-	{
-		if (!m_Catalog)
-			return;
-		for (int i = 0; i < m_CatBtns.Count(); i++)
-		{
-			TextWidget label = TextWidget.Cast(m_CatBtns[i].FindAnyWidget(GetCatLabelName(i)));
-			if (!label)
-				continue;
-			int count = m_Catalog.CountEntries(m_CatValues[i], m_Faction);
-			label.SetText(count.ToString());
-			label.SetVisible(true);
-		}
-		if (m_wBudgetLine)
-		{
-			int visibleAssets = m_Catalog.CountEntries(m_Category, m_Faction);
-			if (!m_Search.IsEmpty())
-				visibleAssets = AssetRowCount();
-			m_wBudgetLine.SetText(string.Format("%1 ASSETS  ·  SELECT TO DEPLOY", visibleAssets));
-			m_wBudgetLine.SetOpacity(1.0);
-		}
 	}
 
 	// Shows the active category and faction.
