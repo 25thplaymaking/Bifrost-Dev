@@ -815,20 +815,19 @@ class DCO_GMTools
 
 	void SendOnFlyby(SCR_EditableEntityComponent e)
 	{
-		if (!e)
+		if (!e || !DCO_FxAircraftCatalog.IsSupportedHelicopter(e.GetOwner()))
 			return;
 		DCO_GMToolsServer.Route(DCO_GMToolsServer.TOOL_FLYBY, e.GetOwner(), vector.Zero);
 	}
 
 	void FlybyEntity(IEntity v)
 	{
-		if (!v)
+		if (!DCO_FxAircraftCatalog.IsSupportedHelicopter(v))
 			return;
 		vector mat[4];
 		v.GetWorldTransform(mat);
 		Physics ph = v.GetPhysics();
-		if (ph)
-			ph.SetActive(ActiveState.INACTIVE);	// kinematic - we drive the transform, no gravity/tumble.
+		ph.SetActive(ActiveState.INACTIVE);	// kinematic - we drive the transform, no gravity/tumble.
 		DCO_GMFlyby fb = new DCO_GMFlyby();
 		fb.m_Entity = v;
 		fb.m_StartPos = mat[3];

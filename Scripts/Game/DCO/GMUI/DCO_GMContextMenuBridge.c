@@ -225,9 +225,9 @@ class DCO_GMContextMenuBridge
 				labels.Insert("Reset Loadout");
 				ids.Insert(ID_RESET_LOADOUT);
 			}
-			if (m_Entity.GetEntityType() == EEditableEntityType.VEHICLE)
+			if (m_Entity.GetEntityType() == EEditableEntityType.VEHICLE && DCO_FxAircraftCatalog.IsSupportedHelicopter(m_Entity.GetOwner()))
 			{
-				labels.Insert("Send on Flyby");
+				labels.Insert("Send Helicopter on Flyby (Despawns)");
 				ids.Insert(ID_FLYBY);
 			}
 		}

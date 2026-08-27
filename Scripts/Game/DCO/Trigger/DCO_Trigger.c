@@ -107,6 +107,9 @@ class DCO_TriggerComponent : ScriptComponent
 	[Attribute("0", UIWidgets.ComboBox, "Who trips this trigger: anyone, players only, or any character of a specific faction.", "", ParamEnumArray.FromEnum(EDCO_TriggerCondition), category: "Bifrost"), RplProp()]
 	EDCO_TriggerCondition m_eCondition;
 
+	[RplProp()]
+	protected FactionKey m_sConditionFactionKey;
+
 	[Attribute("25", UIWidgets.Slider, "Trigger radius (m).", "5 500 5", category: "Bifrost"), RplProp()]
 	float m_fRadius;
 
@@ -124,6 +127,12 @@ class DCO_TriggerComponent : ScriptComponent
 
 	[Attribute("0", UIWidgets.ComboBox, "Which AI group the SPAWN_GROUP action spawns at the trigger center.", "", ParamEnumArray.FromEnum(EDCO_TriggerSpawnGroup), category: "Bifrost"), RplProp()]
 	EDCO_TriggerSpawnGroup m_eSpawnGroup;
+
+	[RplProp()]
+	protected FactionKey m_sSpawnFactionKey;
+
+	[RplProp()]
+	protected ResourceName m_rSpawnGroupPrefab;
 
 	[Attribute("0", UIWidgets.Slider, "SPRING_AMBUSH pairing: the Pair ID of the DCO Ambush Position(s) to spring. 0 = spring the NEAREST ambush position.", "0 50 1", category: "Bifrost"), RplProp()]
 	int m_iPairId;
@@ -145,10 +154,6 @@ class DCO_TriggerComponent : ScriptComponent
 	static const ref array<string> COND_NAMES = {
 		"Anyone (AI or player)",
 		"Players only",
-		"Faction: US",
-		"Faction: Soviet",
-		"Faction: FIA",
-		"Faction: Civilian",
 	};
 
 	static const ref array<string> ACTION_NAMES = {
@@ -168,15 +173,6 @@ class DCO_TriggerComponent : ScriptComponent
 		"Soviet MG Team",
 		"FIA Fire Team",
 		"FIA Rifle Squad",
-	};
-
-	protected static const ref array<string> COND_FACTION_KEYS = {
-		"",
-		"",
-		"US",
-		"USSR",
-		"FIA",
-		"CIV",
 	};
 
 	protected static const ref array<ResourceName> GROUP_PREFABS = {
@@ -238,8 +234,48 @@ class DCO_TriggerComponent : ScriptComponent
 		return vector.Zero;
 	}
 
-	int DCO_GetCondition()				{ return m_eCondition; }
-	void DCO_SetCondition(int c)		{ m_eCondition = Math.Clamp(c, 0, COND_NAMES.Count() - 1); DCO_ReplicateState(); }
+	int DCO_GetCondition()
+	{
+		DCO_MigrateLegacySelections();
+		if (m_sConditionFactionKey.IsEmpty())
+			return Math.Clamp(m_eCondition, 0, COND_NAMES.Count() - 1);
+		int index = DCO_FactionCatalog.IndexOf(m_sConditionFactionKey);
+		if (index < 0)
+			return DCO_GetConditionCount();
+		return COND_NAMES.Count() + index;
+	}
+	void DCO_SetCondition(int c)
+	{
+		if (c < COND_NAMES.Count())
+		{
+			m_eCondition = Math.Clamp(c, 0, COND_NAMES.Count() - 1);
+			m_sConditionFactionKey = "";
+		}
+		else
+		{
+			FactionKey key = DCO_FactionCatalog.KeyAt(c - COND_NAMES.Count());
+			if (!key.IsEmpty())
+			{
+				m_sConditionFactionKey = key;
+				m_eCondition = EDCO_TriggerCondition.FACTION_US;
+			}
+		}
+		DCO_ReplicateState();
+	}
+	static int DCO_GetConditionCount()	{ return COND_NAMES.Count() + DCO_FactionCatalog.Count(); }
+	static string DCO_GetConditionName(int index)
+	{
+		if (index >= 0 && index < COND_NAMES.Count())
+			return COND_NAMES[index];
+		return "Faction: " + DCO_FactionCatalog.NameAt(index - COND_NAMES.Count());
+	}
+	FactionKey DCO_GetConditionFactionKey() { DCO_MigrateLegacySelections(); return m_sConditionFactionKey; }
+	string DCO_GetConditionDisplayName()
+	{
+		if (!m_sConditionFactionKey.IsEmpty())
+			return "Faction: " + DCO_FactionCatalog.NameFor(m_sConditionFactionKey);
+		return DCO_GetConditionName(DCO_GetCondition());
+	}
 	float DCO_GetRadius()				{ return m_fRadius; }
 	void DCO_SetRadius(float r)			{ m_fRadius = Math.Clamp(r, 5, 500); DCO_ReplicateState(); }
 	int DCO_GetCountThreshold()			{ return m_iCountThreshold; }
@@ -249,14 +285,74 @@ class DCO_TriggerComponent : ScriptComponent
 	void DCO_SetCooldown(float s)		{ m_fCooldownSec = Math.Clamp(s, 1, 300); DCO_ReplicateState(); }
 	int DCO_GetAction()					{ return m_eAction; }
 	void DCO_SetAction(int a)			{ m_eAction = Math.Clamp(a, 0, ACTION_NAMES.Count() - 1); DCO_ReplicateState(); }
-	int DCO_GetSpawnGroup()				{ return m_eSpawnGroup; }
-	void DCO_SetSpawnGroup(int g)		{ m_eSpawnGroup = Math.Clamp(g, 0, GROUP_PREFABS.Count() - 1); DCO_ReplicateState(); }
+	int DCO_GetSpawnFaction()
+	{
+		DCO_MigrateLegacySelections();
+		if (m_sSpawnFactionKey.IsEmpty())
+			return 0;
+		int index = DCO_TriggerGroupCatalog.FactionIndexOf(m_sSpawnFactionKey);
+		if (index < 0)
+			return DCO_TriggerGroupCatalog.FactionCount() + 1;
+		return index + 1;
+	}
+	void DCO_SetSpawnFaction(int index)
+	{
+		FactionKey selectedKey;
+		if (index > 0)
+			selectedKey = DCO_TriggerGroupCatalog.FactionKeyAt(index - 1);
+		if (index > 0 && selectedKey.IsEmpty())
+			return;
+		m_sSpawnFactionKey = selectedKey;
+		if (!selectedKey.IsEmpty() && DCO_TriggerGroupCatalog.FactionForPrefab(m_rSpawnGroupPrefab) != selectedKey)
+		{
+			DCO_TriggerGroupEntry first = DCO_TriggerGroupCatalog.GroupAt(selectedKey, 0);
+			if (first)
+				m_rSpawnGroupPrefab = first.m_Prefab;
+		}
+		DCO_ReplicateState();
+	}
+	FactionKey DCO_GetSpawnFactionKey() { DCO_MigrateLegacySelections(); return m_sSpawnFactionKey; }
+	int DCO_GetSpawnGroup()
+	{
+		DCO_MigrateLegacySelections();
+		int index = DCO_TriggerGroupCatalog.GroupIndexOf(m_sSpawnFactionKey, m_rSpawnGroupPrefab);
+		if (index < 0)
+			return DCO_TriggerGroupCatalog.GroupCount(m_sSpawnFactionKey);
+		return index;
+	}
+	void DCO_SetSpawnGroup(int index)
+	{
+		DCO_TriggerGroupEntry selected = DCO_TriggerGroupCatalog.GroupAt(m_sSpawnFactionKey, index);
+		if (!selected)
+			return;
+		m_rSpawnGroupPrefab = selected.m_Prefab;
+		m_eSpawnGroup = 0;
+		DCO_ReplicateState();
+	}
+	ResourceName DCO_GetSpawnGroupPrefab() { DCO_MigrateLegacySelections(); return m_rSpawnGroupPrefab; }
 	int DCO_GetPairId()					{ return m_iPairId; }
 	void DCO_SetPairId(int id)			{ m_iPairId = Math.Clamp(id, 0, 50); DCO_ReplicateState(); }
 	float DCO_GetFxPairRadius()			{ return m_fFxPairRadius; }
 	void DCO_SetFxPairRadius(float r)	{ m_fFxPairRadius = Math.Clamp(r, 5, 200); DCO_ReplicateState(); }
 	bool DCO_GetEnabled()				{ return m_bEnabled; }
 	bool DCO_IsTripped()				{ return m_bTripped; }
+
+	protected void DCO_MigrateLegacySelections()
+	{
+		if (m_sConditionFactionKey.IsEmpty() && m_eCondition >= EDCO_TriggerCondition.FACTION_US)
+		{
+			int legacyFaction = m_eCondition - EDCO_TriggerCondition.FACTION_US;
+			array<FactionKey> legacyKeys = {"US", "USSR", "FIA", "CIV"};
+			if (legacyKeys.IsIndexValid(legacyFaction))
+				m_sConditionFactionKey = legacyKeys[legacyFaction];
+		}
+		if (m_rSpawnGroupPrefab.IsEmpty())
+		{
+			int legacyGroup = Math.Clamp(m_eSpawnGroup, 0, GROUP_PREFABS.Count() - 1);
+			m_rSpawnGroupPrefab = GROUP_PREFABS[legacyGroup];
+			m_sSpawnFactionKey = DCO_TriggerGroupCatalog.FactionForPrefab(m_rSpawnGroupPrefab);
+		}
+	}
 
 	protected void DCO_ReplicateState()
 	{
@@ -373,7 +469,8 @@ class DCO_TriggerComponent : ScriptComponent
 			}
 		}
 
-		if (m_eCondition == EDCO_TriggerCondition.PLAYERS_ONLY)
+		DCO_MigrateLegacySelections();
+		if (m_sConditionFactionKey.IsEmpty() && m_eCondition == EDCO_TriggerCondition.PLAYERS_ONLY)
 			return count;
 
 		SCR_AIWorld aiWorld = SCR_AIWorld.Cast(GetGame().GetAIWorld());
@@ -405,8 +502,8 @@ class DCO_TriggerComponent : ScriptComponent
 
 	protected SCR_Faction DCO_GetConditionFaction()
 	{
-		int idx = Math.Clamp(m_eCondition, 0, COND_FACTION_KEYS.Count() - 1);
-		string key = COND_FACTION_KEYS[idx];
+		DCO_MigrateLegacySelections();
+		string key = m_sConditionFactionKey;
 		if (key.IsEmpty())
 			return null;
 		FactionManager fm = GetGame().GetFactionManager();
@@ -417,12 +514,14 @@ class DCO_TriggerComponent : ScriptComponent
 
 	protected bool DCO_ConditionMatches(IEntity ent, bool isPlayer, SCR_Faction condFaction)
 	{
-		switch (m_eCondition)
+		DCO_MigrateLegacySelections();
+		if (m_sConditionFactionKey.IsEmpty())
 		{
-			case EDCO_TriggerCondition.ANY_CHARACTER:
+			if (m_eCondition == EDCO_TriggerCondition.ANY_CHARACTER)
 				return true;
-			case EDCO_TriggerCondition.PLAYERS_ONLY:
+			if (m_eCondition == EDCO_TriggerCondition.PLAYERS_ONLY)
 				return isPlayer;
+			return false;
 		}
 
 		if (!condFaction)
@@ -476,7 +575,7 @@ class DCO_TriggerComponent : ScriptComponent
 
 		Print(string.Format("[DCO-TRIGGER] fired: action=%1 condition=%2 matches=%3 repeat=%4",
 			ACTION_NAMES[Math.Clamp(m_eAction, 0, ACTION_NAMES.Count() - 1)],
-			COND_NAMES[Math.Clamp(m_eCondition, 0, COND_NAMES.Count() - 1)],
+			DCO_GetConditionDisplayName(),
 			count, m_bRepeat), LogLevel.NORMAL);
 	}
 
@@ -595,22 +694,28 @@ class DCO_TriggerComponent : ScriptComponent
 		if (!owner)
 			return;
 
-		int idx = Math.Clamp(m_eSpawnGroup, 0, GROUP_PREFABS.Count() - 1);
+		DCO_MigrateLegacySelections();
+		ResourceName prefab = m_rSpawnGroupPrefab;
+		Resource resource = Resource.Load(prefab);
+		if (!resource || !resource.IsValid())
+		{
+			Print("[DCO-TRIGGER] SPAWN_GROUP: selected group resource is unavailable: " + prefab, LogLevel.WARNING);
+			return;
+		}
 
 		EntitySpawnParams sp = new EntitySpawnParams();
 		sp.TransformMode = ETransformMode.WORLD;
 		Math3D.MatrixIdentity4(sp.Transform);
 		sp.Transform[3] = DCO_GetCenter();
 
-		IEntity grpEnt = GetGame().SpawnEntityPrefabEx(GROUP_PREFABS[idx], false, owner.GetWorld(), sp);
+		IEntity grpEnt = GetGame().SpawnEntityPrefabEx(prefab, false, owner.GetWorld(), sp);
 		if (!grpEnt)
 		{
-			Print(string.Format("[DCO-TRIGGER] SPAWN_GROUP: prefab failed to spawn (%1)",
-				SPAWN_GROUP_NAMES[idx]), LogLevel.WARNING);
+			Print("[DCO-TRIGGER] SPAWN_GROUP: prefab failed to spawn: " + prefab, LogLevel.WARNING);
 			return;
 		}
 
-		Print(string.Format("[DCO-TRIGGER] spawned %1 at trigger", SPAWN_GROUP_NAMES[idx]), LogLevel.NORMAL);
+		Print("[DCO-TRIGGER] spawned group at trigger: " + prefab, LogLevel.NORMAL);
 	}
 
 	// Start the nearest pairable Bifrost FX emitter within the FX pair radius.

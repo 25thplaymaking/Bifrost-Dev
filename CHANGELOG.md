@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 1.0.26 - 2026-08-27
+
+- Added a rightmost custom-faction folder with authored faction artwork, stable faction-key ordering, and pagination for larger mod sets.
+- Reworked CREATE catalog refresh and search around the merged native browser and placing registries while preserving the native browser's active filters, search, page, and tab during placement.
+- Added immediate multi-token CREATE and EDIT search with prefab, faction, category, type, and subcategory matching.
+- Added stable faction-key selection and catalog-driven group prefab selection to triggers, including legacy migration and explicit missing-mod entries.
+- Added custom-faction pagination to the EDIT force overview and keyed its ammunition cache by faction instead of visible row.
+- Added catalog-driven third-party helicopter selection to Air Support and Loiter FX attributes, with stable prefab persistence and runtime vehicle validation.
+- Added stable custom-faction targeting to Loiter FX and retained missing faction selections without silently substituting vanilla factions.
+- Removed broad overrides of the native command list, rocket-ammunition base, and attribute layout to reduce conflicts with other loaded mods.
+- Retained launcher discipline in scoped runtime logic and removed obsolete serialized AI-world settings that are no longer declared by the shipped component.
+- Preserved Bifrost's GM notification suppression, content-browser ownership, and inline attribute-dialog suppression.
+
 ## 1.0.25 - 2026-08-26
 
 - Added a GM-placeable Arsenal Access system that attaches a replicated F interaction to placed items, vehicles, and other editable entities.

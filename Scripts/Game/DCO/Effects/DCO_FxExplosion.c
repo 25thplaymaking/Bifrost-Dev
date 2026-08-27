@@ -132,8 +132,11 @@ class DCO_FxExplosionComponent : ScriptComponent
 	[Attribute("60", UIWidgets.Slider, "LOITER: time on station in seconds (the fuel budget) before the aircraft departs.", "10 600 10", category: "Bifrost"), RplProp()]
 	float m_fLoiterSec;
 
-	[Attribute("0", UIWidgets.Slider, "LOITER: target faction index (0 = Off/emitter point, 1 = US, 2 = USSR, 3 = FIA). The orbit centers on the nearest target inside the tracking radius.", "0 3 1", category: "Bifrost"), RplProp()]
+	[Attribute("0", UIWidgets.Slider, "LOITER target faction. Bifrost stores the stable faction key selected by the GM.", "0 3 1", category: "Bifrost"), RplProp()]
 	int m_iTargetFaction;
+
+	[RplProp()]
+	protected FactionKey m_sTargetFactionKey;
 
 	[Attribute("0", UIWidgets.Slider, "LOITER: which target inside the target faction the orbit/gunrun prioritizes (0 = Infantry, 1 = Vehicles, 2 = Any). Requires a Target Faction.", "0 2 1", category: "Bifrost"), RplProp()]
 	int m_iTargetType;
@@ -186,8 +189,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 		"Aircraft - UH-1H Armed Orbit",
 	};
 
-	static const ref array<string> TARGET_FACTION_KEYS  = {"", "US", "USSR", "FIA"};
-	static const ref array<string> TARGET_FACTION_NAMES = {"Off - emitter point", "US", "USSR", "FIA"};
 	static const ref array<string> TARGET_TYPE_NAMES = {"Infantry", "Vehicles", "Any"};
 	static const int TARGET_TYPE_INFANTRY = 0;
 	static const int TARGET_TYPE_VEHICLES = 1;
@@ -423,10 +424,37 @@ class DCO_FxExplosionComponent : ScriptComponent
 	void DCO_SetAircraftIndex(int i) { m_sAircraftPrefab = DCO_FxAircraftCatalog.PrefabAt(i); DCO_ReplicateState(); }
 	bool DCO_GetContinuousFire() { return m_bContinuousFire; }
 	void DCO_SetContinuousFire(bool v) { m_bContinuousFire = v; DCO_ReplicateState(); }
-	int DCO_GetTargetFaction() { return m_iTargetFaction; }
-	void DCO_SetTargetFaction(int v) { m_iTargetFaction = Math.Clamp(v, 0, TARGET_FACTION_KEYS.Count() - 1); DCO_ReplicateState(); }
+	int DCO_GetTargetFaction()
+	{
+		DCO_MigrateTargetFaction();
+		if (m_sTargetFactionKey.IsEmpty())
+			return 0;
+		int index = DCO_FactionCatalog.IndexOf(m_sTargetFactionKey);
+		if (index < 0)
+			return DCO_FactionCatalog.TargetCount();
+		return index + 1;
+	}
+	void DCO_SetTargetFaction(int v)
+	{
+		FactionKey key = DCO_FactionCatalog.TargetKeyAt(v);
+		if (v > 0 && key.IsEmpty())
+			return;
+		m_sTargetFactionKey = key;
+		m_iTargetFaction = 0;
+		DCO_ReplicateState();
+	}
+	FactionKey DCO_GetTargetFactionKey() { DCO_MigrateTargetFaction(); return m_sTargetFactionKey; }
 	int DCO_GetTargetType() { return m_iTargetType; }
 	void DCO_SetTargetType(int v) { m_iTargetType = Math.Clamp(v, 0, TARGET_TYPE_NAMES.Count() - 1); DCO_ReplicateState(); }
+
+	protected void DCO_MigrateTargetFaction()
+	{
+		if (!m_sTargetFactionKey.IsEmpty() || m_iTargetFaction <= 0)
+			return;
+		array<FactionKey> legacyKeys = {"", "US", "USSR", "FIA"};
+		if (legacyKeys.IsIndexValid(m_iTargetFaction))
+			m_sTargetFactionKey = legacyKeys[m_iTargetFaction];
+	}
 
 	protected void DCO_ReplicateState()
 	{
@@ -498,7 +526,8 @@ class DCO_FxExplosionComponent : ScriptComponent
 			}
 		}
 
-		if (m_iTargetFaction > 0 && m_iTargetFaction < TARGET_FACTION_KEYS.Count())
+		DCO_MigrateTargetFaction();
+		if (!m_sTargetFactionKey.IsEmpty())
 		{
 			vector facPos;
 			if (DCO_FindNearestFactionMember(emitterCenter, facPos))
@@ -519,7 +548,7 @@ class DCO_FxExplosionComponent : ScriptComponent
 		FactionManager fm = GetGame().GetFactionManager();
 		if (!fm)
 			return false;
-		m_FacQueryFaction = fm.GetFactionByKey(TARGET_FACTION_KEYS[m_iTargetFaction]);
+		m_FacQueryFaction = fm.GetFactionByKey(m_sTargetFactionKey);
 		if (!m_FacQueryFaction)
 			return false;
 		m_vFacQueryCenter = center;
@@ -715,13 +744,16 @@ class DCO_FxExplosionComponent : ScriptComponent
 			Print("[DCO-FX] aircraft pass spawn FAILED", LogLevel.WARNING);
 			return;
 		}
-		Physics physics = aircraft.GetPhysics();
-		if (physics)
+		if (!DCO_FxAircraftCatalog.IsSupportedHelicopter(aircraft))
 		{
-			// Never disable a vehicle's simulation while the compartment manager is spawning/moving occupants.
-			physics.ChangeSimulationState(SimulationState.SIMULATION);
-			physics.SetVelocity(Vector(0, 0, 0));
+			Print("[DCO-FX] aircraft pass rejected: selected prefab is not a supported helicopter", LogLevel.WARNING);
+			SCR_EntityHelper.DeleteEntityAndChildren(aircraft);
+			return;
 		}
+		Physics physics = aircraft.GetPhysics();
+		// Never disable a vehicle's simulation while the compartment manager is spawning/moving occupants.
+		physics.ChangeSimulationState(SimulationState.SIMULATION);
+		physics.SetVelocity(Vector(0, 0, 0));
 
 		DCO_FxAircraftPass pass = new DCO_FxAircraftPass();
 		pass.m_Aircraft = aircraft;
@@ -925,9 +957,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 		if (!owner)
 			return;
 		SetEventMask(owner, GetEventMask() | EntityEvent.FRAME);
-		GenericEntity ge = GetOwner();
-		if (ge)
-			ge.SetFlags(EntityFlags.ACTIVE, false);
 		m_bAircraftFrameOn = true;
 		Print("[DCO-FX] aircraft component frame pump enabled", LogLevel.NORMAL);
 	}

@@ -94,7 +94,10 @@ class DCO_CreateSearchHandler : ScriptedWidgetEventHandler
 class DCO_GMCreatePanelComponent
 {
 	static const int ROWS = 22;
-	static const int FAC_SLOTS = 7;	// index 0 = ALL, 1..6 = faction pool.
+	static const int FAC_SLOTS = 7;
+	static const int CUSTOM_FAC_SLOTS = 6;
+	static const int CUSTOM_FAC_TAB = FAC_SLOTS - 1;
+	static const ResourceName WORKSHOP_ICONS = "{3262679C50EF4F01}UI/Textures/Icons/icons_wrapperUI.imageset";
 	static const ResourceName FOLD_DOWN  = "{A3EE9DF5A7573679}img/icons/fold-down.edds";	// expanded section header.
 	static const ResourceName FOLD_RIGHT = "{12D85C56D7B4F8AA}img/icons/fold-right.edds";	// collapsed section header.
 
@@ -127,6 +130,12 @@ class DCO_GMCreatePanelComponent
 	protected ref array<ButtonWidget> m_FacBtns = {};
 	protected ref array<TextWidget> m_FacLabels = {};
 	protected ref array<ImageWidget> m_FacIcons = {};	// aligned with m_FacBtns; null for the ALL slot.
+	protected ref array<FactionKey> m_FacSlotKeys = {};
+	protected Widget m_wCustomFactionDrop;
+	protected ref array<Widget> m_CustomFacHosts = {};
+	protected ref array<ButtonWidget> m_CustomFacBtns = {};
+	protected ref array<TextWidget> m_CustomFacLabels = {};
+	protected ref array<ImageWidget> m_CustomFacIcons = {};
 
 	protected ref array<ButtonWidget> m_RowBtns = {};
 	protected ref array<TextWidget> m_RowLabels = {};
@@ -142,7 +151,10 @@ class DCO_GMCreatePanelComponent
 
 	protected ref array<ref DCO_CatalogRow> m_QueryRows = {};
 	protected ref array<FactionKey> m_FactionKeys = {};
-	protected int m_FactionPage;
+	protected ref array<FactionKey> m_CustomFactionKeys = {};
+	protected int m_CustomFactionPage;
+	protected int m_iCustomFactionTab = -1;
+	protected bool m_bCustomFactionOpen;
 
 	protected int m_Category = DCO_PlacementCatalog.CAT_ALL;
 	protected FactionKey m_Faction = "";
@@ -166,6 +178,9 @@ class DCO_GMCreatePanelComponent
 	static const float BAR_W = 5;	// bar width in reference px — must match the layout's Size.
 	static const float BAR_MIN_THUMB = 24;	// keep the thumb grabbable/visible on very long lists.
 	protected bool m_bCatalogReady;
+	protected bool m_bCatalogSubscribed;
+	protected bool m_bBrowserSubscribed;
+	protected SCR_ContentBrowserEditorComponent m_Browser;
 	protected bool m_bShown;
 	protected bool m_bSearchFocused;
 
@@ -186,6 +201,8 @@ class DCO_GMCreatePanelComponent
 		BindRows();
 		BindHover(shellRoot);
 		m_wBrowser.SetVisible(false);	// controller shows it on the CREATE tab.
+		SCR_EntityCatalogManagerComponent.GetOnEntityCatalogInitialized().Insert(OnEntityCatalogInitialized);
+		m_bCatalogSubscribed = true;
 
 		GetGame().GetCallqueue().CallLater(PollSearch, 400, true);
 
@@ -204,6 +221,19 @@ class DCO_GMCreatePanelComponent
 		GetGame().GetCallqueue().Remove(PollSearch);
 		GetGame().GetCallqueue().Remove(ShowHoverPreview);
 		GetGame().GetCallqueue().Remove(BarDragTick);
+		if (m_bCatalogSubscribed)
+		{
+			SCR_EntityCatalogManagerComponent.GetOnEntityCatalogInitialized().Remove(OnEntityCatalogInitialized);
+			m_bCatalogSubscribed = false;
+		}
+		if (m_bBrowserSubscribed && m_Browser)
+		{
+			ScriptInvoker browserInvoker = m_Browser.GetOnBrowserEntriesFiltered();
+			if (browserInvoker)
+				browserInvoker.Remove(OnBrowserEntriesFiltered);
+			m_bBrowserSubscribed = false;
+		}
+		m_Browser = null;
 		GetGame().GetInputManager().RemoveActionListener(UIConstants.MENU_ACTION_BACK, EActionTrigger.PRESSED, OnSearchCancel);
 		ReleaseSearchFocus();
 		HideHover();
@@ -278,8 +308,21 @@ class DCO_GMCreatePanelComponent
 				m_FacBtns.Insert(b);
 				m_FacLabels.Insert(lbl);
 				m_FacIcons.Insert(null);	// filled in BuildCatalog once the faction list exists.
+				m_FacSlotKeys.Insert("");
 			}
 		}
+
+		m_wCustomFactionDrop = m_wBrowser.FindAnyWidget("DCO_CustomFactionDrop");
+		for (int customIndex = 0; customIndex < CUSTOM_FAC_SLOTS; customIndex++)
+		{
+			m_CustomFacHosts.Insert(m_wBrowser.FindAnyWidget(string.Format("DCO_CustomFac_%1_Host", customIndex)));
+			ButtonWidget customButton = BindButton(string.Format("DCO_CustomFac_%1", customIndex));
+			m_CustomFacBtns.Insert(customButton);
+			m_CustomFacLabels.Insert(TextWidget.Cast(m_wBrowser.FindAnyWidget(string.Format("DCO_CustomFac_%1_Label", customIndex))));
+			m_CustomFacIcons.Insert(ImageWidget.Cast(m_wBrowser.FindAnyWidget(string.Format("DCO_CustomFac_%1_Icon", customIndex))));
+		}
+		if (m_wCustomFactionDrop)
+			m_wCustomFactionDrop.SetVisible(false);
 	}
 
 	protected ResourceName CategoryIconTexture(int category)
@@ -373,47 +416,90 @@ class DCO_GMCreatePanelComponent
 
 	protected void BuildCatalog()
 	{
-		m_Catalog = new DCO_PlacementCatalog();
-		m_Catalog.Build();
-		m_bCatalogReady = true;
+		EnsureBrowserSubscription();
+		if (!m_Catalog)
+			m_Catalog = new DCO_PlacementCatalog();
+		m_bCatalogReady = m_Catalog.Build();
 
-		m_Budget = new DCO_GMBudgetReadout();
-		m_Budget.Init(m_wBrowser);
+		if (!m_Budget)
+		{
+			m_Budget = new DCO_GMBudgetReadout();
+			m_Budget.Init(m_wBrowser);
+		}
 
 		m_Catalog.GetFactionKeys(m_FactionKeys);
-		m_FactionPage = 0;
-		BindFactionPage();
-		if (m_FactionKeys.Count() > FAC_SLOTS - 1)
-			Print(string.Format("[DCO-GM] CREATE: %1 factions across %2 switchable pages", m_FactionKeys.Count(), FactionPageCount()), LogLevel.NORMAL);
+		BuildFactionTabs();
 
 		HighlightCategory();
-		HighlightFaction(0);	// default selection = ALL; dims the unselected faction logos.
+		HighlightFaction();
 	}
 
-	protected int FactionPageSize()
+	protected void EnsureBrowserSubscription()
 	{
-		if (m_FactionKeys.Count() > FAC_SLOTS - 1)
-			return FAC_SLOTS - 2;	// ALL + five factions + MORE.
-		return FAC_SLOTS - 1;
+		SCR_ContentBrowserEditorComponent current = SCR_ContentBrowserEditorComponent.Cast(
+			SCR_ContentBrowserEditorComponent.GetInstance(SCR_ContentBrowserEditorComponent, false));
+		if (current == m_Browser)
+			return;
+		if (m_bBrowserSubscribed && m_Browser)
+		{
+			ScriptInvoker oldInvoker = m_Browser.GetOnBrowserEntriesFiltered();
+			if (oldInvoker)
+				oldInvoker.Remove(OnBrowserEntriesFiltered);
+		}
+		m_Browser = current;
+		m_bBrowserSubscribed = false;
+		if (m_Browser)
+		{
+			ScriptInvoker newInvoker = m_Browser.GetOnBrowserEntriesFiltered();
+			if (newInvoker)
+			{
+				newInvoker.Insert(OnBrowserEntriesFiltered);
+				m_bBrowserSubscribed = true;
+			}
+		}
 	}
 
-	protected int FactionPageCount()
+	protected void OnBrowserEntriesFiltered()
 	{
-		int size = FactionPageSize();
-		if (size <= 0)
-			return 1;
-		return Math.Max(1, (m_FactionKeys.Count() + size - 1) / size);
+		RefreshCatalogIfChanged();
 	}
 
-	protected bool IsFactionMoreSlot(int slot)
+	protected void OnEntityCatalogInitialized()
 	{
-		return m_FactionKeys.Count() > FAC_SLOTS - 1 && slot == FAC_SLOTS - 1;
+		DCO_FactionCatalog.Invalidate();
+		if (!m_wBrowser)
+			return;
+		BuildCatalog();
+		if (m_bShown)
+			Refresh();
 	}
 
-	protected void BindFactionPage()
+	protected void RefreshCatalogIfChanged()
 	{
-		int pageSize = FactionPageSize();
-		int offset = m_FactionPage * pageSize;
+		if (!m_Catalog || !m_Catalog.RefreshIfChanged())
+			return;
+		m_bCatalogReady = m_Catalog.IsBuilt();
+		m_Catalog.GetFactionKeys(m_FactionKeys);
+		BuildFactionTabs();
+		Refresh();
+	}
+
+	protected void BuildFactionTabs()
+	{
+		m_CustomFactionKeys.Clear();
+		m_iCustomFactionTab = CUSTOM_FAC_TAB;
+		for (int resetIndex = 0; resetIndex < m_FacSlotKeys.Count(); resetIndex++)
+			m_FacSlotKeys[resetIndex] = "";
+
+		array<FactionKey> canonical = {};
+		foreach (FactionKey key : m_FactionKeys)
+		{
+			if (DCO_FactionCatalog.IsCanonical(key))
+				canonical.Insert(key);
+			else
+				m_CustomFactionKeys.Insert(key);
+		}
+
 		for (int i = 0; i < m_FacBtns.Count(); i++)
 		{
 			ButtonWidget button = m_FacBtns[i];
@@ -424,6 +510,7 @@ class DCO_GMCreatePanelComponent
 
 			if (i == 0)
 			{
+				m_FacSlotKeys[i] = "";
 				if (label)
 				{
 					label.SetText("ALL");
@@ -436,51 +523,148 @@ class DCO_GMCreatePanelComponent
 				continue;
 			}
 
-			if (IsFactionMoreSlot(i))
+			if (i == CUSTOM_FAC_TAB)
 			{
+				bool iconLoaded = icon && icon.LoadImageFromSet(0, WORKSHOP_ICONS, "modIcon");
 				if (icon)
-					icon.SetVisible(false);
+				{
+					icon.SetVisible(iconLoaded);
+					icon.SetColor(Color.FromRGBA(255, 255, 255, 255));
+					icon.SetSize(22, 22);
+				}
+				if (i < m_FacIcons.Count())
+				{
+					if (iconLoaded)
+						m_FacIcons[i] = icon;
+					else
+						m_FacIcons[i] = null;
+				}
 				if (label)
 				{
-					label.SetText(string.Format("%1/%2  >", m_FactionPage + 1, FactionPageCount()));
+					label.SetText(string.Format("CUSTOM (%1)", m_CustomFactionKeys.Count()));
 					label.SetColor(DCO_GMTheme.Get().m_AccentColor);
+					label.SetVisible(!iconLoaded);
+				}
+				if (button)
+					button.SetVisible(!m_CustomFactionKeys.IsEmpty());
+				continue;
+			}
+
+			int canonicalIndex = i - 1;
+			if (canonicalIndex < canonical.Count())
+			{
+				FactionKey canonicalKey = canonical[canonicalIndex];
+				m_FacSlotKeys[i] = canonicalKey;
+				if (label)
+				{
+					label.SetText(m_Catalog.GetFactionTabLabel(canonicalKey));
+					label.SetColor(m_Catalog.GetFactionColor(canonicalKey));
 					label.SetVisible(true);
 				}
+				BindFactionIcon(i, canonicalKey, icon, label);
 				if (button)
 					button.SetVisible(true);
 				continue;
 			}
 
-			int factionIndex = offset + i - 1;
-			if (factionIndex < 0 || factionIndex >= m_FactionKeys.Count())
+			if (button)
+				button.SetVisible(false);
+			if (icon)
+				icon.SetVisible(false);
+		}
+
+		if (m_CustomFactionKeys.IsEmpty())
+			SetCustomFactionOpen(false);
+		BindCustomFactionPage();
+	}
+
+	protected void BindFactionIcon(int slot, FactionKey key, ImageWidget icon, TextWidget label)
+	{
+		if (!icon)
+			return;
+		string iconSource;
+		if (!DCO_App6Icons.SetFactionIcon(icon, key, iconSource))
+		{
+			icon.SetVisible(false);
+			return;
+		}
+		icon.SetColor(Color.FromRGBA(255, 255, 255, 255));
+		icon.SetSize(22, 22);
+		icon.SetVisible(true);
+		if (label)
+			label.SetVisible(false);
+		if (slot >= 0 && slot < m_FacIcons.Count())
+			m_FacIcons[slot] = icon;
+	}
+
+	protected int CustomFactionPageSize()
+	{
+		if (m_CustomFactionKeys.Count() > CUSTOM_FAC_SLOTS)
+			return CUSTOM_FAC_SLOTS - 1;
+		return CUSTOM_FAC_SLOTS;
+	}
+
+	protected int CustomFactionPageCount()
+	{
+		return Math.Max(1, (m_CustomFactionKeys.Count() + CustomFactionPageSize() - 1) / CustomFactionPageSize());
+	}
+
+	protected bool IsCustomFactionMoreSlot(int slot)
+	{
+		return m_CustomFactionKeys.Count() > CUSTOM_FAC_SLOTS && slot == CUSTOM_FAC_SLOTS - 1;
+	}
+
+	protected void BindCustomFactionPage()
+	{
+		int pageCount = CustomFactionPageCount();
+		if (m_CustomFactionPage >= pageCount)
+			m_CustomFactionPage = 0;
+		int offset = m_CustomFactionPage * CustomFactionPageSize();
+		for (int i = 0; i < m_CustomFacBtns.Count(); i++)
+		{
+			ButtonWidget button = m_CustomFacBtns[i];
+			TextWidget label = m_CustomFacLabels[i];
+			ImageWidget icon = m_CustomFacIcons[i];
+			if (IsCustomFactionMoreSlot(i))
 			{
+				if (m_CustomFacHosts[i])
+					m_CustomFacHosts[i].SetVisible(true);
+				if (label)
+					label.SetText(string.Format("MORE FACTIONS  ·  %1/%2", m_CustomFactionPage + 1, pageCount));
+				if (icon)
+					icon.SetVisible(false);
+				if (button)
+					button.SetVisible(true);
+				continue;
+			}
+
+			int factionIndex = offset + i;
+			if (factionIndex >= m_CustomFactionKeys.Count())
+			{
+				if (m_CustomFacHosts[i])
+					m_CustomFacHosts[i].SetVisible(false);
 				if (button)
 					button.SetVisible(false);
 				if (icon)
 					icon.SetVisible(false);
 				continue;
 			}
-
-			FactionKey key = m_FactionKeys[factionIndex];
+			FactionKey key = m_CustomFactionKeys[factionIndex];
+			if (m_CustomFacHosts[i])
+				m_CustomFacHosts[i].SetVisible(true);
 			if (label)
 			{
-				label.SetText(m_Catalog.GetFactionTabLabel(key));
+				label.SetText(string.Format("%1  ·  %2", DCO_FactionCatalog.NameFor(key), key));
 				label.SetColor(m_Catalog.GetFactionColor(key));
 				label.SetVisible(true);
 			}
 			if (icon)
 			{
-				string iconSource;
-				if (DCO_App6Icons.SetFactionIcon(icon, key, iconSource))
+				string source;
+				if (DCO_App6Icons.SetFactionIcon(icon, key, source))
 				{
 					icon.SetColor(Color.FromRGBA(255, 255, 255, 255));
-					icon.SetSize(22, 22);
 					icon.SetVisible(true);
-					Print(string.Format("[DCO-GM] faction tab icon: key=%1 source=%2", key, iconSource), LogLevel.NORMAL);
-					if (label)
-						label.SetVisible(false);
-					if (i < m_FacIcons.Count())
-						m_FacIcons[i] = icon;
 				}
 				else
 					icon.SetVisible(false);
@@ -490,19 +674,21 @@ class DCO_GMCreatePanelComponent
 		}
 	}
 
+	protected void SetCustomFactionOpen(bool open)
+	{
+		m_bCustomFactionOpen = open && !m_CustomFactionKeys.IsEmpty();
+		if (m_wCustomFactionDrop)
+			m_wCustomFactionDrop.SetVisible(m_bCustomFactionOpen);
+	}
+
 	// Re-run the query and repaint from the top.
 	void Refresh()
 	{
 		if (!m_bCatalogReady || !m_Catalog)
 			return;
 		m_QueryRows = m_Catalog.Query(m_Category, m_Faction, m_Search);
-// Allows empty categories when the active faction provides no matching assets.
-		if (m_QueryRows.IsEmpty() && !m_Faction.IsEmpty() && m_Search.IsEmpty())
-		{
-			m_Faction = "";
-			HighlightFaction(0);
-			m_QueryRows = m_Catalog.Query(m_Category, m_Faction, m_Search);
-		}
+		if (m_QueryRows.IsEmpty() && !m_Faction.IsEmpty() && !m_FactionKeys.Contains(m_Faction) && m_wBudgetLine)
+			m_wBudgetLine.SetText("FACTION CONTENT UNAVAILABLE  ·  CHOOSE ANOTHER FACTION");
 		m_ScrollOffset = 0;
 		UpdateHeaderCrumb();
 		Repaint();
@@ -850,17 +1036,35 @@ class DCO_GMCreatePanelComponent
 		{
 			if (w == m_FacBtns[i])
 			{
-				if (IsFactionMoreSlot(i))
+				if (i == m_iCustomFactionTab)
 				{
-					m_FactionPage = (m_FactionPage + 1) % FactionPageCount();
-					BindFactionPage();
-					HighlightFaction(-1);
+					SetCustomFactionOpen(!m_bCustomFactionOpen);
+					HighlightFaction();
 					return true;
 				}
-				SelectFaction(i);
+				SelectFaction(m_FacSlotKeys[i]);
 				Refresh();
 				return true;
 			}
+		}
+		for (int customIndex = 0; customIndex < m_CustomFacBtns.Count(); customIndex++)
+		{
+			if (w != m_CustomFacBtns[customIndex])
+				continue;
+			if (IsCustomFactionMoreSlot(customIndex))
+			{
+				m_CustomFactionPage = (m_CustomFactionPage + 1) % CustomFactionPageCount();
+				BindCustomFactionPage();
+				return true;
+			}
+			int factionIndex = m_CustomFactionPage * CustomFactionPageSize() + customIndex;
+			if (factionIndex >= 0 && factionIndex < m_CustomFactionKeys.Count())
+			{
+				SelectFaction(m_CustomFactionKeys[factionIndex]);
+				SetCustomFactionOpen(false);
+				Refresh();
+			}
+			return true;
 		}
 		for (int r = 0; r < m_RowBtns.Count(); r++)
 		{
@@ -989,21 +1193,10 @@ class DCO_GMCreatePanelComponent
 			m_wHover.SetVisible(false);
 	}
 
-	protected void SelectFaction(int facIdx)
+	protected void SelectFaction(FactionKey key)
 	{
-		if (facIdx == 0)
-		{
-			m_Faction = "";	// ALL.
-		}
-		else
-		{
-			int fidx = m_FactionPage * FactionPageSize() + facIdx - 1;
-			if (fidx >= 0 && fidx < m_FactionKeys.Count())
-				m_Faction = m_FactionKeys[fidx];
-			else
-				return;
-		}
-		HighlightFaction(facIdx);
+		m_Faction = key;
+		HighlightFaction();
 	}
 
 	// Selected category glyph -> accent tint; others grey.
@@ -1035,17 +1228,20 @@ class DCO_GMCreatePanelComponent
 	}
 
 	// Uses opacity so faction artwork keeps its authored colour.
-	protected void HighlightFaction(int selIdx)
+	protected void HighlightFaction()
 	{
 		DCO_GMTheme theme = DCO_GMTheme.Get();
 		for (int i = 0; i < m_FacBtns.Count(); i++)
 		{
+			bool selected = m_FacSlotKeys[i] == m_Faction;
+			if (i == m_iCustomFactionTab)
+				selected = !m_Faction.IsEmpty() && m_CustomFactionKeys.Contains(m_Faction);
 			ImageWidget ic = null;
 			if (i < m_FacIcons.Count())
 				ic = m_FacIcons[i];
 			if (ic)
 			{
-				if (i == selIdx)
+				if (selected)
 					ic.SetOpacity(1.0);
 				else
 					ic.SetOpacity(0.45);
@@ -1054,7 +1250,7 @@ class DCO_GMCreatePanelComponent
 			TextWidget lbl = m_FacLabels[i];
 			if (!lbl)
 				continue;
-			if (i == selIdx)
+			if (selected)
 			{
 				lbl.SetColor(theme.m_AccentColor);
 				continue;
@@ -1064,9 +1260,10 @@ class DCO_GMCreatePanelComponent
 				lbl.SetColor(theme.m_TextColor);
 				continue;
 			}
-			int fidx = m_FactionPage * FactionPageSize() + i - 1;
-			if (fidx >= 0 && fidx < m_FactionKeys.Count())
-				lbl.SetColor(m_Catalog.GetFactionColor(m_FactionKeys[fidx]));
+			if (i == m_iCustomFactionTab)
+				lbl.SetColor(theme.m_AccentColor);
+			else if (!m_FacSlotKeys[i].IsEmpty())
+				lbl.SetColor(m_Catalog.GetFactionColor(m_FacSlotKeys[i]));
 		}
 	}
 
@@ -1074,6 +1271,7 @@ class DCO_GMCreatePanelComponent
 	{
 		if (!m_bShown || !m_wSearch)
 			return;
+		EnsureBrowserSubscription();
 		string cur = m_wSearch.GetText();
 		if (cur == m_LastSearch)
 			return;

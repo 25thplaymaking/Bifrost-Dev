@@ -24,7 +24,7 @@ Open the project in Arma Reforger Workbench or install the published addon throu
 
 ## Release state
 
-Current release: **1.0.25**, targeting the public Bohemia Workshop package for Arma Reforger 1.8.0.10. The source and packaged resources pass the static release gates, and the current Workbench compile is clean. Dedicated-server, reconnect/JIP, and hands-on interaction checks remain part of every release promotion and are listed in [docs/TESTING.md](docs/TESTING.md).
+Current release: **1.0.26**, targeting the public Bohemia Workshop package for Arma Reforger 1.8.0.10. The source and packaged resources pass the static release gates, and the current Workbench compile is clean. Dedicated-server, reconnect/JIP, and hands-on interaction checks remain part of every release promotion and are listed in [docs/TESTING.md](docs/TESTING.md).
 
 ## License and credits
 

@@ -18,11 +18,17 @@ class DCO_TriggerAttributeBase : SCR_BaseValueListEditorAttribute
 [BaseContainerProps()]
 class DCO_TriggerConditionEditorAttribute : DCO_TriggerAttributeBase
 {
+	protected FactionKey m_MissingFactionKey;
+
 	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
 	{
 		DCO_TriggerComponent trig = GetTrigger(item);
 		if (!trig)
 			return null;
+		m_MissingFactionKey = "";
+		FactionKey factionKey = trig.DCO_GetConditionFactionKey();
+		if (!factionKey.IsEmpty() && DCO_FactionCatalog.IndexOf(factionKey) < 0)
+			m_MissingFactionKey = factionKey;
 		return SCR_BaseEditorAttributeVar.CreateInt(trig.DCO_GetCondition());
 	}
 
@@ -37,8 +43,10 @@ class DCO_TriggerConditionEditorAttribute : DCO_TriggerAttributeBase
 
 	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
 	{
-		foreach (string name : DCO_TriggerComponent.COND_NAMES)
-			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(name));
+		for (int i = 0; i < DCO_TriggerComponent.DCO_GetConditionCount(); i++)
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(DCO_TriggerComponent.DCO_GetConditionName(i)));
+		if (!m_MissingFactionKey.IsEmpty())
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Missing faction · " + m_MissingFactionKey));
 		return outEntries.Count();
 	}
 }
@@ -72,15 +80,64 @@ class DCO_TriggerActionEditorAttribute : DCO_TriggerAttributeBase
 	}
 }
 
-// Which AI group the SPAWN_GROUP action spawns, as a labeled spinbox.
+// Narrows the group picker without replacing the selected resource with a faction preset.
 [BaseContainerProps()]
-class DCO_TriggerSpawnGroupEditorAttribute : DCO_TriggerAttributeBase
+class DCO_TriggerSpawnFactionEditorAttribute : DCO_TriggerAttributeBase
 {
+	protected FactionKey m_MissingFactionKey;
+
 	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
 	{
 		DCO_TriggerComponent trig = GetTrigger(item);
 		if (!trig)
 			return null;
+		m_MissingFactionKey = "";
+		FactionKey factionKey = trig.DCO_GetSpawnFactionKey();
+		if (!factionKey.IsEmpty() && DCO_TriggerGroupCatalog.FactionIndexOf(factionKey) < 0)
+			m_MissingFactionKey = factionKey;
+		return SCR_BaseEditorAttributeVar.CreateInt(trig.DCO_GetSpawnFaction());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		if (!var)
+			return;
+		DCO_TriggerComponent trig = GetTrigger(item);
+		if (trig)
+			trig.DCO_SetSpawnFaction(var.GetInt());
+	}
+
+	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
+	{
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("All factions"));
+		for (int i = 0; i < DCO_TriggerGroupCatalog.FactionCount(); i++)
+		{
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(string.Format("%1 · %2",
+				DCO_TriggerGroupCatalog.FactionNameAt(i), DCO_TriggerGroupCatalog.FactionKeyAt(i))));
+		}
+		if (!m_MissingFactionKey.IsEmpty())
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Missing faction · " + m_MissingFactionKey));
+		return outEntries.Count();
+	}
+}
+
+// Which cataloged AI group the SPAWN_GROUP action spawns.
+[BaseContainerProps()]
+class DCO_TriggerSpawnGroupEditorAttribute : DCO_TriggerAttributeBase
+{
+	protected FactionKey m_FactionKey;
+	protected ResourceName m_MissingPrefab;
+
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trig = GetTrigger(item);
+		if (!trig)
+			return null;
+		m_FactionKey = trig.DCO_GetSpawnFactionKey();
+		m_MissingPrefab = "";
+		ResourceName prefab = trig.DCO_GetSpawnGroupPrefab();
+		if (!prefab.IsEmpty() && DCO_TriggerGroupCatalog.GroupIndexOf(m_FactionKey, prefab) < 0)
+			m_MissingPrefab = prefab;
 		return SCR_BaseEditorAttributeVar.CreateInt(trig.DCO_GetSpawnGroup());
 	}
 
@@ -95,8 +152,18 @@ class DCO_TriggerSpawnGroupEditorAttribute : DCO_TriggerAttributeBase
 
 	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
 	{
-		foreach (string name : DCO_TriggerComponent.SPAWN_GROUP_NAMES)
-			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(name));
+		for (int i = 0; i < DCO_TriggerGroupCatalog.GroupCount(m_FactionKey); i++)
+		{
+			DCO_TriggerGroupEntry entry = DCO_TriggerGroupCatalog.GroupAt(m_FactionKey, i);
+			if (!entry)
+				continue;
+			string label = entry.m_Name;
+			if (m_FactionKey.IsEmpty() && !entry.m_FactionKey.IsEmpty())
+				label = string.Format("%1 · %2", label, entry.m_FactionKey);
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(label));
+		}
+		if (!m_MissingPrefab.IsEmpty())
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Missing mod · " + m_MissingPrefab));
 		return outEntries.Count();
 	}
 }

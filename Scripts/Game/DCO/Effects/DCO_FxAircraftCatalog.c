@@ -2,9 +2,33 @@ class DCO_FxAircraftCatalog
 {
 	protected static ref array<ResourceName> s_aPrefabs;
 	protected static ref array<string> s_aNames;
+	protected static bool s_bSubscribed;
+	protected static SCR_EntityCatalogManagerComponent s_Manager;
+
+	protected static void EnsureSubscription()
+	{
+		if (s_bSubscribed)
+			return;
+		SCR_EntityCatalogManagerComponent.GetOnEntityCatalogInitialized().Insert(Invalidate);
+		s_bSubscribed = true;
+	}
+
+	protected static void Invalidate()
+	{
+		s_aPrefabs = null;
+		s_aNames = null;
+	}
 
 	static void Build()
 	{
+		SCR_EntityCatalogManagerComponent mgr = SCR_EntityCatalogManagerComponent.GetInstance();
+		if (s_Manager != mgr)
+		{
+			s_Manager = mgr;
+			s_aPrefabs = null;
+			s_aNames = null;
+		}
+		EnsureSubscription();
 		if (s_aPrefabs)
 			return;
 		s_aPrefabs = {};
@@ -12,7 +36,6 @@ class DCO_FxAircraftCatalog
 		s_aPrefabs.Insert(DCO_FxExplosionComponent.FLYBY_AIRCRAFT);
 		s_aNames.Insert("UH-1H (default)");
 
-		SCR_EntityCatalogManagerComponent mgr = SCR_EntityCatalogManagerComponent.GetInstance();
 		if (!mgr)
 			return;
 
@@ -50,8 +73,7 @@ class DCO_FxAircraftCatalog
 				string name = entry.GetEntityName();
 				if (name.IsEmpty())
 					name = prefab;
-				s_aPrefabs.Insert(prefab);
-				s_aNames.Insert(name);
+				InsertSorted(prefab, name);
 			}
 		}
 		Print(string.Format("[DCO-FX] aircraft catalog: %1 helicopter(s) discovered", s_aPrefabs.Count()), LogLevel.NORMAL);
@@ -79,7 +101,32 @@ class DCO_FxAircraftCatalog
 		return s_aPrefabs[i];
 	}
 
-	// Index of a stored prefab, or 0 (the default) when it is unknown in THIS session's mod set.
+	protected static void InsertSorted(ResourceName prefab, string name)
+	{
+		int insertAt = s_aPrefabs.Count();
+		string token = prefab;
+		token.ToLower();
+		for (int i = 1; i < s_aPrefabs.Count(); i++)
+		{
+			string existing = s_aPrefabs[i];
+			existing.ToLower();
+			if (token.Compare(existing) < 0)
+			{
+				insertAt = i;
+				break;
+			}
+		}
+		s_aPrefabs.InsertAt(prefab, insertAt);
+		s_aNames.InsertAt(name, insertAt);
+	}
+
+	static bool IsSupportedHelicopter(IEntity entity)
+	{
+		if (!entity || !entity.GetPhysics())
+			return false;
+		return entity.FindComponent(HelicopterControllerComponent) || entity.FindComponent(VehicleHelicopterSimulation);
+	}
+
 	static int IndexOf(ResourceName prefab)
 	{
 		Build();
@@ -87,7 +134,11 @@ class DCO_FxAircraftCatalog
 			return 0;
 		int at = s_aPrefabs.Find(prefab);
 		if (at < 0)
-			return 0;
+		{
+			s_aPrefabs.Insert(prefab);
+			s_aNames.Insert("Missing mod - " + prefab);
+			return s_aPrefabs.Count() - 1;
+		}
 		return at;
 	}
 }

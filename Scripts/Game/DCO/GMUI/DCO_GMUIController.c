@@ -289,7 +289,7 @@ class DCO_GMUIController
 
 		// Inline scenario/global-attributes panel, opened by the gear cog left of the EDIT/CREATE tabs.
 		m_Scenario = new DCO_GMScenarioPanel();
-		m_Scenario.Init(m_wRoot);
+		m_Scenario.Init(m_wRoot, m_Menu);
 
 		m_Options = new DCO_GMOptionsPanel();
 		m_Options.Init(m_wRoot);

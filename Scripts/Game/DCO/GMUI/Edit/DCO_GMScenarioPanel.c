@@ -959,6 +959,8 @@ class DCO_ScenarioOptionRow
 			NavigateCalendar(0, 1);
 			return true;
 		}
+		if (action == 0 && m_Mode == MODE_ENUM && m_Options.Count() > MAX_SEGMENTS)
+			return m_Owner.ShowOptionPicker(this, m_ValueButton);
 		SCR_BaseEditorAttributeVar var = m_Attribute.GetVariable(true);
 		if (!var)
 			return false;
@@ -999,6 +1001,33 @@ class DCO_ScenarioOptionRow
 			return false;
 		}
 
+		m_Attribute.UpdateInterlinkedVariables(var, m_Manager);
+		m_Attribute.PreviewVariable(true, m_Manager);
+		Refresh();
+		m_Owner.OnAttributeChanged();
+		return true;
+	}
+
+	int GetOptionCount()
+	{
+		return m_Options.Count();
+	}
+
+	string GetOptionName(int index)
+	{
+		if (!m_Options.IsIndexValid(index))
+			return "";
+		return m_Options[index];
+	}
+
+	bool SelectOption(int index)
+	{
+		if (!m_Attribute || !m_Attribute.IsEnabled() || !m_Options.IsIndexValid(index))
+			return false;
+		SCR_BaseEditorAttributeVar var = m_Attribute.GetVariable(true);
+		if (!var)
+			return false;
+		var.SetInt(index);
 		m_Attribute.UpdateInterlinkedVariables(var, m_Manager);
 		m_Attribute.PreviewVariable(true, m_Manager);
 		Refresh();
@@ -1220,6 +1249,9 @@ class DCO_GMScenarioPanel
 	protected static const int PRESET_FLOAT = 1;
 	protected static const int PRESET_INT = 2;
 	protected static const int PRESET_VECTOR = 3;
+	protected static const int OPTION_PAGE_SIZE = 16;
+	protected static const int OPTION_PREVIOUS = 900001;
+	protected static const int OPTION_NEXT = 900002;
 
 	protected Widget m_wRoot;
 	protected Widget m_wPanel;
@@ -1240,6 +1272,11 @@ class DCO_GMScenarioPanel
 	protected ref array<TextWidget> m_PresetSlotLabels = {};
 	protected ref DCO_ScenarioButtonHandler m_Handler;
 	protected ref DCO_ScenarioScrollHandler m_ScrollHandler;
+	protected DCO_GMContextMenu m_Menu;
+	protected ref ScriptInvoker m_OptionMenuCallback = new ScriptInvoker();
+	protected DCO_ScenarioOptionRow m_OptionPickerRow;
+	protected Widget m_OptionPickerAnchor;
+	protected int m_OptionPickerPage;
 	protected SCR_AttributesManagerEditorComponent m_Manager;
 	protected bool m_bOpen;
 	protected bool m_bEditing;	// true between StartEditing and ConfirmEditing.
@@ -1256,16 +1293,19 @@ class DCO_GMScenarioPanel
 
 	protected int m_ActiveCat;
 	protected int m_CategoryCount;
+	protected int m_CategoryPage;
 	protected int m_TimeDateOpenAttempts;
 	protected ref array<ButtonWidget> m_CatTabBtns = {};
 	protected ref array<TextWidget> m_CatTabLabels = {};
 	protected ref array<ref DCO_ScenarioCategoryHandler> m_CatHandlers = {};
 
-	void Init(Widget root)
+	void Init(Widget root, DCO_GMContextMenu menu)
 	{
 		if (!root)
 			return;
 		m_wRoot = root;
+		m_Menu = menu;
+		m_OptionMenuCallback.Insert(OnOptionPickerAction);
 		m_Handler = new DCO_ScenarioButtonHandler(this);
 
 		m_wPanel       = root.FindAnyWidget("DCO_ScenarioPanel");
@@ -1360,6 +1400,69 @@ class DCO_GMScenarioPanel
 			m_btnCog != null, m_wPanel != null, m_wContent != null, m_wScroll != null), LogLevel.NORMAL);
 	}
 
+	bool ShowOptionPicker(DCO_ScenarioOptionRow row, Widget anchor)
+	{
+		if (!m_Menu || !row || !anchor || row.GetOptionCount() <= 0)
+			return false;
+		m_OptionPickerRow = row;
+		m_OptionPickerAnchor = anchor;
+		m_OptionPickerPage = 0;
+		ShowOptionPickerPage();
+		return true;
+	}
+
+	protected int OptionPickerPageCount()
+	{
+		if (!m_OptionPickerRow)
+			return 1;
+		return Math.Max(1, (m_OptionPickerRow.GetOptionCount() + OPTION_PAGE_SIZE - 1) / OPTION_PAGE_SIZE);
+	}
+
+	protected void ShowOptionPickerPage()
+	{
+		if (!m_Menu || !m_OptionPickerRow || !m_OptionPickerAnchor)
+			return;
+		array<string> labels = {};
+		array<int> ids = {};
+		int first = m_OptionPickerPage * OPTION_PAGE_SIZE;
+		int end = Math.Min(first + OPTION_PAGE_SIZE, m_OptionPickerRow.GetOptionCount());
+		for (int i = first; i < end; i++)
+		{
+			labels.Insert(m_OptionPickerRow.GetOptionName(i));
+			ids.Insert(i);
+		}
+		int pageCount = OptionPickerPageCount();
+		if (pageCount > 1)
+		{
+			labels.Insert(string.Format("PREVIOUS  ·  %1/%2", m_OptionPickerPage + 1, pageCount));
+			ids.Insert(OPTION_PREVIOUS);
+			labels.Insert(string.Format("NEXT  ·  %1/%2", m_OptionPickerPage + 1, pageCount));
+			ids.Insert(OPTION_NEXT);
+		}
+		m_Menu.ShowAdjacent(labels, ids, m_OptionPickerAnchor, m_wPanel, "SELECT VALUE", m_OptionMenuCallback, null);
+	}
+
+	protected void OnOptionPickerAction(int actionId, SCR_EditableEntityComponent entity)
+	{
+		if (!m_OptionPickerRow)
+			return;
+		if (actionId == OPTION_PREVIOUS)
+		{
+			m_OptionPickerPage--;
+			if (m_OptionPickerPage < 0)
+				m_OptionPickerPage = OptionPickerPageCount() - 1;
+			ShowOptionPickerPage();
+			return;
+		}
+		if (actionId == OPTION_NEXT)
+		{
+			m_OptionPickerPage = (m_OptionPickerPage + 1) % OptionPickerPageCount();
+			ShowOptionPickerPage();
+			return;
+		}
+		m_OptionPickerRow.SelectOption(actionId);
+	}
+
 	bool OnButton(Widget w)
 	{
 		if (w == m_btnCog)
@@ -1405,18 +1508,50 @@ class DCO_GMScenarioPanel
 	{
 		if (!m_bOpen || !m_bEditing || !m_aSessionAttributes)
 			return false;
-		if (index < 0 || index >= m_CategoryCount || index >= m_CatTabBtns.Count())
+		if (index < 0 || index >= m_CatTabBtns.Count())
 			return false;
-		if (m_ActiveCat == index)
+
+		int pageSize = CategoryPageSize();
+		if (m_CategoryCount > m_CatTabBtns.Count() && index == m_CatTabBtns.Count() - 1)
+		{
+			m_CategoryPage = (m_CategoryPage + 1) % CategoryPageCount();
+			m_ActiveCat = m_CategoryPage * pageSize;
+			QueueCategoryRefresh();
+			return true;
+		}
+
+		int categoryIndex = m_CategoryPage * pageSize + index;
+		if (categoryIndex < 0 || categoryIndex >= m_CategoryCount)
+			return false;
+		if (m_ActiveCat == categoryIndex)
 			return true;
 
-		m_ActiveCat = index;
-		if (!m_bCategoryRefreshQueued)
-		{
-			m_bCategoryRefreshQueued = true;
-			GetGame().GetCallqueue().CallLater(RenderSelectedCategory, 0, false);
-		}
+		m_ActiveCat = categoryIndex;
+		QueueCategoryRefresh();
 		return true;
+	}
+
+	protected void QueueCategoryRefresh()
+	{
+		if (m_bCategoryRefreshQueued)
+			return;
+		m_bCategoryRefreshQueued = true;
+		GetGame().GetCallqueue().CallLater(RenderSelectedCategory, 0, false);
+	}
+
+	protected int CategoryPageSize()
+	{
+		if (m_CategoryCount > m_CatTabBtns.Count())
+			return m_CatTabBtns.Count() - 1;
+		return m_CatTabBtns.Count();
+	}
+
+	protected int CategoryPageCount()
+	{
+		int pageSize = CategoryPageSize();
+		if (pageSize <= 0)
+			return 1;
+		return Math.Max(1, (m_CategoryCount + pageSize - 1) / pageSize);
 	}
 
 	// Entry point used by the live 24-hour clock in the top bar.
@@ -1444,7 +1579,11 @@ class DCO_GMScenarioPanel
 			}
 		}
 		if (m_TimeDateOpenAttempts < 10)
+		{
+			if (m_CategoryCount > m_CatTabBtns.Count())
+				SelectCategory(m_CatTabBtns.Count() - 1);
 			GetGame().GetCallqueue().CallLater(SelectTimeAndDateCategory, 100, false);
+		}
 	}
 
 	protected void RenderSelectedCategory()
@@ -1692,29 +1831,40 @@ class DCO_GMScenarioPanel
 		if (hasOther)
 			tabCount++;
 		m_CategoryCount = tabCount;
-		if (m_CategoryCount > m_CatTabBtns.Count())
-			m_CategoryCount = m_CatTabBtns.Count();
+		m_CategoryPage = Math.Clamp(m_CategoryPage, 0, CategoryPageCount() - 1);
+		int pageSize = CategoryPageSize();
+		int pageCount = CategoryPageCount();
 
 		for (int i = 0; i < m_CatTabBtns.Count(); i++)
 		{
 			ButtonWidget b = m_CatTabBtns[i];
 			TextWidget t = m_CatTabLabels[i];
-			bool visible = i < m_CategoryCount;
+			bool more = m_CategoryCount > m_CatTabBtns.Count() && i == m_CatTabBtns.Count() - 1;
+			int categoryIndex = m_CategoryPage * pageSize + i;
+			bool visible = more || categoryIndex < m_CategoryCount;
 			if (b)
 				b.SetVisible(visible);
 			if (!visible || !t)
 				continue;
 
+			if (more)
+			{
+				t.SetText(string.Format("MORE %1/%2", m_CategoryPage + 1, pageCount));
+				t.SetExactFontSize(13);
+				t.SetColor(DCO_GMTheme.Get().m_AccentColor);
+				continue;
+			}
+
 			string name = "OTHER";
-			if (i < categoryConfigs.Count())
+			if (categoryIndex < categoryConfigs.Count())
 			{
 				name = "ATTRIBUTES";
-				SCR_UIInfo info = categories[i].GetInfo();
+				SCR_UIInfo info = categories[categoryIndex].GetInfo();
 				if (info)
 					name = info.GetName();
 			}
 			t.SetText(name);
-			if (i == m_ActiveCat)
+			if (categoryIndex == m_ActiveCat)
 			{
 				t.SetExactFontSize(14);
 				if (accent)
@@ -1760,9 +1910,20 @@ class DCO_GMScenarioPanel
 
 	protected bool ShouldRenderAttribute(SCR_BaseEditorAttribute attribute)
 	{
+		if (!SupportsLayout(attribute))
+			return false;
 		if (m_bHasContinuousFire && m_bContinuousFire && DCO_FxExplosionGunrunRoundsEditorAttribute.Cast(attribute))
 			return false;
 		return true;
+	}
+
+	protected bool SupportsLayout(SCR_BaseEditorAttribute attribute)
+	{
+		if (!attribute)
+			return false;
+		string layout = attribute.GetLayout();
+		return layout.Contains("Checkbox") || layout.Contains("MultiSelection") || layout.Contains("Slider")
+			|| layout.Contains("Date.layout") || layout.Contains("ButtonBox_Selection") || layout.Contains("Spinbox");
 	}
 
 	protected void BuildOrderedCategories(notnull array<SCR_BaseEditorAttribute> attributes, notnull array<ResourceName> categoryConfigs, notnull array<ref SCR_EditorAttributeCategory> categories)
@@ -1770,7 +1931,7 @@ class DCO_GMScenarioPanel
 		array<int> priorities = {};
 		foreach (SCR_BaseEditorAttribute attribute : attributes)
 		{
-			if (!attribute)
+			if (!attribute || !ShouldRenderAttribute(attribute))
 				continue;
 			ResourceName categoryConfig = attribute.GetCategoryConfig();
 			if (categoryConfigs.Find(categoryConfig) != -1)
@@ -1972,7 +2133,7 @@ class DCO_GMScenarioPanel
 		for (int i = 0; i < m_aSessionAttributes.Count(); i++)
 		{
 			SCR_BaseEditorAttribute attribute = m_aSessionAttributes[i];
-			if (!attribute)
+			if (!attribute || !SupportsLayout(attribute))
 				continue;
 			SCR_BaseEditorAttributeVar var = attribute.GetVariableOrCopy();
 			if (!var)
@@ -2013,7 +2174,7 @@ class DCO_GMScenarioPanel
 		for (int i = 0; i < m_aSessionAttributes.Count(); i++)
 		{
 			SCR_BaseEditorAttribute attribute = m_aSessionAttributes[i];
-			if (!attribute)
+			if (!attribute || !SupportsLayout(attribute))
 				continue;
 			DCO_ScenarioPresetValue saved = FindPresetValue(slot, GetPresetKey(attribute, i));
 			if (!saved || saved.m_iKind != GetPresetKind(attribute))
@@ -2060,6 +2221,10 @@ class DCO_GMScenarioPanel
 		if (m_Manager && m_bSubscribed)
 			m_Manager.GetOnAttributesStart().Remove(OnAttributesStart);
 		m_bSubscribed = false;
+		m_OptionMenuCallback.Remove(OnOptionPickerAction);
+		m_OptionPickerRow = null;
+		m_OptionPickerAnchor = null;
+		m_Menu = null;
 		m_Manager = null;
 		m_ScrollHandler = null;
 		m_wScroll = null;

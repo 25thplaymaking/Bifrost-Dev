@@ -71,6 +71,23 @@ class DCO_ForceButtonHandler : ScriptedWidgetEventHandler
 	}
 }
 
+class DCO_EditSearchHandler : ScriptedWidgetEventHandler
+{
+	protected DCO_GMEditTreeComponent m_Owner;
+
+	void DCO_EditSearchHandler(DCO_GMEditTreeComponent owner)
+	{
+		m_Owner = owner;
+	}
+
+	override bool OnChange(Widget w, bool finished)
+	{
+		if (m_Owner)
+			m_Owner.OnSearchChanged();
+		return false;
+	}
+}
+
 class DCO_GMEditTreeComponent
 {
 	static const int ROWS = 28;
@@ -121,7 +138,12 @@ class DCO_GMEditTreeComponent
 	protected ref array<ref DCO_ForceButtonHandler> m_ForceHandlers = {};
 	protected ref set<SCR_EditableEntityComponent> m_HiddenForces = new set<SCR_EditableEntityComponent>();
 	protected SCR_EditableEntityComponent m_SelectedForce;
-	protected ref array<int> m_ForceRoundCache = {0, 0, 0, 0};
+	protected ref map<string, int> m_ForceRoundCache = new map<string, int>();
+	protected ButtonWidget m_btnForcePrev;
+	protected ButtonWidget m_btnForceNext;
+	protected TextWidget m_wForcePageText;
+	protected int m_ForcePage;
+	protected int m_ForcePageCount = 1;
 	protected int m_ForceOverviewTick;
 
 	protected ref array<ButtonWidget> m_PlayerBtns = {};
@@ -139,6 +161,7 @@ class DCO_GMEditTreeComponent
 	protected ref set<SCR_EditableEntityComponent> m_Collapsed = new set<SCR_EditableEntityComponent>();
 
 	protected EditBoxWidget m_wSearch;
+	protected ref DCO_EditSearchHandler m_SearchHandler;
 	protected string m_Search = "";
 	protected string m_LastSearch = "";
 	protected SCR_EditableEntityComponent m_LastSelected;
@@ -179,6 +202,9 @@ class DCO_GMEditTreeComponent
 			m_RowFold.Insert(ImageWidget.Cast(m_wTree.FindAnyWidget(string.Format("DCO_TreeRow_%1_Fold", i))));
 		}
 		m_wForceOverview = m_wTree.FindAnyWidget("DCO_ForceOverview");
+		m_btnForcePrev = BindButton("DCO_ForcePrev");
+		m_btnForceNext = BindButton("DCO_ForceNext");
+		m_wForcePageText = TextWidget.Cast(m_wTree.FindAnyWidget("DCO_ForcePage"));
 		for (int i = 0; i < 4; i++)
 		{
 			m_ForceRows.Insert(m_wTree.FindAnyWidget(string.Format("DCO_ForceRow_%1", i)));
@@ -243,6 +269,11 @@ class DCO_GMEditTreeComponent
 		m_MenuCb.Insert(OnContextAction);
 
 		m_wSearch = EditBoxWidget.Cast(m_wTree.FindAnyWidget("DCO_TreeSearch"));
+		if (m_wSearch)
+		{
+			m_SearchHandler = new DCO_EditSearchHandler(this);
+			m_wSearch.AddHandler(m_SearchHandler);
+		}
 
 		// Live refresh so the tree tracks placements/removals/selection.
 		GetGame().GetCallqueue().CallLater(Rebuild, 1000, true);
@@ -268,6 +299,9 @@ class DCO_GMEditTreeComponent
 			m_Menu.Hide();
 		if (m_LayersMgr)
 			m_LayersMgr.SetEditingLayersEnabled(false);
+		if (m_wSearch && m_SearchHandler)
+			m_wSearch.RemoveHandler(m_SearchHandler);
+		m_SearchHandler = null;
 	}
 
 	protected ButtonWidget BindButton(string name)
@@ -390,12 +424,30 @@ class DCO_GMEditTreeComponent
 		bool refreshRounds = m_ForceOverviewTick == 1 || m_ForceOverviewTick >= 5;
 		if (refreshRounds)
 			m_ForceOverviewTick = 0;
+
+		array<SCR_EditableEntityComponent> factions = {};
+		foreach (SCR_EditableEntityComponent candidate : all)
+		{
+			if (!candidate || candidate.GetEntityType() != EEditableEntityType.FACTION)
+				continue;
+			InsertSortedFaction(factions, candidate);
+		}
+		m_ForcePageCount = Math.Max(1, (factions.Count() + m_ForceRows.Count() - 1) / m_ForceRows.Count());
+		m_ForcePage = Math.Clamp(m_ForcePage, 0, m_ForcePageCount - 1);
+		if (m_wForcePageText)
+			m_wForcePageText.SetText(string.Format("%1/%2", m_ForcePage + 1, m_ForcePageCount));
+		if (m_btnForcePrev)
+			m_btnForcePrev.SetVisible(m_ForcePageCount > 1);
+		if (m_btnForceNext)
+			m_btnForceNext.SetVisible(m_ForcePageCount > 1);
+
 		m_ForceEntities.Clear();
 		int slot;
-		foreach (SCR_EditableEntityComponent faction : all)
+		int firstFaction = m_ForcePage * m_ForceRows.Count();
+		for (int factionIndex = firstFaction; factionIndex < factions.Count() && slot < m_ForceRows.Count(); factionIndex++)
 		{
-			if (!faction || faction.GetEntityType() != EEditableEntityType.FACTION || slot >= m_ForceRows.Count())
-				continue;
+			SCR_EditableEntityComponent faction = factions[factionIndex];
+			string forceCacheKey = ForceKey(faction);
 			int total;
 			int ready;
 			float healthTotal;
@@ -422,8 +474,13 @@ class DCO_GMEditTreeComponent
 				if (refreshRounds && owner)
 					rounds += CountCharacterRounds(owner);
 			}
-			if (refreshRounds)
-				m_ForceRoundCache[slot] = rounds;
+			int cachedRounds;
+			bool hasCachedRounds = m_ForceRoundCache.Find(forceCacheKey, cachedRounds);
+			if (refreshRounds || !hasCachedRounds)
+			{
+				cachedRounds = rounds;
+				m_ForceRoundCache.Set(forceCacheKey, rounds);
+			}
 			m_ForceEntities.Insert(faction);
 			int health = 0;
 			if (healthSamples > 0)
@@ -440,8 +497,8 @@ class DCO_GMEditTreeComponent
 			{
 				int perMember;
 				if (total > 0)
-					perMember = m_ForceRoundCache[slot] / total;
-				m_ForceAmmo[slot].SetText(string.Format("%1 RDS · %2/M", m_ForceRoundCache[slot], perMember));
+					perMember = cachedRounds / total;
+				m_ForceAmmo[slot].SetText(string.Format("%1 RDS · %2/M", cachedRounds, perMember));
 			}
 			if (m_ForceBars[slot])
 				m_ForceBars[slot].SetCurrent(health / 100.0);
@@ -500,6 +557,34 @@ class DCO_GMEditTreeComponent
 			if (m_ForceRows[i])
 				m_ForceRows[i].SetVisible(false);
 		}
+	}
+
+	protected string ForceKey(SCR_EditableEntityComponent factionEntity)
+	{
+		if (!factionEntity)
+			return "";
+		Faction faction = factionEntity.GetFaction();
+		if (faction && !faction.GetFactionKey().IsEmpty())
+			return faction.GetFactionKey();
+		SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(factionEntity.GetInfo());
+		if (info && !info.GetFactionKey().IsEmpty())
+			return info.GetFactionKey();
+		return EntityLabel(factionEntity);
+	}
+
+	protected void InsertSortedFaction(notnull array<SCR_EditableEntityComponent> factions, SCR_EditableEntityComponent faction)
+	{
+		FactionKey key = ForceKey(faction);
+		int insertAt = factions.Count();
+		for (int i = 0; i < factions.Count(); i++)
+		{
+			if (DCO_FactionCatalog.Compare(key, ForceKey(factions[i])) < 0)
+			{
+				insertAt = i;
+				break;
+			}
+		}
+		factions.InsertAt(faction, insertAt);
 	}
 
 	protected bool IsInsideForce(SCR_EditableEntityComponent entity, SCR_EditableEntityComponent force)
@@ -587,6 +672,11 @@ class DCO_GMEditTreeComponent
 		Rebuild();
 	}
 
+	void OnSearchChanged()
+	{
+		PollSearch();
+	}
+
 	protected void Flatten(SCR_EditableEntityComponent e, int depth)
 	{
 		if (e.GetPlayerID() > 0 && e.GetEntityType() == EEditableEntityType.CHARACTER)
@@ -658,6 +748,8 @@ class DCO_GMEditTreeComponent
 		SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(e.GetInfo());
 		if (!info)
 			return ResourceName.Empty;
+		if (e.GetEntityType() == EEditableEntityType.FACTION)
+			return DCO_App6Icons.FactionIcon(ForceKey(e));
 		array<EEditableEntityLabel> labels = {};
 		info.GetEntityLabels(labels);
 		return DCO_App6Icons.GetIcon(labels, info.GetName(), info.GetFactionKey(), e.GetEntityType());
@@ -917,6 +1009,18 @@ class DCO_GMEditTreeComponent
 
 	bool OnButton(Widget w)
 	{
+		if (w == m_btnForcePrev)
+		{
+			m_ForcePage--;
+			Rebuild();
+			return true;
+		}
+		if (w == m_btnForceNext)
+		{
+			m_ForcePage++;
+			Rebuild();
+			return true;
+		}
 		if (w == m_btnPrev)
 		{
 			m_Page--;

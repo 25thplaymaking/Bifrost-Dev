@@ -11,6 +11,7 @@ class DCO_CatalogEntry
 	string m_BudgetText;	// "" when free.
 	ResourceName m_App6Icon;
 	string m_SubCat;
+	string m_SearchMetadata;
 }
 
 class DCO_CatalogRow
@@ -47,6 +48,9 @@ class DCO_PlacementCatalog
 	protected bool m_bSeedSubCatsOpen;	// set per-Query: a category tab is active, so its sub-category folders seed open.
 	protected SCR_PlacingEditorComponent m_Placing;
 	protected bool m_bBuilt;
+	protected int m_iBrowserInfoCount;
+	protected int m_iPlacingPrefabCount;
+	protected ref array<string> m_SourceIdentity = {};
 
 	bool IsBuilt() { return m_bBuilt; }
 	int GetEntryCount() { return m_Entries.Count(); }
@@ -56,28 +60,101 @@ class DCO_PlacementCatalog
 	{
 		m_Entries.Clear();
 		m_FactionKeys.Clear();
+		m_iBrowserInfoCount = 0;
+		m_iPlacingPrefabCount = 0;
 
 		m_Placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
 		SCR_ContentBrowserEditorComponent cb = SCR_ContentBrowserEditorComponent.Cast(SCR_ContentBrowserEditorComponent.GetInstance(SCR_ContentBrowserEditorComponent, true));
 
-		int built = 0;
+		int built;
 		bool cacheReady = cb && cb.GetInfoCount() > 0;
 		if (cacheReady)
 			built = BuildFromBrowser(cb);
-		if (built == 0 && m_Placing)
+		if (m_Placing)
 			built = BuildFromPlacing(m_Placing);
 
 		CollectFactions();
-		m_bBuilt = true;
+		CaptureSourceIdentity(cb, m_Placing, m_SourceIdentity);
+		m_bBuilt = built > 0;
 
 		Print(string.Format("[DCO-GM] placement catalog: %1 entries, %2 factions (browser=%3 cacheReady=%4 placing=%5)",
 			m_Entries.Count(), m_FactionKeys.Count(), cb != null, cacheReady, m_Placing != null), LogLevel.NORMAL);
-		return !m_Entries.IsEmpty();
+		return m_bBuilt;
+	}
+
+	bool RefreshIfChanged()
+	{
+		SCR_ContentBrowserEditorComponent browser = SCR_ContentBrowserEditorComponent.Cast(SCR_ContentBrowserEditorComponent.GetInstance(SCR_ContentBrowserEditorComponent, false));
+		int browserCount;
+		if (browser)
+			browserCount = browser.GetInfoCount();
+
+		int placingCount;
+		SCR_PlacingEditorComponent placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
+		if (placing)
+		{
+			SCR_PlacingEditorComponentClass placingData = SCR_PlacingEditorComponentClass.Cast(placing.GetEditorComponentData());
+			if (placingData)
+			{
+				array<ResourceName> prefabs = {};
+				placingData.GetPrefabs(prefabs, true);
+				placingCount = prefabs.Count();
+			}
+		}
+
+		array<string> currentIdentity = {};
+		CaptureSourceIdentity(browser, placing, currentIdentity);
+		if (m_bBuilt && browserCount == m_iBrowserInfoCount && placingCount == m_iPlacingPrefabCount && IdentityEqual(currentIdentity))
+			return false;
+		return Build();
+	}
+
+	protected void CaptureSourceIdentity(SCR_ContentBrowserEditorComponent browser, SCR_PlacingEditorComponent placing, notnull array<string> identity)
+	{
+		identity.Clear();
+		if (browser)
+		{
+			for (int i = 0; i < browser.GetInfoCount(); i++)
+				InsertIdentity(identity, browser.GetResourceNamePrefabID(i));
+		}
+		if (placing)
+		{
+			SCR_PlacingEditorComponentClass placingData = SCR_PlacingEditorComponentClass.Cast(placing.GetEditorComponentData());
+			if (placingData)
+			{
+				array<ResourceName> prefabs = {};
+				placingData.GetPrefabs(prefabs, true);
+				foreach (ResourceName prefab : prefabs)
+					InsertIdentity(identity, prefab);
+			}
+		}
+	}
+
+	protected void InsertIdentity(notnull array<string> identity, ResourceName prefab)
+	{
+		if (prefab.IsEmpty())
+			return;
+		string value = prefab;
+		if (!identity.Contains(value))
+			identity.Insert(value);
+	}
+
+	protected bool IdentityEqual(notnull array<string> currentIdentity)
+	{
+		if (currentIdentity.Count() != m_SourceIdentity.Count())
+			return false;
+		foreach (string identity : currentIdentity)
+		{
+			if (!m_SourceIdentity.Contains(identity))
+				return false;
+		}
+		return true;
 	}
 
 	protected int BuildFromBrowser(SCR_ContentBrowserEditorComponent cb)
 	{
 		int count = cb.GetInfoCount();
+		m_iBrowserInfoCount = count;
 		for (int i = 0; i < count; i++)
 		{
 			SCR_EditableEntityUIInfo info = cb.GetInfo(i);
@@ -98,6 +175,7 @@ class DCO_PlacementCatalog
 			return m_Entries.Count();
 		array<ResourceName> prefabs = {};
 		placingData.GetPrefabs(prefabs, true);
+		m_iPlacingPrefabCount = prefabs.Count();
 		foreach (ResourceName res : prefabs)
 		{
 			if (res.IsEmpty())
@@ -120,6 +198,11 @@ class DCO_PlacementCatalog
 
 	protected void AddEntry(ResourceName res, SCR_EditableEntityUIInfo info)
 	{
+		foreach (DCO_CatalogEntry existing : m_Entries)
+		{
+			if (existing.m_Prefab == res)
+				return;
+		}
 		foreach (string zonePath : TACTICS_OWNED_ZONES)
 		{
 			if (res.Contains(zonePath))
@@ -143,6 +226,8 @@ class DCO_PlacementCatalog
 		info.GetEntityLabels(labels);
 		e.m_App6Icon = DCO_App6Icons.GetIcon(labels, e.m_Name, e.m_Faction, e.m_Type);
 		e.m_SubCat = SubCatFor(res);
+		e.m_SearchMetadata = string.Format("%1 %2 %3 %4 %5", res, e.m_Faction, CategoryLabel(e.m_Category), TypeLabel(e.m_Type), e.m_SubCat);
+		e.m_SearchMetadata.ToLower();
 		m_Entries.Insert(e);
 	}
 
@@ -202,6 +287,7 @@ class DCO_PlacementCatalog
 			if (!m_FactionKeys.Contains(e.m_Faction))
 				m_FactionKeys.Insert(e.m_Faction);
 		}
+		DCO_FactionCatalog.SortSubset(m_FactionKeys);
 	}
 
 	void GetFactionKeys(out notnull array<FactionKey> keys)
@@ -242,30 +328,14 @@ class DCO_PlacementCatalog
 
 	string GetFactionLabel(FactionKey key)
 	{
-		if (key.IsEmpty())
-			return "Neutral";
-		FactionManager fm = GetGame().GetFactionManager();
-		if (fm)
-		{
-			Faction f = fm.GetFactionByKey(key);
-			if (f)
-			{
-				string nm = f.GetFactionName();
-				if (!nm.IsEmpty())
-					return nm;
-			}
-		}
-		return key;
+		return DCO_FactionCatalog.NameFor(key);
 	}
 
 	string GetFactionTabLabel(FactionKey key)
 	{
 		if (key.IsEmpty())
 			return "NEU";
-		string k = key;
-		if (k.Length() > 7)
-			k = k.Substring(0, 7);
-		return k;
+		return key;
 	}
 
 	void ToggleSection(string sectionKey)
@@ -426,20 +496,43 @@ class DCO_PlacementCatalog
 		// 2.
 		if (!search.IsEmpty())
 		{
-			array<string> keys = {};
-			foreach (DCO_CatalogEntry e : candidates)
+			array<string> tokens = {};
+			search.Split(" ", tokens, true);
+			foreach (string rawToken : tokens)
 			{
-				keys.Insert(e.m_Name);
+				string token = rawToken;
+				token.ToLower();
+				if (token.IsEmpty())
+					continue;
+
+				array<string> names = {};
+				array<string> factionNames = {};
+				foreach (DCO_CatalogEntry candidate : candidates)
+				{
+					names.Insert(candidate.m_Name);
+					factionNames.Insert(GetFactionLabel(candidate.m_Faction));
+				}
+				array<int> nameHits = {};
+				array<int> factionHits = {};
+				WidgetManager.SearchLocalized(rawToken, names, nameHits);
+				WidgetManager.SearchLocalized(rawToken, factionNames, factionHits);
+				map<int, bool> localizedHits = new map<int, bool>();
+				foreach (int hit : nameHits)
+					localizedHits.Set(hit, true);
+				foreach (int hit : factionHits)
+					localizedHits.Set(hit, true);
+
+				array<ref DCO_CatalogEntry> matched = {};
+				for (int candidateIndex = 0; candidateIndex < candidates.Count(); candidateIndex++)
+				{
+					DCO_CatalogEntry candidate = candidates[candidateIndex];
+					if (candidate.m_SearchMetadata.Contains(token) || localizedHits.Contains(candidateIndex))
+						matched.Insert(candidate);
+				}
+				candidates = matched;
+				if (candidates.IsEmpty())
+					break;
 			}
-			array<int> hits = {};
-			WidgetManager.SearchLocalized(search, keys, hits);
-			array<ref DCO_CatalogEntry> matched = {};
-			foreach (int idx : hits)
-			{
-				if (idx >= 0 && idx < candidates.Count())
-					matched.Insert(candidates[idx]);
-			}
-			candidates = matched;
 		}
 
 		// 3.
@@ -517,10 +610,14 @@ class DCO_PlacementCatalog
 			Print("[DCO-GM] Place FAIL: no placing component", LogLevel.WARNING);
 			return false;
 		}
-		UnlockBrowserForPlacing();
-		m_Placing.SetSelectedPrefab(prefab);
-		Print("[DCO-GM] placing selected: " + prefab, LogLevel.NORMAL);
-		return true;
+		SCR_ContentBrowserEditorComponent browser;
+		SCR_EditorContentBrowserSaveStateData browserState;
+		int browserStateIndex;
+		BeginPlacementAvailability(browser, browserState, browserStateIndex);
+		bool ok = m_Placing.SetSelectedPrefab(prefab);
+		RestorePlacementAvailability(browser, browserState, browserStateIndex);
+		Print(string.Format("[DCO-GM] placing selected: %1 ok=%2", prefab, ok), LogLevel.NORMAL);
+		return ok;
 	}
 
 	bool PlaceAsPlayer(ResourceName prefab, vector worldPos)
@@ -547,29 +644,50 @@ class DCO_PlacementCatalog
 
 		m_Placing.SetPlacingFlag(EEditorPlacingFlags.CHARACTER_PLAYER, true);
 		m_Placing.SetInstantPlacing(SCR_EditorPreviewParams.CreateParams(transform));
-		UnlockBrowserForPlacing();
+		SCR_ContentBrowserEditorComponent browser;
+		SCR_EditorContentBrowserSaveStateData browserState;
+		int browserStateIndex;
+		BeginPlacementAvailability(browser, browserState, browserStateIndex);
 		bool ok = m_Placing.SetSelectedPrefab(prefab);
+		RestorePlacementAvailability(browser, browserState, browserStateIndex);
 		Print(string.Format("[DCO-GM] PlaceAsPlayer prefab=%1 ok=%2", prefab, ok), LogLevel.NORMAL);
 		return ok;
 	}
 
-	protected void UnlockBrowserForPlacing()
+	protected bool BeginPlacementAvailability(out SCR_ContentBrowserEditorComponent browser, out SCR_EditorContentBrowserSaveStateData state, out int stateIndex)
 	{
 		if (!m_Placing)
-			return;
+			return false;
 		IEntity owner = m_Placing.GetOwner();
 		if (!owner)
-			return;
-		SCR_ContentBrowserEditorComponent cb = SCR_ContentBrowserEditorComponent.Cast(owner.FindComponent(SCR_ContentBrowserEditorComponent));
-		if (!cb)
+			return false;
+		browser = SCR_ContentBrowserEditorComponent.Cast(owner.FindComponent(SCR_ContentBrowserEditorComponent));
+		if (!browser)
 		{
-			Print("[DCO-GM] UnlockBrowserForPlacing: no content browser on placing owner (placement availability gate may block)", LogLevel.WARNING);
-			return;
+			Print("[DCO-GM] placement availability: no content browser on placing owner", LogLevel.WARNING);
+			return false;
 		}
-		cb.ResetAllLabels(false);
-		cb.SetCurrentSearch("");
-		cb.FilterEntries();
-		Print(string.Format("[DCO-GM] placement availability unlocked: %1 prefabs now placeable", cb.GetFilteredPrefabCount()), LogLevel.NORMAL);
+
+		array<EEditableEntityLabel> labels = {};
+		browser.GetActiveLabels(labels);
+		state = new SCR_EditorContentBrowserSaveStateData();
+		state.SetLabels(labels);
+		state.SetSearchString(browser.GetCurrentSearch());
+		state.SetPageIndex(browser.GetPageIndex());
+		stateIndex = browser.GetBrowserStateIndex();
+
+		browser.ResetAllLabels(false);
+		browser.SetCurrentSearch("");
+		browser.FilterEntries();
+		return true;
+	}
+
+	protected void RestorePlacementAvailability(SCR_ContentBrowserEditorComponent browser, SCR_EditorContentBrowserSaveStateData state, int stateIndex)
+	{
+		if (!browser || !state)
+			return;
+		browser.SetBrowserStateIndex(stateIndex);
+		browser.SetCustomBrowserState(state, false);
 	}
 
 }

@@ -253,6 +253,8 @@ class DCO_FxLoiterTimeEditorAttribute : DCO_FxExplosionAttributeBase
 [BaseContainerProps()]
 class DCO_FxTargetFactionEditorAttribute : DCO_FxExplosionAttributeBase
 {
+	protected FactionKey m_MissingFactionKey;
+
 	protected override int DCO_FamilyMask() { return (1 << EDCO_FxFamily.LOITER); }
 
 	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
@@ -260,6 +262,10 @@ class DCO_FxTargetFactionEditorAttribute : DCO_FxExplosionAttributeBase
 		DCO_FxExplosionComponent fx = GetEmitter(item);
 		if (!fx)
 			return null;
+		m_MissingFactionKey = "";
+		FactionKey factionKey = fx.DCO_GetTargetFactionKey();
+		if (!factionKey.IsEmpty() && DCO_FactionCatalog.IndexOf(factionKey) < 0)
+			m_MissingFactionKey = factionKey;
 		return SCR_BaseEditorAttributeVar.CreateInt(fx.DCO_GetTargetFaction());
 	}
 
@@ -274,8 +280,10 @@ class DCO_FxTargetFactionEditorAttribute : DCO_FxExplosionAttributeBase
 
 	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
 	{
-		foreach (string name : DCO_FxExplosionComponent.TARGET_FACTION_NAMES)
-			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(name));
+		for (int i = 0; i < DCO_FactionCatalog.TargetCount(); i++)
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(DCO_FactionCatalog.TargetNameAt(i)));
+		if (!m_MissingFactionKey.IsEmpty())
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Missing faction · " + m_MissingFactionKey));
 		return outEntries.Count();
 	}
 }

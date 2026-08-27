@@ -45,6 +45,13 @@ modded class SCR_AICombatComponent
 		if (!world || world.GetWorldTime() > m_fDCO_LauncherLicenseUntil || !target
 			|| target.GetUnitType() != EAIUnitType.UnitType_Infantry)
 			return;
+		IEntity targetEntity = target.GetTargetEntity();
+		if (targetEntity)
+		{
+			EntityFlags flags = targetEntity.GetFlags();
+			if ((flags & EntityFlags.VISIBLE) == 0 || (flags & EntityFlags.TRACEABLE) == 0)
+				return;
+		}
 
 		array<int> launcherOnly = {EWeaponType.WT_ROCKETLAUNCHER};
 		if (!m_WeaponTargetSelector.SelectWeaponAgainstUnitTypeAndDistance(
