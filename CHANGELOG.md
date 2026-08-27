@@ -14,6 +14,7 @@
 - Removed broad overrides of the native command list, rocket-ammunition base, and attribute layout to reduce conflicts with other loaded mods.
 - Retained launcher discipline in scoped runtime logic and removed obsolete serialized AI-world settings that are no longer declared by the shipped component.
 - Preserved Bifrost's GM notification suppression, content-browser ownership, and inline attribute-dialog suppression.
+- Simplified release validation to compile and static-integrity gates, with practical mod-stack compatibility testing after Workshop publication.
 
 ## 1.0.25 - 2026-08-26
 
