@@ -1,0 +1,11 @@
+MetaFileClass {
+ Name "{86E10B187E4A61C3}UI/layouts/DCO_ArsenalCard.layout"
+ Configurations {
+  LayoutResourceClass PC {}
+  LayoutResourceClass XBOX_ONE : PC {}
+  LayoutResourceClass XBOX_SERIES : PC {}
+  LayoutResourceClass PS4 : PC {}
+  LayoutResourceClass PS5 : PC {}
+  LayoutResourceClass HEADLESS : PC {}
+ }
+}

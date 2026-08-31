@@ -1,8 +1,20 @@
 // Bifrost Arsenal - weapon compatibility introspection.
+class DCO_ArsenalCompatState
+{
+	ref map<string, string> m_AttachTypes = new map<string, string>();
+	ref map<string, string> m_MagWells = new map<string, string>();
+}
+
 class DCO_ArsenalCompat
 {
-	protected static ref map<string, string> s_AttachTypes = new map<string, string>();
-	protected static ref map<string, string> s_MagWells = new map<string, string>();
+	protected static ref DCO_ArsenalCompatState s_State;
+
+	protected static DCO_ArsenalCompatState State()
+	{
+		if (!s_State)
+			s_State = new DCO_ArsenalCompatState();
+		return s_State;
+	}
 
 	static bool IsIntegralAttachment(IEntity item)
 	{
@@ -92,8 +104,6 @@ class DCO_ArsenalCompat
 			if (MagazineFitsAny(e.m_Prefab, wells))
 				outEntries.Insert(e);
 		}
-		Print(string.Format("[DCO-ARS][compat] weapon slots=%1 wells=%2 -> att %3/%4, mag %5/%6",
-			slotTypes.Count(), wells.Count(), attKept, attTotal, outEntries.Count() - attKept, magTotal), LogLevel.NORMAL);
 	}
 
 	static bool AttachmentFitsAny(ResourceName prefab, array<typename> slotTypes)
@@ -141,10 +151,10 @@ class DCO_ArsenalCompat
 	{
 		string key = prefab;
 		string cached;
-		if (s_AttachTypes.Find(key, cached))
+		if (State().m_AttachTypes.Find(key, cached))
 			return cached.ToType();
 		string name = ReadAttachmentTypeName(prefab);
-		s_AttachTypes.Insert(key, name);
+		State().m_AttachTypes.Insert(key, name);
 		return name.ToType();
 	}
 
@@ -152,10 +162,10 @@ class DCO_ArsenalCompat
 	{
 		string key = prefab;
 		string cached;
-		if (s_MagWells.Find(key, cached))
+		if (State().m_MagWells.Find(key, cached))
 			return cached.ToType();
 		string name = ReadMagWellName(prefab);
-		s_MagWells.Insert(key, name);
+		State().m_MagWells.Insert(key, name);
 		return name.ToType();
 	}
 

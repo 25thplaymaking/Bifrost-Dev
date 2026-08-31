@@ -1,0 +1,566 @@
+FrameWidgetClass "{AB21010000000001}" {
+ Name "GRSA_ShellMenu"
+ components {
+  SCR_SuperMenuComponent "{AB21010000000002}" {
+  }
+ }
+ {
+  OverlayWidgetClass "{AB21010000000003}" {
+   Name "Backdrop"
+   Slot FrameWidgetSlot "{AB21010000000004}" {
+    Anchor 0 0 1 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX -1920
+    OffsetRight 0
+    SizeY -1080
+    OffsetBottom 0
+   }
+   "Z Order" -128
+   {
+    ImageWidgetClass "{AB21010000000005}" {
+     Name "BackdropFill"
+     Slot OverlayWidgetSlot "{AB21010000000006}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     Color 0.001 0.0012 0.0015 1
+    }
+    ImageWidgetClass "{AB21010000000007}" {
+     Name "BackdropGradient"
+     Slot OverlayWidgetSlot "{AB21010000000008}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     Opacity 0.45
+     Texture "{A592187FD7874100}UI/Textures/Common/GradientTexture_B80-B60-B0@2x.edds"
+     Image ""
+     Size 1024 1024
+    }
+   }
+  }
+  VerticalLayoutWidgetClass "{AB21010000000010}" {
+   Name "Chrome"
+   Slot FrameWidgetSlot "{AB21010000000011}" {
+    Anchor 0 0 1 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX -1920
+    OffsetRight 0
+    SizeY -1080
+    OffsetBottom 0
+   }
+   {
+    SizeLayoutWidgetClass "{AB21010000000020}" {
+     Name "HeaderBand"
+     Slot LayoutSlot "{AB21010000000021}" {
+      HorizontalAlign 3
+     }
+     AllowHeightOverride 1
+     HeightOverride 64
+     {
+      OverlayWidgetClass "{AB21010000000022}" {
+       Name "HeaderOverlay"
+       Slot LayoutSlot "{AB21010000000023}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        ImageWidgetClass "{AB21010000000024}" {
+         Name "HeaderBg"
+         Slot OverlayWidgetSlot "{AB21010000000025}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0.003 0.0033 0.0037 0.85
+        }
+        ImageWidgetClass "{AB21010000000026}" {
+         Name "HeaderHairline"
+         Slot OverlayWidgetSlot "{AB21010000000027}" {
+          HorizontalAlign 3
+          VerticalAlign 2
+         }
+         Color 1 1 1 0.07
+         Size 1 1
+        }
+        HorizontalLayoutWidgetClass "{AB21010000000028}" {
+         Name "HeaderRow"
+         Slot OverlayWidgetSlot "{AB21010000000029}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 24 0 24 0
+         }
+         {
+          ButtonWidgetClass "{AB21010000000090}" {
+           Name "ExitButton"
+           Slot LayoutSlot "{AB21010000000091}" {
+            VerticalAlign 1
+            Padding 0 0 20 0
+           }
+           components {
+            GRSA_ThemedButtonTextComponent "{AB21010000000092}" {
+             m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
+             m_BackgroundDefault 0.32 0.16 0.035 1
+             m_BackgroundHovered 0.851 0.537 0.169 1
+             m_BackgroundClicked 0.851 0.537 0.169 1
+             m_bShowBorderOnFocus 1
+             m_sText "EXIT"
+            }
+           }
+           style blank
+           {
+            SizeLayoutWidgetClass "{AB21010000000093}" {
+             Name "ExitSize"
+             Slot ButtonWidgetSlot "{AB21010000000094}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             AllowWidthOverride 1
+             WidthOverride 88
+             AllowHeightOverride 1
+             HeightOverride 38
+             {
+              OverlayWidgetClass "{AB21010000000095}" {
+               Name "ExitOverlay"
+               Slot LayoutSlot "{AB21010000000096}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+               }
+               {
+                ImageWidgetClass "{AB21010000000097}" {
+                 Name "Background"
+                 Slot OverlayWidgetSlot "{AB21010000000098}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                }
+                PanelWidgetClass "{AB21010000000099}" {
+                 Name "Border"
+                 Slot OverlayWidgetSlot "{AB2101000000009A}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                 Color 0.851 0.537 0.169 1
+                 style outline_1px
+                }
+                TextWidgetClass "{AB2101000000009B}" : "{E64DA8292CD7DBDD}UI/layouts/WidgetLibrary/TextWidgets/Text_InteractiveSmall.layout" {
+                 Name "Text"
+                 Slot OverlayWidgetSlot "{AB2101000000009C}" {
+                  HorizontalAlign 1
+                  VerticalAlign 1
+                 }
+                 Color 0.88 0.91 0.94 1
+                 "Font Size" 16
+                 "Min Font Size" 13
+                 Wrap 0
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+          TextWidgetClass "{AB2101000000002A}" {
+           Name "HeaderTitle"
+           Slot LayoutSlot "{AB2101000000002B}" {
+            VerticalAlign 1
+           }
+           Color 0.88 0.91 0.94 1
+            Text "ARSENAL ACCESS"
+            "Font Size" 24
+            "Min Font Size" 18
+           FontProperties FontProperties "{AB2101000000002C}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          TextWidgetClass "{AB21010000000080}" {
+           Name "ShellStatus"
+           Slot LayoutSlot "{AB21010000000081}" {
+            VerticalAlign 1
+            Padding 32 0 0 0
+           }
+           Color 0.88 0.91 0.94 1
+            Text ""
+            "Font Size" 18
+            "Min Font Size" 14
+           FontProperties FontProperties "{AB21010000000082}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          OverlayWidgetClass "{AB2101000000002D}" {
+           Name "HeaderSpacer"
+           Slot LayoutSlot "{AB2101000000002E}" {
+            FillWeight 1
+           }
+          }
+          TextWidgetClass "{AB2101000000002F}" {
+           Name "HeaderSupply"
+           Slot LayoutSlot "{AB21010000000030}" {
+            VerticalAlign 1
+            Padding 0 0 32 0
+           }
+           Color 0.851 0.537 0.169 1
+            Text ""
+            "Font Size" 16
+            "Min Font Size" 13
+           FontProperties FontProperties "{AB21010000000031}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          TextWidgetClass "{AB21010000000032}" {
+           Name "HeaderWeight"
+           Slot LayoutSlot "{AB21010000000033}" {
+            VerticalAlign 1
+           }
+           Color 0.88 0.91 0.94 1
+            Text ""
+            "Font Size" 16
+            "Min Font Size" 13
+           FontProperties FontProperties "{AB21010000000034}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+    VerticalLayoutWidgetClass "{AB21010000000040}" {
+     Name "TabView"
+     Slot LayoutSlot "{AB21010000000041}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+      SizeMode Fill
+      FillWeight 1
+     }
+     components {
+       GRSA_ArsenalTabViewComponent "{AB21010000000042}" {
+       m_iSelectedTab 0
+       m_bKeepHiddenTabs 1
+       m_bManualInit 1
+       m_sActionLeft "MenuTabLeft"
+       m_sActionRight "MenuTabRight"
+       m_fTabWidth 190
+       m_TabLayout "{AB205AD4E2000002}UI/layouts/Menus/ArmoryV2/GRSA_ShellTab.layout"
+       m_aElements {
+        SCR_TabViewContent "{AB21010000000043}" {
+         m_ElementLayout "{AB205AD4E2000003}UI/layouts/Menus/ArmoryV2/GRSA_ScreenSoldier.layout"
+         m_sTabButtonContent "SOLDIER"
+         m_sTabIdentifier "Soldier"
+        }
+        SCR_TabViewContent "{AB21010000000044}" {
+         m_ElementLayout "{AB205AD4E2000004}UI/layouts/Menus/ArmoryV2/GRSA_ScreenGunsmith.layout"
+         m_sTabButtonContent "GUNSMITH"
+         m_sTabIdentifier "Gunsmith"
+        }
+        SCR_TabViewContent "{AB21010000000045}" {
+         m_ElementLayout "{AB205AD4E2000005}UI/layouts/Menus/ArmoryV2/GRSA_ScreenKits.layout"
+         m_sTabButtonContent "KITS"
+         m_sTabIdentifier "Kits"
+        }
+        SCR_TabViewContent "{AB21010000000046}" {
+         m_ElementLayout "{AB205AD4E2000006}UI/layouts/Menus/ArmoryV2/GRSA_ScreenSettings.layout"
+         m_sTabButtonContent "SETTINGS"
+         m_sTabIdentifier "Settings"
+        }
+       }
+      }
+     }
+     {
+      SizeLayoutWidgetClass "{AB21010000000047}" {
+       Name "TabBarSize"
+       Slot LayoutSlot "{AB21010000000048}" {
+        HorizontalAlign 3
+       }
+       AllowHeightOverride 1
+       HeightOverride 44
+       {
+        HorizontalLayoutWidgetClass "{AB21010000000049}" {
+         Name "HorizontalLayout0"
+         Slot LayoutSlot "{AB2101000000004A}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 24 0 24 0
+         }
+         {
+          ButtonWidgetClass "{AB21010000000051}" : "{320A4B34692A1E7E}UI/layouts/WidgetLibrary/Buttons/WLib_PagingButton.layout" {
+           Name "PagingLeft"
+           Slot LayoutSlot "{AB21010000000052}" {
+            VerticalAlign 1
+           }
+           "Is Enabled" 0
+           components {
+            SCR_PagingButtonComponent "{547485B3AA82B840}" {
+             m_sSoundClicked ""
+             m_bUseActionHint 1
+             m_sActionName "MenuTabLeft"
+            }
+           }
+          }
+          HorizontalLayoutWidgetClass "{AB2101000000004B}" {
+           Name "Tabs"
+           Slot LayoutSlot "{AB2101000000004C}" {
+            VerticalAlign 3
+            Padding 8 0 8 0
+           }
+          }
+          ButtonWidgetClass "{AB21010000000053}" : "{320A4B34692A1E7E}UI/layouts/WidgetLibrary/Buttons/WLib_PagingButton.layout" {
+           Name "PagingRight"
+           Slot LayoutSlot "{AB21010000000054}" {
+            VerticalAlign 1
+           }
+           components {
+            SCR_PagingButtonComponent "{547485B3AA82B840}" {
+             m_sSoundClicked ""
+             m_bUseActionHint 1
+             m_sActionName "MenuTabRight"
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      ImageWidgetClass "{AB2101000000004D}" {
+       Name "TabRule"
+       Slot LayoutSlot "{AB2101000000004E}" {
+        HorizontalAlign 3
+       }
+       Color 0.851 0.537 0.169 1
+       Size 1 2
+      }
+      OverlayWidgetClass "{AB2101000000004F}" {
+       Name "ContentOverlay"
+       Slot LayoutSlot "{AB21010000000050}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        SizeMode Fill
+        FillWeight 1
+       }
+      }
+     }
+    }
+    SizeLayoutWidgetClass "{AB21010000000060}" {
+     Name "FooterBand"
+     Slot LayoutSlot "{AB21010000000061}" {
+      HorizontalAlign 3
+     }
+     AllowHeightOverride 1
+     HeightOverride 56
+     components {
+      SCR_DynamicFooterComponent "{AB21010000000062}" {
+      }
+     }
+     {
+      OverlayWidgetClass "{AB21010000000063}" {
+       Name "FooterOverlay"
+       Slot LayoutSlot "{AB21010000000064}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        ImageWidgetClass "{AB21010000000065}" {
+         Name "FooterBg"
+         Slot OverlayWidgetSlot "{AB21010000000066}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0 0 0 0.35
+        }
+        ImageWidgetClass "{AB21010000000067}" {
+         Name "FooterHairline"
+         Slot OverlayWidgetSlot "{AB21010000000068}" {
+          HorizontalAlign 3
+          VerticalAlign 0
+         }
+         Color 1 1 1 0.07
+         Size 1 1
+        }
+        HorizontalLayoutWidgetClass "{AB21010000000069}" {
+         Name "FooterRow"
+         Slot OverlayWidgetSlot "{AB2101000000006A}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 24 0 24 0
+         }
+         {
+           TextWidgetClass "{AB21010000000071}" {
+            Name "GRSAttribution"
+            Slot LayoutSlot "{AB21010000000072}" {
+             VerticalAlign 1
+             Padding 0 0 12 0
+            }
+            Color 0.72 0.76 0.81 1
+            Text "ARSENAL EXPERIENCE BY"
+            "Font Size" 14
+            "Min Font Size" 11
+            FontProperties FontProperties "{AB21010000000073}" {
+             Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+            }
+           }
+           ImageWidgetClass "{AB21010000000074}" {
+            Name "GRSLogo"
+            Slot LayoutSlot "{AB21010000000075}" {
+             VerticalAlign 1
+            }
+            Texture "{B76617332A30DD64}UI/Textures/GRS_Logo.edds"
+            Size 48 48
+           }
+          }
+         }
+        HorizontalLayoutWidgetClass "{AB2101000000006F}" {
+         Name "FooterRight"
+         Slot OverlayWidgetSlot "{AB21010000000070}" {
+          HorizontalAlign 2
+          VerticalAlign 1
+          Padding 0 0 24 0
+          }
+          {
+             HorizontalLayoutWidgetClass "{AB2101000000006B}" {
+              Name "Footer"
+              Slot LayoutSlot "{AB2101000000006C}" {
+               VerticalAlign 1
+              }
+             }
+          }
+        }
+       }
+      }
+     }
+     }
+    }
+   }
+   OverlayWidgetClass "{AB210100000000B0}" {
+   Name "GunsmithLeavePrompt"
+   Slot FrameWidgetSlot "{AB210100000000B1}" {
+    Anchor 0 0 1 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX -1920
+    OffsetRight 0
+    SizeY -1080
+    OffsetBottom 0
+   }
+   "Is Visible" 0
+   "Z Order" 200
+   {
+    ImageWidgetClass "{AB210100000000B2}" {
+     Name "GunsmithLeaveDim"
+     Slot OverlayWidgetSlot "{AB210100000000B3}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     Color 0 0 0 0.72
+    }
+    SizeLayoutWidgetClass "{AB210100000000B4}" {
+     Name "GunsmithLeavePanelSize"
+     Slot OverlayWidgetSlot "{AB210100000000B5}" {
+      HorizontalAlign 1
+      VerticalAlign 1
+     }
+     AllowWidthOverride 1
+     WidthOverride 560
+     AllowHeightOverride 1
+     HeightOverride 220
+     {
+      OverlayWidgetClass "{AB210100000000B6}" {
+       Name "GunsmithLeavePanel"
+       Slot LayoutSlot "{AB210100000000B7}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        ImageWidgetClass "{AB210100000000B8}" {
+         Name "GunsmithLeavePanelBg"
+         Slot OverlayWidgetSlot "{AB210100000000B9}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0.023 0.023 0.023 0.98
+        }
+        PanelWidgetClass "{AB210100000000BA}" {
+         Name "GunsmithLeaveBorder"
+         Slot OverlayWidgetSlot "{AB210100000000BB}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0.851 0.537 0.169 1
+         style outline_1px
+        }
+        VerticalLayoutWidgetClass "{AB210100000000BC}" {
+         Name "GunsmithLeaveColumn"
+         Slot OverlayWidgetSlot "{AB210100000000BD}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 28 24 28 24
+         }
+         {
+          TextWidgetClass "{AB210100000000BE}" {
+           Name "GunsmithLeaveTitle"
+           Slot LayoutSlot "{AB210100000000BF}" {
+            HorizontalAlign 3
+            Padding 0 0 0 12
+           }
+           Color 0.88 0.91 0.94 1
+           Text "LEAVE GUNSMITH?"
+           "Font Size" 21
+           "Min Font Size" 18
+           Wrap 0
+           FontProperties FontProperties "{AB210100000000C0}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          TextWidgetClass "{AB210100000000C1}" {
+           Name "GunsmithLeaveMessage"
+           Slot LayoutSlot "{AB210100000000C2}" {
+            HorizontalAlign 3
+            SizeMode Fill
+            FillWeight 1
+            Padding 0 0 0 18
+           }
+           Color 0.72 0.76 0.81 1
+           Text "Keep your attachment changes and open the selected tab?"
+           "Font Size" 15
+           "Min Font Size" 13
+           Wrap 1
+           FontProperties FontProperties "{AB210100000000C3}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          HorizontalLayoutWidgetClass "{AB210100000000C4}" {
+           Name "GunsmithLeaveButtons"
+           Slot LayoutSlot "{AB210100000000C5}" {
+            HorizontalAlign 2
+            VerticalAlign 2
+           }
+           {
+            ButtonWidgetClass "{AB210100000000C6}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+             Name "GunsmithLeaveNo"
+             Slot LayoutSlot "{AB210100000000C7}" {
+              Padding 0 0 10 0
+             }
+            }
+            ButtonWidgetClass "{AB210100000000C8}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+             Name "GunsmithLeaveYes"
+             Slot LayoutSlot "{AB210100000000C9}" {
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

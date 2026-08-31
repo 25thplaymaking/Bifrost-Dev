@@ -74,7 +74,7 @@ class DCO_TriggerActionEditorAttribute : DCO_TriggerAttributeBase
 
 	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
 	{
-		foreach (string name : DCO_TriggerComponent.ACTION_NAMES)
+		foreach (string name : DCO_TriggerComponent.DCO_GetActionNames())
 			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(name));
 		return outEntries.Count();
 	}
@@ -186,6 +186,254 @@ class DCO_TriggerRadiusEditorAttribute : DCO_TriggerAttributeBase
 		DCO_TriggerComponent trig = GetTrigger(item);
 		if (trig)
 			trig.DCO_SetRadius(var.GetFloat());
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerShapeEditorAttribute : DCO_TriggerAttributeBase
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateInt(trigger.DCO_GetShape());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetShape(var.GetInt());
+	}
+
+	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
+	{
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Ellipse"));
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Rectangle"));
+		return outEntries.Count();
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerActivationEditorAttribute : DCO_TriggerAttributeBase
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateInt(trigger.DCO_GetActivation());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetActivation(var.GetInt());
+	}
+
+	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
+	{
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Present"));
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Not present"));
+		return outEntries.Count();
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerOwnerModeEditorAttribute : DCO_TriggerAttributeBase
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateInt(trigger.DCO_GetOwnerMode());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetOwnerMode(var.GetInt());
+	}
+
+	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
+	{
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Area filter"));
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Synced group leader"));
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Any synced member"));
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("All synced members"));
+		return outEntries.Count();
+	}
+}
+
+// Applies one clearly described lifecycle to every Ctrl-drag linked AI group.
+[BaseContainerProps()]
+class DCO_TriggerLinkedUnitModeEditorAttribute : DCO_TriggerAttributeBase
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateInt(trigger.DCO_GetLinkedUnitMode());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetLinkedUnitMode(var.GetInt());
+	}
+
+	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
+	{
+		foreach (string name : DCO_TriggerComponent.DCO_GetLinkedUnitModeNames())
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(name));
+		return outEntries.Count();
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerRadiusZEditorAttribute : DCO_TriggerAttributeBase
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateFloat(trigger.DCO_GetRadiusZ());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetRadiusZ(var.GetFloat());
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerHeightEditorAttribute : DCO_TriggerAttributeBase
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateFloat(trigger.DCO_GetHeight());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetHeight(var.GetFloat());
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerTimerModeEditorAttribute : DCO_TriggerAttributeBase
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateInt(trigger.DCO_GetTimerMode());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetTimerMode(var.GetInt());
+	}
+
+	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
+	{
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Immediate"));
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Countdown"));
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText("Timeout"));
+		return outEntries.Count();
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerTimerMinEditorAttribute : DCO_TriggerAttributeBase
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateFloat(trigger.DCO_GetTimerMin());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetTimerMin(var.GetFloat());
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerTimerMidEditorAttribute : DCO_TriggerTimerMinEditorAttribute
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateFloat(trigger.DCO_GetTimerMid());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetTimerMid(var.GetFloat());
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerTimerMaxEditorAttribute : DCO_TriggerTimerMinEditorAttribute
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateFloat(trigger.DCO_GetTimerMax());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetTimerMax(var.GetFloat());
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerIntervalEditorAttribute : DCO_TriggerAttributeBase
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateFloat(trigger.DCO_GetCheckInterval());
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (trigger && var)
+			trigger.DCO_SetCheckInterval(var.GetFloat());
 	}
 }
 
@@ -323,5 +571,58 @@ class DCO_TriggerRepeatEditorAttribute : DCO_TriggerEnabledEditorAttribute
 		DCO_TriggerComponent trig = GetTrigger(item);
 		if (trig)
 			trig.DCO_SetRepeat(var.GetBool());
+	}
+}
+
+// Read-only rows used by Bifrost's Finalize tab. The panel builds their labels
+// from the current preview variables, so the review reflects uncommitted edits.
+class DCO_TriggerReviewEditorAttributeBase : DCO_TriggerAttributeBase
+{
+	protected string m_sSummary = "Review will appear here.";
+
+	void DCO_SetSummary(string summary)
+	{
+		m_sSummary = summary;
+	}
+
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		if (!GetTrigger(item))
+			return null;
+		return SCR_BaseEditorAttributeVar.CreateInt(0);
+	}
+
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+	}
+
+	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
+	{
+		outEntries.Insert(new SCR_BaseEditorAttributeEntryText(m_sSummary));
+		return outEntries.Count();
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TriggerReviewAreaEditorAttribute : DCO_TriggerReviewEditorAttributeBase
+{
+}
+
+[BaseContainerProps()]
+class DCO_TriggerReviewActivationEditorAttribute : DCO_TriggerReviewEditorAttributeBase
+{
+}
+
+[BaseContainerProps()]
+class DCO_TriggerReviewResponseEditorAttribute : DCO_TriggerReviewEditorAttributeBase
+{
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_TriggerComponent trigger = GetTrigger(item);
+		if (!trigger)
+			return null;
+		// The count is the only server-only datum the client cannot derive from
+		// the preview attributes. The review row itself remains non-writable.
+		return SCR_BaseEditorAttributeVar.CreateInt(trigger.DCO_GetSyncedGroupCount());
 	}
 }

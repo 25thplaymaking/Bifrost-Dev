@@ -1,0 +1,208 @@
+OverlayWidgetClass "{AB21050000000001}" {
+ Name "GRSA_ScreenKits"
+ components {
+  GRSA_KitsScreen "{AB21050000000002}" {
+  }
+ }
+ {
+  HorizontalLayoutWidgetClass "{AB21050000000006}" {
+   Name "KitsColumns"
+   Slot OverlayWidgetSlot "{AB21050000000007}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   {
+    OverlayWidgetClass "{AB21050000000008}" {
+     Name "KitListPane"
+     Slot LayoutSlot "{AB21050000000009}" {
+      VerticalAlign 3
+      SizeMode Fill
+      FillWeight 0.55
+     }
+     {
+      ImageWidgetClass "{AB2105000000000A}" {
+       Name "KitListBg"
+       Slot OverlayWidgetSlot "{AB2105000000000B}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.003 0.0033 0.0037 0.72
+      }
+      VerticalLayoutWidgetClass "{AB2105000000000C}" {
+       Name "KitListColumn"
+       Slot OverlayWidgetSlot "{AB2105000000000D}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding 24 16 24 16
+       }
+       {
+        HorizontalLayoutWidgetClass "{AB2105000000000E}" {
+         Name "KitsHeader"
+         Slot LayoutSlot "{AB2105000000000F}" {
+          HorizontalAlign 3
+          Padding 8 0 8 10
+         }
+         {
+          TextWidgetClass "{AB21050000000010}" {
+           Name "KitsTitle"
+           Slot LayoutSlot "{AB21050000000011}" {
+           }
+            Color 0.72 0.76 0.81 1
+            Text "KITS"
+            "Font Size" 16
+            "Min Font Size" 11
+           FontProperties FontProperties "{AB21050000000012}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          SizeLayoutWidgetClass "{AB21050000000013}" {
+           Name "KitsHeaderSpacer"
+           Slot LayoutSlot "{AB21050000000014}" {
+            SizeMode Fill
+            FillWeight 1
+           }
+          }
+          TextWidgetClass "{AB21050000000015}" {
+           Name "KitCount"
+           Slot LayoutSlot "{AB21050000000016}" {
+           }
+            Color 0.851 0.537 0.169 1
+            Text ""
+            "Font Size" 16
+            "Min Font Size" 10
+           FontProperties FontProperties "{AB21050000000017}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+         }
+        }
+        ButtonWidgetClass "{AB21050000000018}" {
+         Name "SaveCurrentBtn"
+         Slot LayoutSlot "{AB21050000000019}" {
+          HorizontalAlign 3
+          Padding 0 0 0 10
+         }
+         components {
+          GRSA_ThemedButtonTextComponent "{AB2105000000001A}" {
+           m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
+           m_BackgroundDefault 0.32 0.16 0.035 1
+           m_BackgroundHovered 0.851 0.537 0.169 1
+           m_BackgroundClicked 0.851 0.537 0.169 1
+           m_bShowBorderOnFocus 1
+           m_sText "+ SAVE CURRENT KIT"
+          }
+         }
+         style blank
+         {
+          SizeLayoutWidgetClass "{AB2105000000001B}" {
+           Name "SaveSize"
+           Slot ButtonWidgetSlot "{AB2105000000001C}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           AllowHeightOverride 1
+           HeightOverride 44
+           {
+            OverlayWidgetClass "{AB2105000000001D}" {
+             Name "Overlay"
+             Slot LayoutSlot "{AB2105000000001E}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             {
+              ImageWidgetClass "{AB2105000000001F}" {
+               Name "Background"
+               Slot OverlayWidgetSlot "{AB21050000000020}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+               }
+              }
+              PanelWidgetClass "{AB21050000000021}" {
+               Name "Border"
+               Slot OverlayWidgetSlot "{AB21050000000022}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+               }
+               "Is Visible" 0
+               Color 0.88 0.91 0.94 1
+               style outline_1px
+              }
+              TextWidgetClass "{AB21050000000023}" : "{E64DA8292CD7DBDD}UI/layouts/WidgetLibrary/TextWidgets/Text_InteractiveSmall.layout" {
+               Name "Text"
+               Slot OverlayWidgetSlot "{AB21050000000024}" {
+                HorizontalAlign 1
+                VerticalAlign 1
+               }
+               "Min Font Size" 16
+               Color 0.88 0.91 0.94 1
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        ScrollLayoutWidgetClass "{AB21050000000025}" {
+         Name "KitScroll"
+         Slot LayoutSlot "{AB21050000000026}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          SizeMode Fill
+          FillWeight 1
+         }
+         components {
+          SCR_GamepadScrollComponent "{AB21050000000027}" {
+          }
+          GRSA_SmoothScrollComponent "{AB21050000000028}" {
+          }
+         }
+         style Small
+         {
+          VerticalLayoutWidgetClass "{AB21050000000029}" {
+           Name "KitList"
+           Slot AlignableSlot "{AB2105000000002A}" {
+            HorizontalAlign 3
+            VerticalAlign 0
+           }
+          }
+         }
+        }
+        TextWidgetClass "{AB2105000000002B}" {
+         Name "KitsHint"
+         Slot LayoutSlot "{AB2105000000002C}" {
+          HorizontalAlign 3
+          Padding 8 8 8 0
+         }
+         Color 0.72 0.76 0.81 1
+         Text ""
+          "Font Size" 13
+          "Min Font Size" 11
+          Wrap 1
+         FontProperties FontProperties "{AB2105000000002D}" {
+          Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+         }
+        }
+       }
+      }
+     }
+    }
+    ItemPreviewWidgetClass "{AB2105000000002E}" {
+     Name "KitsStage"
+     Slot LayoutSlot "{AB2105000000002F}" {
+      VerticalAlign 3
+      SizeMode Fill
+      FillWeight 0.45
+     }
+     "Use Engine Scale" 0
+     xscale 1
+     yscale 1
+     Filter Bilinear
+     Format LDR
+     "Use clear color" 0
+     "Clear Color" 0 0 0 0
+     "Blend mode" Blend
+    }
+   }
+  }
+ }
+}

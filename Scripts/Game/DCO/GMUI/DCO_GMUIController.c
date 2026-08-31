@@ -28,9 +28,13 @@ class DCO_GMUIController
 	protected bool m_bEditShown = true;
 	protected bool m_bCreateShown = true;
 	protected bool m_bBuilt;
+	protected bool m_bNativePropertiesOpen;
 	protected int m_PeelAttempts;
-	protected int m_iViewportW;	// live game-workspace size; Workbench can resize this independently of its outer window.
+	protected int m_iViewportW;	// Live game-workspace size; the embedded viewport can resize independently.
 	protected int m_iViewportH;
+	protected bool m_bPropertyOverlaysSuppressed;
+	protected ref array<Widget> m_aSuppressedPropertyOverlays = {};
+	protected ref array<bool> m_aSuppressedPropertyOverlayVisibility = {};
 
 	protected static DCO_GMUIController s_Instance;
 	protected static int s_iPauseSuppressedUntil;
@@ -39,6 +43,85 @@ class DCO_GMUIController
 	static bool IsActive()
 	{
 		return s_Instance != null && s_Instance.m_bBuilt;
+	}
+
+	static bool IsNativePropertiesOpen()
+	{
+		return s_Instance != null && s_Instance.m_bNativePropertiesOpen;
+	}
+
+	static bool ShouldHandoffNativeProperties()
+	{
+		return s_Instance && s_Instance.m_bBuilt && s_Instance.m_Scenario && s_Instance.m_Scenario.CanOwnPropertySession();
+	}
+
+	// The engine Properties dialog is a separate workspace root. While it is open,
+	// leave Bifrost visible underneath but remove it from hit-testing so the native
+	// modal owns every click and can complete its attribute-manager transaction.
+	static void SetNativePropertiesOpen(bool open)
+	{
+		if (!s_Instance || !s_Instance.m_bBuilt)
+			return;
+		s_Instance.m_bNativePropertiesOpen = open;
+		if (s_Instance.m_wRoot)
+			s_Instance.m_wRoot.SetEnabled(!open);
+		if (open)
+		{
+			if (s_Instance.m_Menu)
+				s_Instance.m_Menu.Hide();
+			DCO_GMGizmo.Get().CancelInteraction();
+			DCO_ArsenalAccessPlacement.Get().Cancel();
+			DCO_AIAnimationFxTool.Get().Cancel();
+			DCO_TriggerSyncDrag.Get().Cancel();
+		}
+	}
+
+	// The custom trigger editor is modal inside the Bifrost root. Temporarily hide
+	// only the floating utility panels and restore each panel's exact prior state.
+	static void SetPropertyOverlaysSuppressed(bool suppressed)
+	{
+		if (!s_Instance || !s_Instance.m_bBuilt)
+			return;
+		s_Instance.ApplyPropertyOverlaysSuppressed(suppressed);
+	}
+
+	protected void ApplyPropertyOverlaysSuppressed(bool suppressed)
+	{
+		if (m_bPropertyOverlaysSuppressed == suppressed)
+			return;
+		m_bPropertyOverlaysSuppressed = suppressed;
+
+		if (suppressed)
+		{
+			m_aSuppressedPropertyOverlays.Clear();
+			m_aSuppressedPropertyOverlayVisibility.Clear();
+			if (!m_wRoot)
+				return;
+			array<string> overlayNames = {
+				"DCO_OverlayBar", "DCO_OrdersBox", "DCO_OptionsPanel", "DCO_GizmoPanel",
+				"DCO_NotifPanel", "DCO_ChatPanel", "DCO_TacticsPanel"
+			};
+			foreach (string overlayName : overlayNames)
+			{
+				Widget overlay = m_wRoot.FindAnyWidget(overlayName);
+				if (!overlay)
+					continue;
+				m_aSuppressedPropertyOverlays.Insert(overlay);
+				m_aSuppressedPropertyOverlayVisibility.Insert(overlay.IsVisible());
+				overlay.SetVisible(false);
+			}
+			return;
+		}
+
+		int restoreCount = Math.Min(m_aSuppressedPropertyOverlays.Count(), m_aSuppressedPropertyOverlayVisibility.Count());
+		for (int i = 0; i < restoreCount; i++)
+		{
+			Widget overlay = m_aSuppressedPropertyOverlays[i];
+			if (overlay)
+				overlay.SetVisible(m_aSuppressedPropertyOverlayVisibility[i]);
+		}
+		m_aSuppressedPropertyOverlays.Clear();
+		m_aSuppressedPropertyOverlayVisibility.Clear();
 	}
 
 	static void ReleaseMenuFocus()
@@ -66,6 +149,18 @@ class DCO_GMUIController
 	{
 		if (s_Instance && s_Instance.m_bBuilt && s_Instance.m_CreatePanel)
 			s_Instance.m_CreatePanel.RevealByName(name);
+	}
+
+	static void RefreshAnimationFxIndicator()
+	{
+		if (s_Instance && s_Instance.m_bBuilt && s_Instance.m_CreatePanel)
+			s_Instance.m_CreatePanel.RefreshAnimationFxIndicator();
+	}
+
+	static void RefreshArsenalAccessIndicator()
+	{
+		if (s_Instance && s_Instance.m_bBuilt && s_Instance.m_CreatePanel)
+			s_Instance.m_CreatePanel.RefreshArsenalAccessIndicator();
 	}
 
 	// Theme-owned EDIT/CREATE visibility must route through their component owners, not raw widget writes.
@@ -159,6 +254,8 @@ class DCO_GMUIController
 
 	protected void OnMenuAction(float value, EActionTrigger reason)
 	{
+		if (m_bNativePropertiesOpen)
+			return;
 		int now = System.GetTickCount();
 		if (s_iPauseSuppressedUntil > now)
 			return;
@@ -186,6 +283,10 @@ class DCO_GMUIController
 			m_Menu.Hide();
 			return true;
 		}
+		if (DCO_ArsenalAccessPlacement.Get().Cancel())
+			return true;
+		if (DCO_AIAnimationFxTool.Get().Cancel())
+			return true;
 		if (DCO_GMTutorial.IsOpen())
 		{
 			DCO_GMTutorial.Close();
@@ -250,6 +351,7 @@ class DCO_GMUIController
 
 		m_Menu = new DCO_GMContextMenu();
 		m_Menu.Init(m_wRoot);
+		DCO_AIAnimationFxTool.Get().Init(m_Menu);
 
 		m_EditTree = new DCO_GMEditTreeComponent();
 		m_EditTree.Init(m_wRoot, m_Menu);
@@ -271,6 +373,7 @@ class DCO_GMUIController
 
 		m_Render = new DCO_GMRenderManager();
 		m_Render.Start(m_wRoot);
+		DCO_TriggerSyncDrag.Get().Start(m_Render);
 
 		m_Nametags = new DCO_GMNametags();
 		m_Nametags.Init(m_wRoot);
@@ -366,6 +469,7 @@ class DCO_GMUIController
 		DCO_GMHover.Wire(m_wRoot, "DCO_QuickEditBtn",     "DCO_QuickEditBtn_Label");
 		DCO_GMHover.Wire(m_wRoot, "DCO_QuickDeployBtn",   "DCO_QuickDeployBtn_Label");
 		DCO_GMHover.Wire(m_wRoot, "DCO_QuickCleanBtn",    "DCO_QuickCleanBtn_Label");
+		DCO_GMHover.Wire(m_wRoot, "DCO_ClearGarbageBtn", "DCO_ClearGarbageBtn_Label");
 		DCO_GMHover.Wire(m_wRoot, "DCO_LayoutResetBtn",   "DCO_LayoutResetBtn_Label");
 		DCO_GMHover.Wire(m_wRoot, "DCO_LayoutChip",       "DCO_LayoutChipIcon");
 		DCO_GMHover.Wire(m_wRoot, "DCO_Btn_PreciseMove",  "DCO_Btn_PreciseMove_Icon");
@@ -386,7 +490,7 @@ class DCO_GMUIController
 		DCO_GMHover.Wire(m_wRoot, "DCO_SimStance_CROUCH", "DCO_SimStance_CROUCH_Icon");
 		DCO_GMHover.Wire(m_wRoot, "DCO_SimStance_PRONE",  "DCO_SimStance_PRONE_Icon");
 		array<string> ordBtns = {"DCO_Ord_Stance", "DCO_Ord_Formation", "DCO_Ord_Behavior", "DCO_Ord_Tactics",
-			"DCO_Ord_Waypoints", "DCO_Ord_Objectives", "DCO_Ord_Spawn"};
+			"DCO_Ord_Waypoints", "DCO_Ord_Objectives", "DCO_Ord_Spawn", "DCO_Ord_Loop"};
 		foreach (string ob : ordBtns)
 		{
 			DCO_GMHover.Wire(m_wRoot, ob, ob + "_Label");
@@ -403,10 +507,9 @@ class DCO_GMUIController
 		DCO_GMHover.WirePool(m_wRoot, "DCO_Menu_%1",       "DCO_Menu_%1_Label",   0, 18);
 		DCO_GMHover.WirePool(m_wRoot, "DCO_ArsCat%1",      "DCO_ArsCatIco%1",     0, 11);
 		DCO_GMHover.Start();
-		Print(string.Format("[DCO-GM] hover wired (%1 controls)", DCO_GMHover.Count()), LogLevel.NORMAL);
 
 		m_ResetHandler = new DCO_GMLayoutResetHandler(this);
-		array<string> utilityButtons = {"DCO_QuickEditBtn", "DCO_QuickDeployBtn", "DCO_QuickCleanBtn", "DCO_LayoutResetBtn"};
+		array<string> utilityButtons = {"DCO_QuickEditBtn", "DCO_QuickDeployBtn", "DCO_QuickCleanBtn", "DCO_ClearGarbageBtn", "DCO_LayoutResetBtn"};
 		foreach (string utilityName : utilityButtons)
 		{
 			ButtonWidget utilityBtn = ButtonWidget.Cast(m_wRoot.FindAnyWidget(utilityName));
@@ -426,7 +529,6 @@ class DCO_GMUIController
 		s_Instance = this;
 		GetGame().GetCallqueue().CallLater(PollViewport, 500, true);
 		AnimateWidget.Opacity(m_wRoot, 1.0, 5.0, true);
-		Print("[DCO-GM] shell BUILT (PC / mouse+keyboard)", LogLevel.NORMAL);
 	}
 
 	protected void AddMasterHideListener()
@@ -504,20 +606,6 @@ class DCO_GMUIController
 		float WIDGET_GAP = 12;
 		if (compactViewport)
 			WIDGET_GAP = 14;
-		string layoutProfile = "standard";
-		if (compactViewport)
-			layoutProfile = "compact";
-		Print(string.Format("[DCO-GM] layout profile=%1 workspace=%2x%3", layoutProfile, viewportW, viewportH));
-
-		// These two authored size hosts are intentionally adjusted with the same viewport profile.
-		SizeLayoutWidget treeScrollHost = SizeLayoutWidget.Cast(m_wRoot.FindAnyWidget("DCO_TreeScroll_SizeHost"));
-		if (treeScrollHost)
-		{
-			if (compactViewport)
-				treeScrollHost.SetHeightOverride(250);
-			else
-				treeScrollHost.SetHeightOverride(330);
-		}
 		SizeLayoutWidget compassHost = SizeLayoutWidget.Cast(m_wRoot.FindAnyWidget("DCO_CompassHost"));
 		if (compassHost)
 		{
@@ -640,6 +728,7 @@ class DCO_GMUIController
 
 		// Z floor for the modal/topmost chrome.
 		SetTopZ("DCO_ArsenalScreen",       9000);	// full-screen mode under every popup.
+		SetTopZ("DCO_ScenarioBackdrop",    9050);
 		SetTopZ("DCO_ScenarioPanel",       9100);
 		SetTopZ("DCO_OptionsPanel",        9200);
 		SetTopZ("DCO_TutorialRoot",        9600);
@@ -649,7 +738,7 @@ class DCO_GMUIController
 		SetTopZ("DCO_LayoutChip",          9950);	// the recovery chip stays reachable above everything.
 	}
 
-	// Workbench's embedded game surface changes independently when the editor panes or window are resized.
+	// The embedded game viewport changes independently when editor panes or the outer window are resized.
 	protected void PollViewport()
 	{
 		if (!m_bBuilt || !m_wRoot)
@@ -782,11 +871,7 @@ class DCO_GMUIController
 		}
 
 		if (found >= targets.Count() || m_PeelAttempts >= 30)
-		{
 			GetGame().GetCallqueue().Remove(PeelVanillaPoll);
-			Print(string.Format("[DCO-GM] vanilla peel done after %1 polls: %2/%3 native HUD containers hidden",
-				m_PeelAttempts, found, targets.Count()), LogLevel.NORMAL);
-		}
 	}
 
 	// Top-bar EDIT tab clicked: toggle the left EDIT column.
@@ -834,8 +919,23 @@ class DCO_GMUIController
 			DCO_GMTheme.Get().SetElementEnabled(DCO_GMTheme.UI_EDIT, show, m_wRoot, false);
 			DCO_GMTheme.Get().SetElementEnabled(DCO_GMTheme.UI_CREATE, show, m_wRoot, false);
 		}
+		else if (name == "DCO_ClearGarbageBtn")
+			ClearGarbage();
 		else if (name == "DCO_LayoutResetBtn")
 			ResetPanelLayout();
+	}
+
+	// The player controller owns the reliable client-to-server request; authority
+	// filters the engine garbage set before removing anything.
+	protected void ClearGarbage()
+	{
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		if (!playerController)
+		{
+			Print("[DCO-GM] clear garbage unavailable: no local player controller", LogLevel.WARNING);
+			return;
+		}
+		playerController.DCO_SendClearGarbage();
 	}
 
 	// Restores saved panel geometry and visibility defaults.
@@ -861,6 +961,8 @@ class DCO_GMUIController
 
 	protected void Teardown()
 	{
+		ApplyPropertyOverlaysSuppressed(false);
+		m_bNativePropertiesOpen = false;
 		RemoveMenuActionListeners();
 		s_iPauseSuppressedUntil = 0;
 		RemoveMasterHideListener();
@@ -918,6 +1020,7 @@ class DCO_GMUIController
 			m_ChatFeed = null;
 		}
 		DCO_GMGizmo.Get().Stop();
+		DCO_TriggerSyncDrag.Get().Stop();
 		if (m_GizmoPanel)	// AFTER the gizmo stops feeding it, so the last write can never land on a torn-down panel.
 		{
 			m_GizmoPanel.Shutdown();
@@ -953,6 +1056,7 @@ class DCO_GMUIController
 			m_OrdersPanel.Shutdown();
 			m_OrdersPanel = null;
 		}
+		DCO_AIAnimationFxTool.Get().Shutdown();
 		m_Menu = null;
 		if (m_EditTree)
 		{
@@ -978,7 +1082,6 @@ class DCO_GMUIController
 		if (s_Instance == this)
 			s_Instance = null;
 		DCO_GMHover.Clear();
-		Print("[DCO-GM] shell TORN DOWN", LogLevel.NORMAL);
 	}
 }
 

@@ -29,6 +29,62 @@ enum EDCO_FxFamily
 	LOITER,
 }
 
+class DCO_FxExplosionStaticData
+{
+	ref array<ECompartmentType> m_AircraftCrewTypes = {ECompartmentType.PILOT, ECompartmentType.TURRET};
+
+	ref array<string> m_SizeNames = {
+		"Grenade - M67 frag (small)",
+		"Demo Charge - M112 block",
+		"Mortar Shell - 81mm HE",
+		"Big Blast - TNT 27kg",
+		"Massive Blast - TNT 45kg",
+	};
+
+	ref array<string> m_DeliveryNames = {
+		"Ground Warhead",
+		"Rocket - Hydra 70 M229 HE",
+		"Rocket - Soviet S-5KO HEDP",
+		"Aircraft - UH-1H Flyby",
+		"Aircraft - UH-1H Gunrun",
+		"Audio - Custom Bank Event",
+		"Aircraft - UH-1H Observation Orbit",
+		"Aircraft - UH-1H Armed Orbit",
+	};
+
+	ref array<string> m_TargetTypeNames = {"Infantry", "Vehicles", "Any"};
+	ref array<float> m_NominalSoundRadius = {250, 350, 600, 1000, 1500};
+
+	ref array<ResourceName> m_LiveWarheads = {
+		"{9C7B7B7ECDC3A596}Prefabs/Weapons/Warheads/Warhead_Grenade_M67.et",
+		"{A1195711333615DF}Prefabs/Weapons/Warheads/Warhead_ExplosiveCharge_M112.et",
+		"{6B8EE808E69A69E0}Prefabs/Weapons/Warheads/Warhead_Shell_HE_M821.et",
+		"{564D57EA34A75775}Prefabs/Weapons/Warheads/Explosions/Explosion_Tnt_Medium.et",
+		"{72BEEF40AF179763}Prefabs/Weapons/Warheads/Explosions/Explosion_Tnt_Large.et",
+	};
+
+	ref array<ResourceName> m_RocketPrefabs = {
+		"{072A755D5CB85D47}Prefabs/Weapons/Ammo/Ammo_Rocket_Hydra70_HE_M229.et",
+		"{EE65544BA845C458}Prefabs/Weapons/Ammo/Ammo_Rocket_S5_HEDP_S5KO.et",
+	};
+
+	ref array<ResourceName> m_CosmeticParticles = {
+		"{5592BC9B67C60D16}Particles/Weapon/Explosion_RGD5.ptc",
+		"{9D8D204CCCC44A38}Particles/Weapon/Explosion_M112.ptc",
+		"{318510C6FB1633D9}Particles/Weapon/Explosion_Mortar_Base.ptc",
+		"{001CC9410BE16BE3}Particles/Logistics/Explosion/TNT/Explosion_TNT_Medium.ptc",
+		"{79ED2EDBC38185AB}Particles/Logistics/Explosion/TNT/Explosion_TNT_Large.ptc",
+	};
+
+	ref array<ResourceName> m_CosmeticAcps = {
+		"{DB39A785FAA82E94}Sounds/Weapons/Grenades/Weapons_Grenade_Generic.acp",
+		"{15572A81FA5612BB}Sounds/Weapons/Explosives/DemoBlocks/_SharedData/Weapons_Explosives_DemoBlock_Generic.acp",
+		"{D8320D0247C27BE9}Sounds/Weapons/Ammo/MortarShells/Weapons_Ammo_MortarShell_8xmm_HE.acp",
+		"{B9347A5498317F65}Sounds/Particles/Logistics/Explosion/TNT/Particles_Explosions_TNT_Medium.acp",
+		"{E4EF3755472EC669}Sounds/Particles/Logistics/Explosion/TNT/Particles_Explosions_TNT_Large.acp",
+	};
+}
+
 class DCO_FxAircraftPass
 {
 	IEntity m_Aircraft;
@@ -63,6 +119,19 @@ class DCO_FxExplosionComponentClass : ScriptComponentClass
 
 class DCO_FxExplosionComponent : ScriptComponent
 {
+	protected static ref DCO_FxExplosionStaticData s_StaticData;
+
+	protected static DCO_FxExplosionStaticData StaticData()
+	{
+		if (!s_StaticData)
+			s_StaticData = new DCO_FxExplosionStaticData();
+		return s_StaticData;
+	}
+
+	static array<string> DCO_GetSizeNames() { return StaticData().m_SizeNames; }
+	static array<string> DCO_GetTargetTypeNames() { return StaticData().m_TargetTypeNames; }
+	static string DCO_GetDeliveryName(int ordinal) { return StaticData().m_DeliveryNames[ordinal]; }
+
 	[Attribute("0", UIWidgets.ComboBox, "Blast size for ground impacts and cosmetic visuals.", "", ParamEnumArray.FromEnum(EDCO_FxExplosionSize), category: "Bifrost"), RplProp()]
 	EDCO_FxExplosionSize m_eSize;
 
@@ -146,6 +215,7 @@ class DCO_FxExplosionComponent : ScriptComponent
 
 	[Attribute("0", UIWidgets.CheckBox, "Start firing after placement.", category: "Bifrost"), RplProp()]
 	bool m_bFiring;
+	protected bool m_bPendingAttributeFire;
 
 	static const float GROUND_LIFT = 0.1;
 	static const float ROCKET_SPAWN_HEIGHT = 150.0;
@@ -159,7 +229,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 	static const float LOITER_VERTICAL_RATE = 5.0;	// maximum climb/descent correction while holding the sampled safe altitude.
 	static const float LOITER_ENTRY_CAPTURE = 15.0;	// max tangent-entry correction; normal frame crossing is much smaller.
 	static const int LOITER_RING_SAMPLES = 24;	// terrain samples around the ring for the fixed orbit altitude.
-	static const ref array<ECompartmentType> AIRCRAFT_CREW_TYPES = {ECompartmentType.PILOT, ECompartmentType.TURRET};
 	static const ResourceName FLYBY_AIRCRAFT = "{70BAEEFC2D3FEE64}Prefabs/Vehicles/Helicopters/UH1H/UH1H.et";
 	static const ResourceName GUNRUN_ROUND = "{9CCBDD2ACB73FFA9}Prefabs/Weapons/Ammo/Ammo_762x51_Tracer_M62.et";
 	static const ResourceName GUNRUN_ACP = "{FE8279CA292FC6EE}Sounds/Weapons/Machineguns/M60/Weapons_Machineguns_M60_Shot.acp";
@@ -170,61 +239,9 @@ class DCO_FxExplosionComponent : ScriptComponent
 	static const float GUNRUN_COSMETIC_TRACER_LENGTH = 90.0;
 	static const string EXPLOSION_EVENT = "SOUND_EXPLOSION";
 
-	static const ref array<string> SIZE_NAMES = {
-		"Grenade - M67 frag (small)",
-		"Demo Charge - M112 block",
-		"Mortar Shell - 81mm HE",
-		"Big Blast - TNT 27kg",
-		"Massive Blast - TNT 45kg",
-	};
-
-	static const ref array<string> DELIVERY_NAMES = {
-		"Ground Warhead",
-		"Rocket - Hydra 70 M229 HE",
-		"Rocket - Soviet S-5KO HEDP",
-		"Aircraft - UH-1H Flyby",
-		"Aircraft - UH-1H Gunrun",
-		"Audio - Custom Bank Event",
-		"Aircraft - UH-1H Observation Orbit",
-		"Aircraft - UH-1H Armed Orbit",
-	};
-
-	static const ref array<string> TARGET_TYPE_NAMES = {"Infantry", "Vehicles", "Any"};
 	static const int TARGET_TYPE_INFANTRY = 0;
 	static const int TARGET_TYPE_VEHICLES = 1;
 	static const int TARGET_TYPE_ANY      = 2;
-
-	// Nominal sound-radius visualization by blast tier; engine banks expose no public max-range query.
-	static const ref array<float> NOMINAL_SOUND_RADIUS = {250, 350, 600, 1000, 1500};
-
-	static const ref array<ResourceName> LIVE_WARHEADS = {
-		"{9C7B7B7ECDC3A596}Prefabs/Weapons/Warheads/Warhead_Grenade_M67.et",
-		"{A1195711333615DF}Prefabs/Weapons/Warheads/Warhead_ExplosiveCharge_M112.et",
-		"{6B8EE808E69A69E0}Prefabs/Weapons/Warheads/Warhead_Shell_HE_M821.et",
-		"{564D57EA34A75775}Prefabs/Weapons/Warheads/Explosions/Explosion_Tnt_Medium.et",
-		"{72BEEF40AF179763}Prefabs/Weapons/Warheads/Explosions/Explosion_Tnt_Large.et",
-	};
-
-	static const ref array<ResourceName> ROCKET_PREFABS = {
-		"{072A755D5CB85D47}Prefabs/Weapons/Ammo/Ammo_Rocket_Hydra70_HE_M229.et",
-		"{EE65544BA845C458}Prefabs/Weapons/Ammo/Ammo_Rocket_S5_HEDP_S5KO.et",
-	};
-
-	static const ref array<ResourceName> COSMETIC_PTC = {
-		"{5592BC9B67C60D16}Particles/Weapon/Explosion_RGD5.ptc",
-		"{9D8D204CCCC44A38}Particles/Weapon/Explosion_M112.ptc",
-		"{318510C6FB1633D9}Particles/Weapon/Explosion_Mortar_Base.ptc",
-		"{001CC9410BE16BE3}Particles/Logistics/Explosion/TNT/Explosion_TNT_Medium.ptc",
-		"{79ED2EDBC38185AB}Particles/Logistics/Explosion/TNT/Explosion_TNT_Large.ptc",
-	};
-
-	static const ref array<ResourceName> COSMETIC_ACP = {
-		"{DB39A785FAA82E94}Sounds/Weapons/Grenades/Weapons_Grenade_Generic.acp",
-		"{15572A81FA5612BB}Sounds/Weapons/Explosives/DemoBlocks/_SharedData/Weapons_Explosives_DemoBlock_Generic.acp",
-		"{D8320D0247C27BE9}Sounds/Weapons/Ammo/MortarShells/Weapons_Ammo_MortarShell_8xmm_HE.acp",
-		"{B9347A5498317F65}Sounds/Particles/Logistics/Explosion/TNT/Particles_Explosions_TNT_Medium.acp",
-		"{E4EF3755472EC669}Sounds/Particles/Logistics/Explosion/TNT/Particles_Explosions_TNT_Large.acp",
-	};
 
 	protected int m_iShotsLeft;
 	protected ref Resource m_LoadedWarhead;
@@ -255,7 +272,11 @@ class DCO_FxExplosionComponent : ScriptComponent
 			return;
 
 		if (Replication.IsServer())
-			DCO_ClampDeliveryToFamily();	// authority normalizes the initial replicated delivery.
+		{
+			DCO_MigrateTargetFaction();
+			if (DCO_ClampDeliveryToFamily())
+				DCO_ReplicateState();
+		}
 		GetGame().GetCallqueue().CallLater(DCO_DrawMarker, 500, false);
 		GetGame().GetCallqueue().CallLater(DCO_DrawMarker, VISUAL_MS, true);
 		DCO_TriggerFxRegistry.Register(owner);
@@ -276,6 +297,7 @@ class DCO_FxExplosionComponent : ScriptComponent
 			GetGame().GetCallqueue().Remove(DCO_NextBarrage);
 			GetGame().GetCallqueue().Remove(DCO_DrawMarker);
 			GetGame().GetCallqueue().Remove(DCO_FlushPassDeletions);
+			GetGame().GetCallqueue().Remove(DCO_ApplyFiringAfterAttributes);
 		}
 		if (GetGame() && Replication.IsServer())
 		{
@@ -303,6 +325,11 @@ class DCO_FxExplosionComponent : ScriptComponent
 
 	void DCO_SetFiring(bool fire)
 	{
+		if (!Replication.IsServer())
+			return;
+
+		GetGame().GetCallqueue().Remove(DCO_ApplyFiringAfterAttributes);
+		m_bPendingAttributeFire = false;
 		m_bFiring = fire;
 		DCO_ReplicateState();
 		GetGame().GetCallqueue().Remove(DCO_BarrageTick);
@@ -312,16 +339,35 @@ class DCO_FxExplosionComponent : ScriptComponent
 			m_iShotsLeft = Math.Clamp(m_iBarrageCount, 1, 20);
 			DCO_ScheduleShot(1);
 		}
-		Print(string.Format("[DCO-FX] explosion emitter firing: %1 (%2, delivery=%3, count=%4, scatter=%5m, track=%6, live=%7)",
-			fire, SIZE_NAMES[Math.Clamp(m_eSize, 0, SIZE_NAMES.Count() - 1)],
-			DELIVERY_NAMES[Math.Clamp(m_eDelivery, 0, DELIVERY_NAMES.Count() - 1)], m_iBarrageCount,
-			m_fScatterRadius, m_bTrackPlayers, m_bLive), LogLevel.NORMAL);
+	}
+
+	void DCO_CommitFiringAfterAttributes(bool fire)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		GetGame().GetCallqueue().Remove(DCO_ApplyFiringAfterAttributes);
+		m_bPendingAttributeFire = fire;
+		if (!fire)
+		{
+			DCO_SetFiring(false);
+			return;
+		}
+		GetGame().GetCallqueue().CallLater(DCO_ApplyFiringAfterAttributes, 0, false);
+	}
+
+	protected void DCO_ApplyFiringAfterAttributes()
+	{
+		if (!m_bPendingAttributeFire || !Replication.IsServer())
+			return;
+		m_bPendingAttributeFire = false;
+		DCO_SetFiring(true);
 	}
 
 	int DCO_GetSize() { return m_eSize; }
-	void DCO_SetSize(int s) { m_eSize = Math.Clamp(s, 0, LIVE_WARHEADS.Count() - 1); DCO_ReplicateState(); }
+	void DCO_SetSize(int s) { m_eSize = Math.Clamp(s, 0, StaticData().m_LiveWarheads.Count() - 1); DCO_ReplicateState(); }
 	int DCO_GetDelivery() { return m_eDelivery; }
-	void DCO_SetDelivery(int v) { m_eDelivery = Math.Clamp(v, 0, DELIVERY_NAMES.Count() - 1); DCO_ReplicateState(); }
+	void DCO_SetDelivery(int v) { m_eDelivery = Math.Clamp(v, 0, StaticData().m_DeliveryNames.Count() - 1); DCO_ReplicateState(); }
 
 	// FAMILY / delivery scoping.
 	int DCO_GetFamily() { return m_eFamily; }
@@ -373,14 +419,15 @@ class DCO_FxExplosionComponent : ScriptComponent
 		DCO_ReplicateState();
 	}
 
-	protected void DCO_ClampDeliveryToFamily()
+	protected bool DCO_ClampDeliveryToFamily()
 	{
 		array<int> allowed = {};
 		DCO_FamilyDeliveries(m_eFamily, allowed);
 		int current = m_eDelivery;
 		if (allowed.IsEmpty() || allowed.Contains(current))
-			return;
+			return false;
 		m_eDelivery = allowed[0];
+		return true;
 	}
 	int DCO_GetBarrageCount() { return m_iBarrageCount; }
 	void DCO_SetBarrageCount(int v)
@@ -445,15 +492,18 @@ class DCO_FxExplosionComponent : ScriptComponent
 	}
 	FactionKey DCO_GetTargetFactionKey() { DCO_MigrateTargetFaction(); return m_sTargetFactionKey; }
 	int DCO_GetTargetType() { return m_iTargetType; }
-	void DCO_SetTargetType(int v) { m_iTargetType = Math.Clamp(v, 0, TARGET_TYPE_NAMES.Count() - 1); DCO_ReplicateState(); }
+	void DCO_SetTargetType(int v) { m_iTargetType = Math.Clamp(v, 0, StaticData().m_TargetTypeNames.Count() - 1); DCO_ReplicateState(); }
 
 	protected void DCO_MigrateTargetFaction()
 	{
-		if (!m_sTargetFactionKey.IsEmpty() || m_iTargetFaction <= 0)
+		if (!Replication.IsServer() || !m_sTargetFactionKey.IsEmpty() || m_iTargetFaction <= 0)
 			return;
 		array<FactionKey> legacyKeys = {"", "US", "USSR", "FIA"};
 		if (legacyKeys.IsIndexValid(m_iTargetFaction))
+		{
 			m_sTargetFactionKey = legacyKeys[m_iTargetFaction];
+			DCO_ReplicateState();
+		}
 	}
 
 	protected void DCO_ReplicateState()
@@ -597,8 +647,8 @@ class DCO_FxExplosionComponent : ScriptComponent
 
 	protected void DCO_DetonateAt(vector pos)
 	{
-		int sizeIdx = Math.Clamp(m_eSize, 0, LIVE_WARHEADS.Count() - 1);
-		int deliveryIdx = Math.Clamp(m_eDelivery, 0, DELIVERY_NAMES.Count() - 1);
+		int sizeIdx = Math.Clamp(m_eSize, 0, StaticData().m_LiveWarheads.Count() - 1);
+		int deliveryIdx = Math.Clamp(m_eDelivery, 0, StaticData().m_DeliveryNames.Count() - 1);
 
 		if (deliveryIdx == EDCO_FxExplosionDelivery.SOUND_EMITTER)
 		{
@@ -646,7 +696,7 @@ class DCO_FxExplosionComponent : ScriptComponent
 		IEntity owner = GetOwner();
 		if (!m_LoadedWarhead || m_eLoadedFor != m_eSize)
 		{
-			m_LoadedWarhead = Resource.Load(LIVE_WARHEADS[sizeIdx]);
+			m_LoadedWarhead = Resource.Load(StaticData().m_LiveWarheads[sizeIdx]);
 			m_eLoadedFor = m_eSize;
 		}
 		if (!m_LoadedWarhead)
@@ -785,18 +835,8 @@ class DCO_FxExplosionComponent : ScriptComponent
 		SCR_BaseCompartmentManagerComponent compartments = SCR_BaseCompartmentManagerComponent.Cast(aircraft.FindComponent(SCR_BaseCompartmentManagerComponent));
 		if (compartments)
 		{
-			array<BaseCompartmentSlot> crewSlots = {};
-			compartments.GetCompartmentsOfTypes(crewSlots, AIRCRAFT_CREW_TYPES);
-			int turretSlots = 0;
-			foreach (BaseCompartmentSlot crewSlot : crewSlots)
-			{
-				if (crewSlot && crewSlot.GetType() == ECompartmentType.TURRET)
-					turretSlots++;
-			}
 			compartments.GetOnDoneSpawningDefaultOccupants().Insert(DCO_OnPassCrewSpawned);
-			bool crewAccepted = compartments.SpawnDefaultOccupants(AIRCRAFT_CREW_TYPES);
-			Print(string.Format("[DCO-FX] aircraft crew requested (crewSlots=%1 turretSlots=%2 accepted=%3)",
-				crewSlots.Count(), turretSlots, crewAccepted), LogLevel.NORMAL);
+			bool crewAccepted = compartments.SpawnDefaultOccupants(StaticData().m_AircraftCrewTypes);
 			if (!crewAccepted)
 			{
 				compartments.GetOnDoneSpawningDefaultOccupants().Remove(DCO_OnPassCrewSpawned);
@@ -827,14 +867,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 		}
 
 		DCO_EnableAircraftFrame();
-		string missionMode = "FLYBY";
-		if (loiter)
-			missionMode = "ORBIT";
-		Print(string.Format("[DCO-FX] aircraft mission started (mode=%1 gunrun=%2 continuous=%3 station=%4s ingressSpeed=%5 orbitSpeed=%6 radius=%7m)",
-			missionMode, gunrun, pass.m_bContinuousFire, pass.m_fStationSec, cruiseSpeed,
-			pass.m_fOrbitSpeed, LOITER_ORBIT_RADIUS), LogLevel.NORMAL);
-		Print(string.Format("[DCO-FX] aircraft mission profile (height=%1m distance=%2m live=%3)",
-			m_fFlybyHeight, distance, m_bLive), LogLevel.NORMAL);
 	}
 
 	protected void DCO_OnPassCrewSpawned(SCR_BaseCompartmentManagerComponent manager, array<IEntity> spawned, bool wasCanceled)
@@ -852,17 +884,14 @@ class DCO_FxExplosionComponent : ScriptComponent
 		{
 			if (!pass || pass.m_Aircraft != airframe)
 				continue;
-			int silenced = 0;
 			foreach (IEntity crew : spawned)
 			{
 				if (!crew)
 					continue;
 				pass.m_aCrew.Insert(crew);
-				if (DCO_SilenceTurretGunner(crew))
-					silenced++;
+				DCO_SilenceTurretGunner(crew);
 			}
 			pass.m_bCrewReady = true;
-			Print(string.Format("[DCO-FX] aircraft crew seated (%1 occupant(s), %2 gunner AI silenced); cleared for launch", pass.m_aCrew.Count(), silenced), LogLevel.NORMAL);
 			return;
 		}
 
@@ -947,7 +976,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 
 	// Render-frame aircraft pump.
 	protected bool m_bAircraftFrameOn;
-	protected bool m_bAircraftFrameTickLogged;
 
 	protected void DCO_EnableAircraftFrame()
 	{
@@ -958,7 +986,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 			return;
 		SetEventMask(owner, GetEventMask() | EntityEvent.FRAME);
 		m_bAircraftFrameOn = true;
-		Print("[DCO-FX] aircraft component frame pump enabled", LogLevel.NORMAL);
 	}
 
 	override void EOnFrame(IEntity owner, float timeSlice)
@@ -966,11 +993,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 		super.EOnFrame(owner, timeSlice);
 		if (!m_AircraftPasses || m_AircraftPasses.IsEmpty())
 			return;
-		if (!m_bAircraftFrameTickLogged)
-		{
-			m_bAircraftFrameTickLogged = true;
-			Print("[DCO-FX] aircraft component frame pump tick confirmed", LogLevel.NORMAL);
-		}
 		DCO_AircraftFrame(Math.Clamp(timeSlice, 0.001, 0.1));
 	}
 
@@ -1063,8 +1085,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 				pass.m_bOnStation = true;
 				pass.m_vHeading = pass.m_Direction;
 				pass.m_bGunrunStarted = pass.m_bGunrun;
-				Print(string.Format("[DCO-FX] orbit established (radius=%1m speed=%2m/s station=%3s gunrun=%4)",
-					LOITER_ORBIT_RADIUS, pass.m_fOrbitSpeed, pass.m_fStationSec, pass.m_bGunrun), LogLevel.NORMAL);
 			}
 			return false;
 		}
@@ -1126,8 +1146,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 				pass.m_bDeparting = true;
 				pass.m_Direction = pass.m_vHeading;	// tangent egress: continue the current flight direction.
 				pass.m_Start = cur;
-				Print(string.Format("[DCO-FX] orbit station complete - tangent egress (shots=%1)",
-					pass.m_iGunrunShotsFired), LogLevel.NORMAL);
 			}
 			return false;
 		}
@@ -1269,12 +1287,12 @@ class DCO_FxExplosionComponent : ScriptComponent
 	{
 		IEntity owner = GetOwner();
 		int rocketIdx = deliveryIdx - 1;
-		if (rocketIdx < 0 || rocketIdx >= ROCKET_PREFABS.Count())
+		if (rocketIdx < 0 || rocketIdx >= StaticData().m_RocketPrefabs.Count())
 			return;
 
 		if (!m_LoadedRocket || m_eLoadedRocketFor != m_eDelivery)
 		{
-			m_LoadedRocket = Resource.Load(ROCKET_PREFABS[rocketIdx]);
+			m_LoadedRocket = Resource.Load(StaticData().m_RocketPrefabs[rocketIdx]);
 			m_eLoadedRocketFor = m_eDelivery;
 		}
 		if (!m_LoadedRocket)
@@ -1306,8 +1324,8 @@ class DCO_FxExplosionComponent : ScriptComponent
 	{
 		if (System.IsConsoleApp())
 			return;
-		sizeIdx = Math.Clamp(sizeIdx, 0, COSMETIC_PTC.Count() - 1);
-		ResourceName particle = COSMETIC_PTC[sizeIdx];
+		sizeIdx = Math.Clamp(sizeIdx, 0, StaticData().m_CosmeticParticles.Count() - 1);
+		ResourceName particle = StaticData().m_CosmeticParticles[sizeIdx];
 		if (!customPtc.IsEmpty())
 			particle = customPtc;
 
@@ -1324,7 +1342,7 @@ class DCO_FxExplosionComponent : ScriptComponent
 			vector mat[4];
 			Math3D.MatrixIdentity4(mat);
 			mat[3] = pos;
-			AudioSystem.PlayEvent(COSMETIC_ACP[sizeIdx], EXPLOSION_EVENT, mat);
+			AudioSystem.PlayEvent(StaticData().m_CosmeticAcps[sizeIdx], EXPLOSION_EVENT, mat);
 		}
 	}
 
@@ -1362,8 +1380,8 @@ class DCO_FxExplosionComponent : ScriptComponent
 			m_SoundRadiusShape = DCO_ZoneShape.FlatCircle(base, Math.Clamp(m_fCustomSoundRadius, 25, 3000), 0x6680D8FF);
 		else if (m_bLive || m_bSound)
 		{
-			int sizeIdx = Math.Clamp(m_eSize, 0, NOMINAL_SOUND_RADIUS.Count() - 1);
-			m_SoundRadiusShape = DCO_ZoneShape.FlatCircle(base, NOMINAL_SOUND_RADIUS[sizeIdx], 0x6680D8FF);
+			int sizeIdx = Math.Clamp(m_eSize, 0, StaticData().m_NominalSoundRadius.Count() - 1);
+			m_SoundRadiusShape = DCO_ZoneShape.FlatCircle(base, StaticData().m_NominalSoundRadius[sizeIdx], 0x6680D8FF);
 		}
 	}
 }

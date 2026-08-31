@@ -17,6 +17,13 @@ class DCO_GMAIOverlayBatch
 	ref array<ref DCO_GMAIOverlaySample> m_aSamples = {};
 }
 
+class DCO_GMAIOverlaySnapshotState
+{
+	ref map<string, ref DCO_GMAIOverlaySample> m_Samples = new map<string, ref DCO_GMAIOverlaySample>();
+	ref array<SCR_EditableEntityComponent> m_ServerCharacters = {};
+	int m_iSerial = -1;
+}
+
 class DCO_GMAIOverlaySnapshot
 {
 	static const int PATH_ALL = 1;
@@ -30,13 +37,16 @@ class DCO_GMAIOverlaySnapshot
 	static const int STALE_MS = 1500;
 	static const int SERVER_LIST_REFRESH_MS = 1000;
 
-	protected static ref map<string, ref DCO_GMAIOverlaySample> s_Samples = new map<string, ref DCO_GMAIOverlaySample>();
-	protected static ref array<SCR_EditableEntityComponent> s_ServerCharacters = {};
-	protected static int s_iSerial = -1;
+	protected static ref DCO_GMAIOverlaySnapshotState s_State;
 	protected static int s_iLastReceiveAt;
-	protected static int s_iLastServerDiagAt;
-	protected static int s_iLastClientDiagAt;
 	protected static int s_iLastServerListRefreshAt;
+
+	protected static DCO_GMAIOverlaySnapshotState State()
+	{
+		if (!s_State)
+			s_State = new DCO_GMAIOverlaySnapshotState();
+		return s_State;
+	}
 
 	static void BuildChunks(vector cameraPosition, int requestMask, string selectedIds, int serial, notnull array<string> chunks)
 	{
@@ -53,7 +63,7 @@ class DCO_GMAIOverlaySnapshot
 		int accepted;
 		for (int pass = 0; pass < 2 && accepted < MAX_SAMPLES; pass++)
 		{
-			foreach (SCR_EditableEntityComponent editable : s_ServerCharacters)
+			foreach (SCR_EditableEntityComponent editable : State().m_ServerCharacters)
 			{
 				if (!editable || editable.GetEntityType() != EEditableEntityType.CHARACTER)
 					continue;
@@ -95,12 +105,6 @@ class DCO_GMAIOverlaySnapshot
 		}
 		if (!pending.IsEmpty() || chunks.IsEmpty())
 			WriteChunk(serial, pending, chunks);
-		int now = System.GetTickCount();
-		if (now - s_iLastServerDiagAt >= 5000)
-		{
-			Print(string.Format("[DCO-GM] AI overlay authority snapshot: samples=%1 chunks=%2 mask=%3", accepted, chunks.Count(), requestMask), LogLevel.NORMAL);
-			s_iLastServerDiagAt = now;
-		}
 	}
 
 	protected static void RefreshServerCharacters(SCR_EditableEntityCore core)
@@ -109,13 +113,13 @@ class DCO_GMAIOverlaySnapshot
 		if (s_iLastServerListRefreshAt > 0 && now - s_iLastServerListRefreshAt < SERVER_LIST_REFRESH_MS)
 			return;
 		s_iLastServerListRefreshAt = now;
-		s_ServerCharacters.Clear();
+		State().m_ServerCharacters.Clear();
 		set<SCR_EditableEntityComponent> all = new set<SCR_EditableEntityComponent>();
 		core.GetAllEntities(all);
 		foreach (SCR_EditableEntityComponent editable : all)
 		{
 			if (editable && editable.GetEntityType() == EEditableEntityType.CHARACTER)
-				s_ServerCharacters.Insert(editable);
+				State().m_ServerCharacters.Insert(editable);
 		}
 	}
 
@@ -181,24 +185,19 @@ class DCO_GMAIOverlaySnapshot
 		if (!load.LoadFromString(payload))
 			return;
 		DCO_GMAIOverlayBatch batch = new DCO_GMAIOverlayBatch();
-		if (!load.ReadValue("", batch) || !batch || batch.m_iSerial < s_iSerial)
+		if (!load.ReadValue("", batch) || !batch || batch.m_iSerial < State().m_iSerial)
 			return;
-		if (batch.m_iSerial > s_iSerial)
+		if (batch.m_iSerial > State().m_iSerial)
 		{
-			s_Samples.Clear();
-			s_iSerial = batch.m_iSerial;
+			State().m_Samples.Clear();
+			State().m_iSerial = batch.m_iSerial;
 		}
 		foreach (DCO_GMAIOverlaySample sample : batch.m_aSamples)
 		{
 			if (sample && !sample.m_sEntityId.IsEmpty())
-				s_Samples.Set(sample.m_sEntityId, sample);
+				State().m_Samples.Set(sample.m_sEntityId, sample);
 		}
 		s_iLastReceiveAt = System.GetTickCount();
-		if (s_iLastReceiveAt - s_iLastClientDiagAt >= 5000)
-		{
-			Print(string.Format("[DCO-GM] AI overlay client snapshot: serial=%1 cached=%2", s_iSerial, s_Samples.Count()), LogLevel.NORMAL);
-			s_iLastClientDiagAt = s_iLastReceiveAt;
-		}
 	}
 
 	static DCO_GMAIOverlaySample Find(IEntity entity)
@@ -209,17 +208,16 @@ class DCO_GMAIOverlaySnapshot
 		if (!rpl || !rpl.Id().IsValid())
 			return null;
 		DCO_GMAIOverlaySample sample;
-		s_Samples.Find(rpl.Id().AsString(), sample);
+		State().m_Samples.Find(rpl.Id().AsString(), sample);
 		return sample;
 	}
 
 	static void Clear()
 	{
-		s_Samples.Clear();
-		s_iSerial = -1;
+		State().m_Samples.Clear();
+		State().m_iSerial = -1;
 		s_iLastReceiveAt = 0;
-		s_iLastClientDiagAt = 0;
-		s_ServerCharacters.Clear();
+		State().m_ServerCharacters.Clear();
 		s_iLastServerListRefreshAt = 0;
 	}
 }
@@ -279,7 +277,6 @@ class DCO_GMAwarenessCue
 	protected int m_iLastSelectionRefreshAt;
 	protected int m_iLastSnapshotRequestAt;
 	protected int m_iLastVisibleMarkers = -1;
-	protected int m_iLastOverlayDiagAt;
 	protected int m_iLastRenderAt;
 
 	void Start(DCO_GMRenderManager render, Widget shellRoot)
@@ -292,7 +289,6 @@ class DCO_GMAwarenessCue
 		if (m_Render)
 			m_Render.GetOnRender().Insert(OnRender);
 		m_bActive = true;
-		Print("[DCO-GM] tactical overlays STARTED (perception + nav paths + role markers)", LogLevel.NORMAL);
 	}
 
 	void Stop()
@@ -362,11 +358,6 @@ class DCO_GMAwarenessCue
 		vector cameraPos;
 		bool haveCamera = GetCameraPos(cameraPos);
 		RequestAuthoritySnapshot(state, cameraPos, haveCamera);
-		if (now - m_iLastOverlayDiagAt >= 5000)
-		{
-			Print(string.Format("[DCO-GM] tactical overlay health: cones=%1 movement=%2 cachedUnits=%3 selected=%4 clientCamera=%5", state.m_bViewCones, state.m_bMovement, m_Chars.Count(), m_SelectedUnits.Count(), haveCamera), LogLevel.NORMAL);
-			m_iLastOverlayDiagAt = now;
-		}
 		for (int i = 0; i < m_Chars.Count(); i++)
 		{
 			SCR_EditableEntityComponent editable = m_Chars[i];
@@ -831,11 +822,7 @@ class DCO_GMAwarenessCue
 		}
 		for (int j = usedCount; j < m_MarkerWidgets.Count(); j++)
 			m_MarkerWidgets[j].SetVisible(false);
-		if (usedCount != m_iLastVisibleMarkers)
-		{
-			Print(string.Format("[DCO-GM] role marker health: visible=%1 cachedUnits=%2 pool=%3", usedCount, m_Chars.Count(), m_MarkerWidgets.Count()), LogLevel.NORMAL);
-			m_iLastVisibleMarkers = usedCount;
-		}
+		m_iLastVisibleMarkers = usedCount;
 	}
 
 	protected bool FindMarkerPosition(vector requested, out vector placed)

@@ -2,7 +2,7 @@
 class DCO_GMDraggable : ScriptedWidgetEventHandler
 {
 	// Raise-on-grab.
-	protected static int s_TopZ = 0;
+	protected static int s_TopZ;
 	static void Raise(Widget panel)
 	{
 		if (!panel)

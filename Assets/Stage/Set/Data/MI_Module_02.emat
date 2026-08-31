@@ -1,0 +1,4 @@
+MatPBRBasic {
+ BCRMap "{F7FE14EABFA4EE7C}Assets/Stage/Set/Data/Textures/Locker_Module_02_BCR.edds"
+ NMOMap "{CF26AF7866D3BCE2}Assets/Stage/Set/Data/Textures/Locker_Module_02_NMO.edds"
+}

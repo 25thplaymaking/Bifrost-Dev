@@ -14,7 +14,6 @@ class DCO_GMPlacementConfirm
 			return;
 		im.AddActionListener("EditorPlaceAndCancel", EActionTrigger.DOWN, OnPlaceOnce);
 		m_bActive = true;
-		Print("[DCO-GM] placement-confirm bridge STARTED (single-shot only; repeat placement stays native)", LogLevel.NORMAL);
 	}
 
 	void Stop()
@@ -52,10 +51,9 @@ class DCO_GMPlacementConfirm
 
 		ResourceName prefab = m_Placing.GetSelectedPrefab();
 		EnsureAvailableForSpawn(prefab);
-		bool ok = m_Placing.CreateEntity(placeOne, false);
+		m_Placing.CreateEntity(placeOne, false);
 		m_bConfirmedThisFrame = true;
 		GetGame().GetCallqueue().CallLater(ClearConfirmGuard, 0);	// reset next frame so each click can place again.
-		Print(string.Format("[DCO-GM] placement-confirm: CreateEntity(one=%1) -> %2 (%3)", placeOne, ok, prefab), LogLevel.NORMAL);
 	}
 
 	protected void ClearConfirmGuard()
@@ -80,7 +78,6 @@ class DCO_GMPlacementConfirm
 		cb.ResetAllLabels(false);
 		cb.SetCurrentSearch("");
 		cb.FilterEntries();
-		Print(string.Format("[DCO-GM] confirm: re-unlocked browser (pid=%1 nowAvail=%2)", pid, cb.IsPrefabIDAvailable(pid)), LogLevel.NORMAL);
 	}
 
 	protected bool IsCursorOverPanels()

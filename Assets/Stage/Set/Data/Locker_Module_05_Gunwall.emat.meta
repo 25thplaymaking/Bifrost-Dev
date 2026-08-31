@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{8EDB07CE6DF660BC}Assets/Stage/Set/Data/Locker_Module_05_Gunwall.emat"
+ Configurations {
+  EMATResourceClass PC {
+  }
+  EMATResourceClass XBOX_ONE : PC {
+  }
+  EMATResourceClass XBOX_SERIES : PC {
+  }
+  EMATResourceClass PS4 : PC {
+  }
+  EMATResourceClass PS5 : PC {
+  }
+  EMATResourceClass HEADLESS : PC {
+  }
+ }
+}

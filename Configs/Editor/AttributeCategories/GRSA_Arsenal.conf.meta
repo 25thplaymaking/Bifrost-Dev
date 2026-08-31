@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{5DC0DCB40F1ACE01}Configs/Editor/AttributeCategories/GRSA_Arsenal.conf"
+ Configurations {
+  CONFResourceClass PC {
+  }
+  CONFResourceClass XBOX_ONE : PC {
+  }
+  CONFResourceClass XBOX_SERIES : PC {
+  }
+  CONFResourceClass PS4 : PC {
+  }
+  CONFResourceClass PS5 : PC {
+  }
+  CONFResourceClass HEADLESS : PC {
+  }
+ }
+}

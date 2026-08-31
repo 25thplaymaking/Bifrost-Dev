@@ -25,8 +25,6 @@ class DCO_GMChatFeed
 		m_BindTries = 0;
 		GetGame().GetCallqueue().CallLater(Poll, POLL_MS, true);
 		Poll();
-
-		Print(string.Format("[DCO-GM] chat feed bound (rows=%1/%2)", CountRows(), ROWS), LogLevel.NORMAL);
 	}
 
 	protected void Poll()
@@ -44,12 +42,6 @@ class DCO_GMChatFeed
 				{
 					m_wVanillaChat = hit;
 					m_VanillaPanel = SCR_ChatPanel.Cast(hit.FindHandler(SCR_ChatPanel));
-					Print(string.Format("[DCO-GM] chat feed: vanilla chat panel found (widget=%1) - hidden while closed, shown while open",
-						hit.GetName()), LogLevel.NORMAL);
-				}
-				else if (m_BindTries == BIND_RETRIES)
-				{
-					Print("[DCO-GM] chat feed: no vanilla chat panel in this world - feed-only mode", LogLevel.NORMAL);
 				}
 			}
 		}
@@ -119,17 +111,6 @@ class DCO_GMChatFeed
 			w = w.GetSibling();
 		}
 		return null;
-	}
-
-	protected int CountRows()
-	{
-		int n = 0;
-		foreach (TextWidget r : m_Rows)
-		{
-			if (r)
-				n++;
-		}
-		return n;
 	}
 
 	void Shutdown()

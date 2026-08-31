@@ -148,7 +148,6 @@ class DCO_GMBudgetReadout
 		m_bBound = true;
 		m_Budget.DemandBudgetUpdateFromServer();
 		Refresh();
-		Print("[DCO-GM] readable budget bars bound", LogLevel.NORMAL);
 	}
 
 	void Shutdown()

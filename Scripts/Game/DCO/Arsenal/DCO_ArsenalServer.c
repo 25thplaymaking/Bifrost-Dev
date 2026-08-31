@@ -24,10 +24,6 @@ class DCO_ArsenalLegLock
 		GetGame().GetCallqueue().Remove(Deadman);
 		if (on)
 			GetGame().GetCallqueue().CallLater(Deadman, 900000, false);
-		if (on)
-			Print("[DCO-ARS] leg-lock ON (a GM is editing your loadout)", LogLevel.NORMAL);
-		else
-			Print("[DCO-ARS] leg-lock OFF", LogLevel.NORMAL);
 	}
 
 	protected static void Deadman()
@@ -39,8 +35,18 @@ class DCO_ArsenalLegLock
 	}
 }
 
+class DCO_ArsenalServerState
+{
+	ref map<IEntity, string> m_Snapshots = new map<IEntity, string>();
+	ref map<IEntity, ref array<string>> m_Undo = new map<IEntity, ref array<string>>();
+	ref map<IEntity, ref array<string>> m_Redo = new map<IEntity, ref array<string>>();
+	ref map<IEntity, int> m_Held = new map<IEntity, int>();
+	ref map<IEntity, bool> m_HeldPlayers = new map<IEntity, bool>();
+}
+
 class DCO_ArsenalServer
 {
+	static const int MAX_LOADOUT_JSON_LENGTH = 32768;
 	static const int VERB_EQUIP  = 1;	// payload = prefab ResourceName; target = CHARACTER.
 	static const int VERB_CLEAR  = 2;
 	static const int VERB_RESET  = 3;	// payload unused; target = CHARACTER.
@@ -52,8 +58,14 @@ class DCO_ArsenalServer
 	static const int VERB_REDO    = 9;	// target = CHARACTER; step forward again.
 	static const int VERB_RESTOCK = 10;	// target = CHARACTER; refill every carried/loaded magazine.
 
-	// First-edit snapshots for RESET: character -> loadout JSON captured before the first arsenal write.
-	protected static ref map<IEntity, string> s_Snapshots = new map<IEntity, string>();
+	protected static ref DCO_ArsenalServerState s_State;
+
+	protected static DCO_ArsenalServerState State()
+	{
+		if (!s_State)
+			s_State = new DCO_ArsenalServerState();
+		return s_State;
+	}
 
 	static void Route(int verb, IEntity target, string payload)
 	{
@@ -84,6 +96,8 @@ class DCO_ArsenalServer
 	// Server side: resolve the wire id back to the entity and apply.
 	static void Apply(int verb, RplId targetId, string payload)
 	{
+		if (!Replication.IsServer())
+			return;
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
 		if (!rpl)
 		{
@@ -95,7 +109,7 @@ class DCO_ArsenalServer
 
 	static void ApplyOn(IEntity target, int verb, string payload)
 	{
-		if (!target)
+		if (!Replication.IsServer() || !target)
 			return;
 		if (verb == VERB_INSERT)
 		{
@@ -127,8 +141,6 @@ class DCO_ArsenalServer
 			RedoStep(target);
 			return;
 		}
-		if (DCO_PlayerUtil.IsPlayer(target))
-			Print(string.Format("[DCO-ARS] GM gear verb %1 on a PLAYER character", verb), LogLevel.NORMAL);
 		EnsureSnapshot(target);
 		string preJson = SnapshotJson(target);
 		switch (verb)
@@ -159,7 +171,6 @@ class DCO_ArsenalServer
 
 		array<IEntity> items = {};
 		inv.GetItems(items);
-		int filled;
 		foreach (IEntity item : items)
 		{
 			if (!item)
@@ -167,10 +178,7 @@ class DCO_ArsenalServer
 
 			BaseMagazineComponent magazine = BaseMagazineComponent.Cast(item.FindComponent(BaseMagazineComponent));
 			if (magazine && magazine.GetAmmoCount() < magazine.GetMaxAmmoCount())
-			{
 				magazine.SetAmmoCount(magazine.GetMaxAmmoCount());
-				filled++;
-			}
 
 			array<Managed> muzzles = {};
 			item.FindComponents(BaseMuzzleComponent, muzzles);
@@ -183,16 +191,11 @@ class DCO_ArsenalServer
 				if (!loaded || loaded.GetAmmoCount() >= loaded.GetMaxAmmoCount())
 					continue;
 				loaded.SetAmmoCount(loaded.GetMaxAmmoCount());
-				filled++;
 			}
 		}
-
-		Print(string.Format("[DCO-ARS] restock: refilled %1 magazine(s)", filled), LogLevel.NORMAL);
 	}
 
 	// Undo/redo: a per-character history of whole-kit loadout snapshots.
-	protected static ref map<IEntity, ref array<string>> s_Undo = new map<IEntity, ref array<string>>();
-	protected static ref map<IEntity, ref array<string>> s_Redo = new map<IEntity, ref array<string>>();
 	protected static const int UNDO_DEPTH = 20;
 
 	protected static array<string> GetStack(map<IEntity, ref array<string>> store, IEntity target)
@@ -210,11 +213,11 @@ class DCO_ArsenalServer
 	{
 		if (!target || preJson.IsEmpty())
 			return;
-		array<string> undo = GetStack(s_Undo, target);
+		array<string> undo = GetStack(State().m_Undo, target);
 		undo.Insert(preJson);
 		if (undo.Count() > UNDO_DEPTH)
 			undo.RemoveOrdered(0);
-		GetStack(s_Redo, target).Clear();
+		GetStack(State().m_Redo, target).Clear();
 	}
 
 	static void PushUndo(IEntity target)
@@ -224,45 +227,37 @@ class DCO_ArsenalServer
 		string json = SnapshotJson(target);
 		if (json.IsEmpty())
 			return;
-		array<string> undo = GetStack(s_Undo, target);
+		array<string> undo = GetStack(State().m_Undo, target);
 		undo.Insert(json);
 		if (undo.Count() > UNDO_DEPTH)
 			undo.RemoveOrdered(0);
-		GetStack(s_Redo, target).Clear();
+		GetStack(State().m_Redo, target).Clear();
 	}
 
 	protected static void UndoStep(IEntity target)
 	{
-		array<string> undo = GetStack(s_Undo, target);
+		array<string> undo = GetStack(State().m_Undo, target);
 		if (undo.IsEmpty())
-		{
-			Print("[DCO-ARS] undo: nothing to undo", LogLevel.NORMAL);
 			return;
-		}
 		string cur = SnapshotJson(target);
 		string prev = undo[undo.Count() - 1];
 		undo.RemoveOrdered(undo.Count() - 1);
 		if (!cur.IsEmpty())
-			GetStack(s_Redo, target).Insert(cur);
-		if (ApplyJsonRaw(target, prev))
-			Print(string.Format("[DCO-ARS] undo applied (%1 undo / %2 redo left)", undo.Count(), GetStack(s_Redo, target).Count()), LogLevel.NORMAL);
+			GetStack(State().m_Redo, target).Insert(cur);
+		ApplyJsonRaw(target, prev);
 	}
 
 	protected static void RedoStep(IEntity target)
 	{
-		array<string> redo = GetStack(s_Redo, target);
+		array<string> redo = GetStack(State().m_Redo, target);
 		if (redo.IsEmpty())
-		{
-			Print("[DCO-ARS] redo: nothing to redo", LogLevel.NORMAL);
 			return;
-		}
 		string cur = SnapshotJson(target);
 		string next = redo[redo.Count() - 1];
 		redo.RemoveOrdered(redo.Count() - 1);
 		if (!cur.IsEmpty())
-			GetStack(s_Undo, target).Insert(cur);
-		if (ApplyJsonRaw(target, next))
-			Print(string.Format("[DCO-ARS] redo applied (%1 undo / %2 redo left)", GetStack(s_Undo, target).Count(), redo.Count()), LogLevel.NORMAL);
+			GetStack(State().m_Undo, target).Insert(cur);
+		ApplyJsonRaw(target, next);
 	}
 
 	// Remove ONE carried/contained item matching the prefab.
@@ -316,32 +311,26 @@ class DCO_ArsenalServer
 				Print(string.Format("[DCO-ARS] remove REFUSED (integral attachment): %1", prefab), LogLevel.WARNING);
 				return;
 			}
-			if (inv.TryDeleteItem(it))
-				Print(string.Format("[DCO-ARS] removed one: %1", prefab), LogLevel.NORMAL);
-			else
+			if (!inv.TryDeleteItem(it))
 				Print(string.Format("[DCO-ARS] remove FAILED: %1", prefab), LogLevel.WARNING);
 			return;
 		}
-		Print(string.Format("[DCO-ARS] remove: none found in scope: %1", prefab), LogLevel.NORMAL);
 	}
 
-	protected static ref map<IEntity, int> s_Held = new map<IEntity, int>();	// entity -> hold sequence.
-	protected static ref map<IEntity, bool> s_HeldPlayers = new map<IEntity, bool>();
 	protected static int s_HoldSeq;
 
 	protected static void HoldTarget(IEntity target)
 	{
-		if (s_Held.Contains(target))
+		if (State().m_Held.Contains(target))
 			return;
 		if (DCO_PlayerUtil.IsPlayer(target))
 		{
 			if (!SendPlayerLegLock(target, true))
 				return;
 			s_HoldSeq++;
-			s_Held.Insert(target, s_HoldSeq);
-			s_HeldPlayers.Insert(target, true);
+			State().m_Held.Insert(target, s_HoldSeq);
+			State().m_HeldPlayers.Insert(target, true);
 			GetGame().GetCallqueue().CallLater(DeadmanRelease, 900000, false, target, s_HoldSeq);
-			Print("[DCO-ARS] player leg-lock engaged (arsenal session)", LogLevel.NORMAL);
 			return;
 		}
 		AIControlComponent ctrl = AIControlComponent.Cast(target.FindComponent(AIControlComponent));
@@ -352,22 +341,20 @@ class DCO_ArsenalServer
 			agent.SetPermanentLOD(AIAgent.GetMaxLOD());
 		ctrl.DeactivateAI();
 		s_HoldSeq++;
-		s_Held.Insert(target, s_HoldSeq);
+		State().m_Held.Insert(target, s_HoldSeq);
 		GetGame().GetCallqueue().CallLater(DeadmanRelease, 900000, false, target, s_HoldSeq);
-		Print("[DCO-ARS] target holding position (arsenal session)", LogLevel.NORMAL);
 	}
 
 	protected static void ReleaseTarget(IEntity target)
 	{
-		if (!target || !s_Held.Contains(target))
+		if (!target || !State().m_Held.Contains(target))
 			return;
-		s_Held.Remove(target);
-		if (s_HeldPlayers.Contains(target))
+		State().m_Held.Remove(target);
+		if (State().m_HeldPlayers.Contains(target))
 		{
 			// Player path: unlock on the owning client.
-			s_HeldPlayers.Remove(target);
+			State().m_HeldPlayers.Remove(target);
 			SendPlayerLegLock(target, false);
-			Print("[DCO-ARS] player leg-lock released (arsenal session ended)", LogLevel.NORMAL);
 			return;
 		}
 		AIControlComponent ctrl = AIControlComponent.Cast(target.FindComponent(AIControlComponent));
@@ -378,7 +365,6 @@ class DCO_ArsenalServer
 		AIAgent agent = ctrl.GetAIAgent();
 		if (agent)
 			agent.SetPermanentLOD(-1);
-		Print("[DCO-ARS] target released (arsenal session ended)", LogLevel.NORMAL);
 	}
 
 	// Reach the edited player's OWNING client with the lock flag.
@@ -403,20 +389,18 @@ class DCO_ArsenalServer
 	protected static void DeadmanRelease(IEntity target, int seq)
 	{
 		int held;
-		if (!target || !s_Held.Find(target, held) || held != seq)
+		if (!target || !State().m_Held.Find(target, held) || held != seq)
 			return;	// released and possibly re-held since - not ours to undo.
 		Print("[DCO-ARS] dead-man release: arsenal hold outlived its session", LogLevel.WARNING);
 		ReleaseTarget(target);
 	}
 
-	protected static bool PrefabKnown(ResourceName prefab)
+	protected static bool PrefabAllowed(ResourceName prefab)
 	{
 		if (prefab.IsEmpty())
 			return false;
-		SCR_EntityCatalogManagerComponent mgr = SCR_EntityCatalogManagerComponent.GetInstance();
-		if (!mgr)
-			return false;
-		return mgr.GetEntryWithPrefabFromAnyCatalog(EEntityCatalogType.ITEM, prefab) != null;
+		SCR_ArsenalItem itemData = GRSA_CatalogService.FindArsenalItemData(prefab, null);
+		return itemData && GRSA_ArsenalScenarioSettings.Get().AllowsArsenalItem(itemData);
 	}
 
 	static string SnapshotJson(IEntity target)
@@ -432,12 +416,18 @@ class DCO_ArsenalServer
 
 	static void ApplyLoadoutJson(IEntity target, string json)
 	{
-		if (!target || json.IsEmpty())
+		if (!Replication.IsServer() || !target || json.IsEmpty())
 			return;
+		if (!GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
+			return;
+		if (json.Length() > MAX_LOADOUT_JSON_LENGTH)
+		{
+			Print("[DCO-ARS] loadout apply refused: payload exceeds the server limit", LogLevel.WARNING);
+			return;
+		}
 		EnsureSnapshot(target);
 		PushUndo(target);
-		if (ApplyJsonRaw(target, json))
-			Print("[DCO-ARS] loadout applied", LogLevel.NORMAL);
+		ApplyJsonRaw(target, json);
 	}
 
 	protected static bool ApplyJsonRaw(IEntity target, string json)
@@ -458,9 +448,9 @@ class DCO_ArsenalServer
 
 	protected static void InsertIntoItem(IEntity itemEnt, string prefab)
 	{
-		if (!PrefabKnown(prefab))
+		if (!PrefabAllowed(prefab))
 		{
-			Print(string.Format("[DCO-ARS] insert refused - prefab not in local catalogs: %1", prefab), LogLevel.WARNING);
+			Print(string.Format("[DCO-ARS] insert refused - prefab unavailable under the current Arsenal policy: %1", prefab), LogLevel.WARNING);
 			return;
 		}
 		IEntity root = itemEnt;
@@ -492,9 +482,7 @@ class DCO_ArsenalServer
 		if (weaponStorage)
 			EvictWeaponOccupant(itemEnt, inv, prefab);
 
-		if (inv.TrySpawnPrefabToStorage(prefab, storage))
-			Print(string.Format("[DCO-ARS] inserted into item: %1", prefab), LogLevel.NORMAL);
-		else
+		if (!inv.TrySpawnPrefabToStorage(prefab, storage))
 			Print(string.Format("[DCO-ARS] insert FAILED (incompatible or full): %1", prefab), LogLevel.WARNING);
 	}
 
@@ -513,8 +501,8 @@ class DCO_ArsenalServer
 				if (!loadedMag)
 					continue;
 				IEntity loaded = loadedMag.GetOwner();
-				if (loaded && inv.TryDeleteItem(loaded))
-					Print("[DCO-ARS] swap: unloaded the current magazine", LogLevel.NORMAL);
+				if (loaded)
+					inv.TryDeleteItem(loaded);
 			}
 			return;
 		}
@@ -534,8 +522,8 @@ class DCO_ArsenalServer
 			if (!slotType || !incoming.IsInherited(slotType.Type()))
 				continue;
 			IEntity occupant = slot.GetAttachedEntity();
-			if (occupant && inv.TryDeleteItem(occupant))
-				Print("[DCO-ARS] swap: removed the occupying attachment", LogLevel.NORMAL);
+			if (occupant)
+				inv.TryDeleteItem(occupant);
 			return;	// one matching slot handled - the insert lands in it.
 		}
 	}
@@ -543,20 +531,20 @@ class DCO_ArsenalServer
 	// Capture the character's pre-edit kit once, so RESET always means "as it was before the GM touched it".
 	protected static void EnsureSnapshot(IEntity target)
 	{
-		if (s_Snapshots.Contains(target))
+		if (State().m_Snapshots.Contains(target))
 			return;
 		string json = SnapshotJson(target);
 		if (!json.IsEmpty())
-			s_Snapshots.Set(target, json);
+			State().m_Snapshots.Set(target, json);
 		else
 			Print("[DCO-ARS] snapshot: ReadLoadoutString failed (RESET unavailable for this unit)", LogLevel.WARNING);
 	}
 
 	protected static void EquipPrefab(IEntity target, string prefab)
 	{
-		if (!PrefabKnown(prefab))
+		if (!PrefabAllowed(prefab))
 		{
-			Print(string.Format("[DCO-ARS] equip refused - prefab not in local catalogs: %1", prefab), LogLevel.WARNING);
+			Print(string.Format("[DCO-ARS] equip refused - prefab unavailable under the current Arsenal policy: %1", prefab), LogLevel.WARNING);
 			return;
 		}
 		SCR_InventoryStorageManagerComponent inv = SCR_InventoryStorageManagerComponent.Cast(target.FindComponent(SCR_InventoryStorageManagerComponent));
@@ -573,15 +561,9 @@ class DCO_ArsenalServer
 			EquipedWeaponStorageComponent weaponStorage = EquipedWeaponStorageComponent.Cast(target.FindComponent(EquipedWeaponStorageComponent));
 			bool spawned = false;
 			if (weaponStorage && inv.TrySpawnPrefabToStorage(prefab, weaponStorage))
-			{
 				spawned = true;
-				Print(string.Format("[DCO-ARS] weapon equipped: %1", prefab), LogLevel.NORMAL);
-			}
 			else if (inv.TrySpawnPrefabToStorage(prefab))
-			{
 				spawned = true;
-				Print(string.Format("[DCO-ARS] weapon equipped via auto-slot: %1", prefab), LogLevel.NORMAL);
-			}
 			if (spawned)
 			{
 				GetGame().GetCallqueue().CallLater(DrawWeapon, 150, false, target, prefab);
@@ -599,9 +581,7 @@ class DCO_ArsenalServer
 				ClearByType(target, t);
 		}
 
-		if (inv.TrySpawnPrefabToStorage(prefab))
-			Print(string.Format("[DCO-ARS] item equipped: %1", prefab), LogLevel.NORMAL);
-		else
+		if (!inv.TrySpawnPrefabToStorage(prefab))
 			Print(string.Format("[DCO-ARS] item equip FAILED (no space/slot?): %1", prefab), LogLevel.WARNING);
 	}
 
@@ -628,7 +608,6 @@ class DCO_ArsenalServer
 			return;
 		array<IEntity> items = {};
 		inv.GetItems(items);
-		int removed = 0;
 		foreach (IEntity item : items)
 		{
 			if (!item || !item.GetPrefabData())
@@ -642,10 +621,8 @@ class DCO_ArsenalServer
 				continue;
 			if (it != type || im == SCR_EArsenalItemMode.AMMUNITION)
 				continue;	// never touch magazines here - only the worn piece itself.
-			if (inv.TryDeleteItem(item))
-				removed++;
+			inv.TryDeleteItem(item);
 		}
-		Print(string.Format("[DCO-ARS] swap: removed %1 item(s) of type %2", removed, type), LogLevel.NORMAL);
 	}
 
 	protected static void DrawWeapon(IEntity target, string prefab)
@@ -664,9 +641,7 @@ class DCO_ArsenalServer
 				continue;
 			if (item.GetPrefabData().GetPrefabName() != prefab)
 				continue;
-			if (controller.TryEquipRightHandItem(item, EEquipItemType.EEquipTypeWeapon, false))
-				Print("[DCO-ARS] weapon draw ordered", LogLevel.NORMAL);
-			else
+			if (!controller.TryEquipRightHandItem(item, EEquipItemType.EEquipTypeWeapon, false))
 				Print("[DCO-ARS] weapon draw refused by controller (stance/state?)", LogLevel.WARNING);
 			return;
 		}
@@ -680,7 +655,6 @@ class DCO_ArsenalServer
 			return;
 		array<IEntity> items = {};
 		inv.GetItems(items);
-		int removed = 0;
 		foreach (IEntity item : items)
 		{
 			if (!item || !item.GetPrefabData())
@@ -690,20 +664,15 @@ class DCO_ArsenalServer
 				continue;
 			if (CategoryOfPrefab(p) != cat)
 				continue;
-			if (inv.TryDeleteItem(item))
-				removed++;
+			inv.TryDeleteItem(item);
 		}
-		Print(string.Format("[DCO-ARS] clear category %1: removed %2 item(s)", cat, removed), LogLevel.NORMAL);
 	}
 
 	protected static void ResetToSnapshot(IEntity target)
 	{
 		string json;
-		if (!s_Snapshots.Find(target, json))
-		{
-			Print("[DCO-ARS] reset: no snapshot (unit was never edited)", LogLevel.NORMAL);
+		if (!State().m_Snapshots.Find(target, json))
 			return;
-		}
 		GameEntity ge = GameEntity.Cast(target);
 		if (!ge)
 			return;
@@ -713,9 +682,7 @@ class DCO_ArsenalServer
 			Print("[DCO-ARS] reset: snapshot JSON failed to parse", LogLevel.WARNING);
 			return;
 		}
-		if (SCR_PlayerArsenalLoadout.ApplyLoadoutString(ge, ctx))
-			Print("[DCO-ARS] reset: pre-edit kit restored", LogLevel.NORMAL);
-		else
+		if (!SCR_PlayerArsenalLoadout.ApplyLoadoutString(ge, ctx))
 			Print("[DCO-ARS] reset: apply reported failures (partial restore)", LogLevel.WARNING);
 	}
 

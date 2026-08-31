@@ -73,11 +73,7 @@ class DCO_GMNotifFeed
 		}
 
 		if ((m_Manager && m_wVanillaLog) || m_BindTries >= BIND_RETRIES)
-		{
 			GetGame().GetCallqueue().Remove(BindPoll);
-			Print(string.Format("[DCO-GM] notif feed bound (rows=%1/%2 manager=%3 vanillaHidden=%4 tries=%5)",
-				CountRows(), ROWS, m_Manager != null, m_wVanillaLog != null, m_BindTries), LogLevel.NORMAL);
-		}
 	}
 
 	// Same signature contract as engine's consumer.
@@ -191,17 +187,6 @@ class DCO_GMNotifFeed
 		return null;
 	}
 
-	protected int CountRows()
-	{
-		int n = 0;
-		foreach (TextWidget r : m_Rows)
-		{
-			if (r)
-				n++;
-		}
-		return n;
-	}
-
 	protected void ReHideVanilla()
 	{
 		if (!m_wVanillaLog)
@@ -209,8 +194,6 @@ class DCO_GMNotifFeed
 			Widget ws = GetGame().GetWorkspace();
 			if (ws)
 				m_wVanillaLog = FindWidgetWithHandler(ws.GetChildren(), SCR_NotificationsLogComponent);
-			if (m_wVanillaLog)
-				Print("[DCO-GM] notif feed: vanilla log respawned - re-hidden", LogLevel.NORMAL);
 		}
 		if (m_wVanillaLog && m_wVanillaLog.IsVisible())
 			m_wVanillaLog.SetVisible(false);

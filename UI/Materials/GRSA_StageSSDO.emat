@@ -1,0 +1,11 @@
+SSDOEffect {
+ HighQuality 1
+ EffectFallOffStart 0.4
+ VegetationOcclStrength 0.5
+ OcclusionRadius 0.101
+ OcclusionRadiusMin 0.025
+ OcclusionRadiusMax 0.5
+ OcclusionPower 2
+ EnableDirectionalOcclusion 0
+ ContactShadowRadiusMul 0.2
+}

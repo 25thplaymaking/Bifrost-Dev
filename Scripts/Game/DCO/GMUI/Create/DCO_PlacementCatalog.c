@@ -35,6 +35,25 @@ class DCO_CatalogRow
 
 class DCO_PlacementCatalog
 {
+	static const ResourceName ANIMATION_FX_RESOURCE = "DCO_ANIMATIONS_FX";
+	static const ResourceName ARSENAL_ACCESS_RESOURCE = "DCO_ARSENAL_ACCESS";
+	protected static ref array<string> s_TacticsOwnedZones;
+
+	protected static array<string> TacticsOwnedZones()
+	{
+		if (!s_TacticsOwnedZones)
+		{
+			s_TacticsOwnedZones = {
+				"/E_DCO_TaskZone.et",
+				"/E_DCO_TaskZone_Ambush.et",
+				"/E_DCO_TaskZone_AmbushKillZone.et",
+				"/E_DCO_TaskZone_Defend.et",
+				"/E_AIWaypoint_DCO_CqbClear.et",
+			};
+		}
+		return s_TacticsOwnedZones;
+	}
+
 	static const int CAT_ALL    = -1;
 	static const int CAT_MAN    = 0;	// CHARACTER.
 	static const int CAT_GROUP  = 1;	// GROUP.
@@ -54,6 +73,12 @@ class DCO_PlacementCatalog
 
 	bool IsBuilt() { return m_bBuilt; }
 	int GetEntryCount() { return m_Entries.Count(); }
+	static bool IsAnimationFxResource(ResourceName resource) { return resource == ANIMATION_FX_RESOURCE; }
+	static bool IsArsenalAccessResource(ResourceName resource) { return resource == ARSENAL_ACCESS_RESOURCE; }
+	static bool IsGlobalUtilityResource(ResourceName resource)
+	{
+		return IsAnimationFxResource(resource) || IsArsenalAccessResource(resource);
+	}
 
 	// Resolve the editor components and enumerate every placeable entity.
 	bool Build()
@@ -66,19 +91,17 @@ class DCO_PlacementCatalog
 		m_Placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
 		SCR_ContentBrowserEditorComponent cb = SCR_ContentBrowserEditorComponent.Cast(SCR_ContentBrowserEditorComponent.GetInstance(SCR_ContentBrowserEditorComponent, true));
 
-		int built;
 		bool cacheReady = cb && cb.GetInfoCount() > 0;
 		if (cacheReady)
-			built = BuildFromBrowser(cb);
+			BuildFromBrowser(cb);
 		if (m_Placing)
-			built = BuildFromPlacing(m_Placing);
+			BuildFromPlacing(m_Placing);
+		AddAnimationFxEntry();
+		AddArsenalAccessEntry();
 
 		CollectFactions();
 		CaptureSourceIdentity(cb, m_Placing, m_SourceIdentity);
-		m_bBuilt = built > 0;
-
-		Print(string.Format("[DCO-GM] placement catalog: %1 entries, %2 factions (browser=%3 cacheReady=%4 placing=%5)",
-			m_Entries.Count(), m_FactionKeys.Count(), cb != null, cacheReady, m_Placing != null), LogLevel.NORMAL);
+		m_bBuilt = !m_Entries.IsEmpty();
 		return m_bBuilt;
 	}
 
@@ -168,6 +191,36 @@ class DCO_PlacementCatalog
 		return m_Entries.Count();
 	}
 
+	protected void AddAnimationFxEntry()
+	{
+		DCO_CatalogEntry entry = new DCO_CatalogEntry();
+		entry.m_Prefab = ANIMATION_FX_RESOURCE;
+		entry.m_Name = "Animations FX";
+		entry.m_Type = EEditableEntityType.CHARACTER;
+		entry.m_Category = CAT_EFFECTS;
+		entry.m_SubCat = "Animations";
+		array<EEditableEntityLabel> labels = {};
+		entry.m_App6Icon = DCO_App6Icons.GetIcon(labels, entry.m_Name, "", entry.m_Type);
+		entry.m_SearchMetadata = "animations animation ai pose emote smoke sit chair lean pushups loiter officer";
+		m_Entries.Insert(entry);
+	}
+
+	// Keep the object-targeted arsenal installer beside Animations FX in Effects > Units.
+	protected void AddArsenalAccessEntry()
+	{
+		DCO_CatalogEntry entry = new DCO_CatalogEntry();
+		entry.m_Prefab = ARSENAL_ACCESS_RESOURCE;
+		entry.m_Name = "Arsenal Access";
+		entry.m_Type = EEditableEntityType.CHARACTER;
+		entry.m_Category = CAT_EFFECTS;
+		entry.m_SubCat = "Arsenal";
+		entry.m_SearchMetadata = "arsenal access inventory loadout equipment object vehicle prop interaction attachments";
+
+		array<EEditableEntityLabel> labels = {};
+		entry.m_App6Icon = DCO_App6Icons.GetIcon(labels, entry.m_Name, "", EEditableEntityType.GENERIC);
+		m_Entries.Insert(entry);
+	}
+
 	protected int BuildFromPlacing(SCR_PlacingEditorComponent placing)
 	{
 		SCR_PlacingEditorComponentClass placingData = SCR_PlacingEditorComponentClass.Cast(placing.GetEditorComponentData());
@@ -188,22 +241,17 @@ class DCO_PlacementCatalog
 		return m_Entries.Count();
 	}
 
-	static const ref array<string> TACTICS_OWNED_ZONES = {
-		"/E_DCO_TaskZone.et",
-		"/E_DCO_TaskZone_Ambush.et",
-		"/E_DCO_TaskZone_AmbushKillZone.et",
-		"/E_DCO_TaskZone_Defend.et",
-		"/E_AIWaypoint_DCO_CqbClear.et",
-	};
-
 	protected void AddEntry(ResourceName res, SCR_EditableEntityUIInfo info)
 	{
+		if (IsArsenalAccessResource(res))
+			return; // The explicit utility entry below owns its location and prevents a duplicate Objects row.
+
 		foreach (DCO_CatalogEntry existing : m_Entries)
 		{
 			if (existing.m_Prefab == res)
 				return;
 		}
-		foreach (string zonePath : TACTICS_OWNED_ZONES)
+		foreach (string zonePath : TacticsOwnedZones())
 		{
 			if (res.Contains(zonePath))
 				return;	// tactics tab is the one truth for this zone.
@@ -211,7 +259,7 @@ class DCO_PlacementCatalog
 
 		DCO_CatalogEntry e = new DCO_CatalogEntry();
 		e.m_Prefab = res;
-		e.m_Name = info.GetName();
+		e.m_Name = DCO_GMDisplayName.Resolve(info.GetName(), res, "Entity");
 		e.m_Icon = info.GetImage();
 		e.m_Faction = info.GetFactionKey();
 		e.m_Type = info.GetEntityType();
@@ -307,7 +355,7 @@ class DCO_PlacementCatalog
 		{
 			if (categoryFilter != CAT_ALL && entry.m_Category != categoryFilter)
 				continue;
-			if (!factionFilter.IsEmpty() && entry.m_Faction != factionFilter)
+			if (!factionFilter.IsEmpty() && entry.m_Faction != factionFilter && !IsGlobalUtilityResource(entry.m_Prefab))
 				continue;
 			count++;
 		}
@@ -488,7 +536,7 @@ class DCO_PlacementCatalog
 		{
 			if (categoryFilter != CAT_ALL && e.m_Category != categoryFilter)
 				continue;
-			if (!factionFilter.IsEmpty() && e.m_Faction != factionFilter)
+			if (!factionFilter.IsEmpty() && e.m_Faction != factionFilter && !IsGlobalUtilityResource(e.m_Prefab))
 				continue;
 			candidates.Insert(e);
 		}
@@ -616,7 +664,6 @@ class DCO_PlacementCatalog
 		BeginPlacementAvailability(browser, browserState, browserStateIndex);
 		bool ok = m_Placing.SetSelectedPrefab(prefab);
 		RestorePlacementAvailability(browser, browserState, browserStateIndex);
-		Print(string.Format("[DCO-GM] placing selected: %1 ok=%2", prefab, ok), LogLevel.NORMAL);
 		return ok;
 	}
 
@@ -650,8 +697,15 @@ class DCO_PlacementCatalog
 		BeginPlacementAvailability(browser, browserState, browserStateIndex);
 		bool ok = m_Placing.SetSelectedPrefab(prefab);
 		RestorePlacementAvailability(browser, browserState, browserStateIndex);
-		Print(string.Format("[DCO-GM] PlaceAsPlayer prefab=%1 ok=%2", prefab, ok), LogLevel.NORMAL);
 		return ok;
+	}
+
+	void CancelPlacement()
+	{
+		if (!m_Placing)
+			m_Placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
+		if (m_Placing && m_Placing.IsPlacing())
+			m_Placing.SetSelectedPrefab(ResourceName.Empty);
 	}
 
 	protected bool BeginPlacementAvailability(out SCR_ContentBrowserEditorComponent browser, out SCR_EditorContentBrowserSaveStateData state, out int stateIndex)

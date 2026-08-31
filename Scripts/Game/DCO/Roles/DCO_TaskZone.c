@@ -15,6 +15,42 @@ class DCO_ZoneShape
 		}
 		return Shape.CreateLines(colorARGB, ShapeFlags.NOZBUFFER, p, 64);
 	}
+
+	static Shape FlatArea(vector transform[4], float radiusX, float radiusZ, bool rectangle, int colorARGB)
+	{
+		vector center = transform[3] + Vector(0, GROUND_LIFT, 0);
+		vector axisX = transform[0];
+		vector axisZ = transform[2];
+		axisX[1] = 0;
+		axisZ[1] = 0;
+		axisX.Normalize();
+		axisZ.Normalize();
+		if (rectangle)
+		{
+			vector corners[4];
+			corners[0] = center - axisX * radiusX - axisZ * radiusZ;
+			corners[1] = center + axisX * radiusX - axisZ * radiusZ;
+			corners[2] = center + axisX * radiusX + axisZ * radiusZ;
+			corners[3] = center - axisX * radiusX + axisZ * radiusZ;
+			vector lines[8];
+			for (int corner = 0; corner < 4; corner++)
+			{
+				lines[corner * 2] = corners[corner];
+				lines[corner * 2 + 1] = corners[(corner + 1) % 4];
+			}
+			return Shape.CreateLines(colorARGB, ShapeFlags.NOZBUFFER, lines, 8);
+		}
+
+		vector ellipse[64];
+		for (int i = 0; i < 32; i++)
+		{
+			float a0 = (Math.PI2 * i) / 32.0;
+			float a1 = (Math.PI2 * (i + 1)) / 32.0;
+			ellipse[i * 2] = center + axisX * (Math.Cos(a0) * radiusX) + axisZ * (Math.Sin(a0) * radiusZ);
+			ellipse[i * 2 + 1] = center + axisX * (Math.Cos(a1) * radiusX) + axisZ * (Math.Sin(a1) * radiusZ);
+		}
+		return Shape.CreateLines(colorARGB, ShapeFlags.NOZBUFFER, ellipse, 64);
+	}
 }
 
 enum EDCO_ZoneRole
@@ -98,11 +134,11 @@ class DCO_TaskZoneComponent : ScriptComponent
 
 		GetGame().GetCallqueue().CallLater(DCO_DrawVisual, 500, false);
 		GetGame().GetCallqueue().CallLater(DCO_DrawVisual, (int)(m_fCheckSec * 1000.0), true);
+		// Clients also need the objective catalog for synced-trigger Properties.
+		DCO_TaskZoneRegistry.Register(this);
 
 		if (!Replication.IsServer())
 			return;
-
-		DCO_TaskZoneRegistry.Register(this);
 		GetGame().GetCallqueue().CallLater(DCO_Tick, (int)(m_fCheckSec * 1000.0), true);
 	}
 

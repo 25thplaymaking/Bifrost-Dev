@@ -1,10 +1,17 @@
 class DCO_FactionCatalog
 {
-	protected static const ref array<FactionKey> CANONICAL_KEYS = {"US", "USSR", "FIA", "CIV"};
+	protected static ref array<FactionKey> s_CanonicalKeys;
 	protected static ref array<FactionKey> s_Keys;
 	protected static ref array<string> s_Names;
 	protected static ref array<FactionKey> s_SourceKeys;
 	protected static FactionManager s_Manager;
+
+	protected static array<FactionKey> CanonicalKeys()
+	{
+		if (!s_CanonicalKeys)
+			s_CanonicalKeys = {"US", "USSR", "FIA", "CIV"};
+		return s_CanonicalKeys;
+	}
 
 	static void Invalidate()
 	{
@@ -41,7 +48,7 @@ class DCO_FactionCatalog
 
 		array<Faction> factions = {};
 		manager.GetFactionsList(factions);
-		foreach (FactionKey canonicalKey : CANONICAL_KEYS)
+		foreach (FactionKey canonicalKey : CanonicalKeys())
 		{
 			Faction canonical = manager.GetFactionByKey(canonicalKey);
 			if (canonical)
@@ -116,7 +123,7 @@ class DCO_FactionCatalog
 
 	static bool IsCanonical(FactionKey key)
 	{
-		foreach (FactionKey canonicalKey : CANONICAL_KEYS)
+		foreach (FactionKey canonicalKey : CanonicalKeys())
 		{
 			if (key == canonicalKey)
 				return true;
@@ -201,7 +208,7 @@ class DCO_FactionCatalog
 	static void SortSubset(notnull array<FactionKey> keys)
 	{
 		array<FactionKey> sorted = {};
-		foreach (FactionKey known : CANONICAL_KEYS)
+		foreach (FactionKey known : CanonicalKeys())
 		{
 			if (keys.Contains(known))
 				sorted.Insert(known);

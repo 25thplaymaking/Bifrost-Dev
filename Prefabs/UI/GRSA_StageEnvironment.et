@@ -1,0 +1,239 @@
+GenericWorldEntity {
+ ID "AB20E00000000001"
+ coords 0 0 0
+ boundMins 0 0 0
+ boundMaxs 0 0 0
+ blockSize 200 1500 200
+ SkyPreset "{4B7788810A110A83}UI/Materials/GRSA_StageVoid.emat"
+ ShadowPreset Custom
+ CustomShadowPreset "ItemPreview"
+ DisableDistantShadows 1
+ {
+  $grp GenericWorldPPEffect {
+   PP_HBAO {
+    ID "AB20E00000000003"
+    Camera 0
+    Priority 5
+    Material "{926D9013AF833992}UI/Materials/GRSA_StageHBAO.emat"
+   }
+   PP_SSDO {
+    ID "AB20E00000000004"
+    Camera 0
+    Priority 8
+    Material "{BFBA626280EB1F53}UI/Materials/GRSA_StageSSDO.emat"
+   }
+   PP_HDR {
+    ID "AB20E00000000005"
+    Camera 0
+    Priority 11
+    Material "{3FD85A8F90CBF5BC}UI/Materials/GRSA_StageHDR.emat"
+   }
+  }
+  GenericWorldLightEntity {
+   ID "AB20E00000000002"
+   coords 2.5 3.5 -2
+   angles -38 -55 0
+   SunAngularSize 1
+   DirectLightLV 1.4
+   DirectLightColor 1 0.96 0.9 0
+   IndirectLightLV 0.7
+   IndirectLightColor 0.45 0.55 0.7 0
+   ProbeReflectionEV 5.5
+   ProbeReflectionDesaturation 0.3
+   ProbeDiffuseEV 1.5
+   ProbeDiffuseDesaturation 0.5
+   "GlobalAOPower " 1
+   TargetEV 0
+   ManualHDRBrightness always
+   ManualHDRBrightnessLV 1
+  }
+  $grp GenericEntity {
+   {
+    ID "AB20E0000000000A"
+    components {
+     MeshObject "{AB20E0000000000B}" {
+      Object "{22D87F63F6FDEB59}Assets/Stage/GRSA_StageFloor.xob"
+     }
+    }
+    coords 0 -0.55 0
+   }
+   {
+    ID "AB20E0000000000C"
+    components {
+     MeshObject "{AB20E0000000000D}" {
+      Object "{94318D5C549F8476}Assets/Stage/Set/Locker_Module_05_Gunwall.xob"
+     }
+    }
+    coords -0.425 0.357 -0.273
+    angles 0 -119.621 0
+    scale 0.91
+   }
+   {
+    ID "AB20E0000000000E"
+    components {
+     MeshObject "{AB20E0000000000F}" {
+      Object "{94318D5C549F8476}Assets/Stage/Set/Locker_Module_05_Gunwall.xob"
+     }
+    }
+    coords -0.033 0.357 -0.957
+    angles 0 -119.621 0
+    scale 0.91
+   }
+   {
+    ID "AB20E00000000010"
+    components {
+     MeshObject "{AB20E00000000011}" {
+      Object "{94318D5C549F8476}Assets/Stage/Set/Locker_Module_05_Gunwall.xob"
+     }
+    }
+    coords -0.826 0.357 0.441
+    angles 0 -119.621 0
+    scale 0.91
+   }
+   {
+    ID "AB20E00000000012"
+    components {
+     MeshObject "{AB20E00000000013}" {
+      Object "{C124717DF09736FC}Assets/Stage/Set/Armory_Module_01.xob"
+     }
+    }
+    coords -3.52 -0.55 3.395
+    angles 0 135.92 0
+   }
+   {
+    ID "AB20E00000000014"
+    components {
+     MeshObject "{AB20E00000000015}" {
+      Object "{583AC8E4ED70076C}Assets/Stage/Set/Armory_Module_02.xob"
+     }
+    }
+    coords -4.6 -0.55 1.6
+    angles 0 -85 0
+   }
+   {
+    ID "AB20E00000000016"
+    components {
+     MeshObject "{AB20E00000000017}" {
+      Object "{D2D518ED2A266F36}Assets/Stage/Set/Bench.xob"
+     }
+    }
+    coords -0.101 -0.852 -0.057
+    angles 0 -120 0
+    scale 1.33
+   }
+   {
+    ID "AB20E00000000018"
+    components {
+     MeshObject "{AB20E00000000019}" {
+      Object "{B7E46F64C90F9A79}Assets/Stage/Set/BenchMat.xob"
+     }
+    }
+    coords -0.101 -0.851 -0.057
+    angles 0 -120 0
+    scale 1.33
+   }
+  }
+  $grp LightEntity {
+   {
+    ID "AB20E0000000001A"
+    coords 2.9 3.1 2.2
+    angles -40 -161 0
+    Color 1 0.97 0.92 1
+   LV 5.1
+    CastShadow 0
+    Type Spot
+    Radius 12
+    NearPlane 0.1
+    SpotAngle 32
+    Dynamic 1
+    LensFlareType Disabled
+   }
+   {
+    ID "AB20E0000000001B"
+    coords 0.7 2.7 0.9
+    angles -63 -142 0
+    Color 1 0.976 0.937 1
+    LV 5.2
+    CastShadow 0
+    Type Spot
+    Radius 10
+    NearPlane 0.1
+    SpotAngle 26
+    Dynamic 1
+    LensFlareType Disabled
+   }
+   {
+    ID "AB20E0000000001C"
+    coords 0.6 2.4 -2.6
+    angles -35 34 0
+    Color 0.85 0.9 1 1
+    LV 5
+    CastShadow 0
+    Type Spot
+    Radius 8
+    NearPlane 0.1
+    SpotAngle 24
+    Dynamic 1
+    LensFlareType Disabled
+   }
+   {
+    ID "AB20E00000000007"
+    coords 0.9 2.349 -1.1
+    Color 1 0.976 0.937 1
+    LV 1.6
+    CastShadow 0
+    Radius 9
+    Dynamic 1
+   }
+   {
+    ID "AB20E00000000008"
+    coords -1 2.221 1.2
+    Color 0.749 0.851 1 1
+    LV 1.8
+    CastShadow 0
+    Radius 9
+    Dynamic 1
+   }
+   {
+    ID "AB20E00000000009"
+    coords -0.3 -0.6 -1
+    Color 1 1 1 1
+    LV 1.2
+    CastShadow 0
+    ClipEV -10
+    Radius 8
+    Dynamic 1
+   }
+   {
+    ID "AB20E0000000001D"
+    coords 5 2.7 -1.7
+    Color 1 0.97 0.92 1
+    LV 3.4
+    CastShadow 0
+    Radius 5.5
+    Dynamic 1
+    LensFlareType Disabled
+   }
+   {
+    ID "AB20E0000000001E"
+    coords 5 2.4 -0.7
+    Color 0.88 0.93 1 1
+    LV 5.2
+    CastShadow 0
+    Radius 4
+    Dynamic 1
+    LensFlareType Disabled
+   }
+   {
+    ID "AB20E0000000001F"
+    coords 5 2.4 0.3
+    Color 0.88 0.93 1 1
+    LV 5.2
+    CastShadow 0
+    Radius 4
+    Dynamic 1
+    LensFlareType Disabled
+   }
+  }
+ }
+}

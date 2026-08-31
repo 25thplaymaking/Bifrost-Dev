@@ -1,0 +1,523 @@
+OverlayWidgetClass "{AB21040000000001}" {
+ Name "GRSA_ScreenGunsmith"
+ components {
+  GRSA_GunsmithScreen "{AB21040000000002}" {
+  }
+ }
+ {
+  RenderTargetWidgetClass "{AB2104000000000A}" {
+   Name "StageWorld"
+   Slot OverlayWidgetSlot "{AB2104000000000B}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   "Inherit Color" 1
+   Format "LDR"
+   "Use clear color" 0
+   "Clear Color" 0 0 0 0
+  }
+  FrameWidgetClass "{AB21040000000008}" {
+   Name "CalloutLayer"
+   Slot OverlayWidgetSlot "{AB21040000000009}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   "Ignore Cursor" 1
+  }
+  SizeLayoutWidgetClass "{AB2104000000001D}" {
+   Name "StatsBlock"
+   Slot OverlayWidgetSlot "{AB2104000000001E}" {
+    HorizontalAlign 0
+    VerticalAlign 2
+    Padding 48 0 0 64
+   }
+   "Is Visible" 0
+   AllowWidthOverride 1
+   WidthOverride 380
+   {
+    OverlayWidgetClass "{AB2104000000001F}" {
+     Name "StatsOverlay"
+     Slot LayoutSlot "{AB21040000000020}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      ImageWidgetClass "{AB21040000000021}" {
+       Name "StatsBg"
+       Slot OverlayWidgetSlot "{AB21040000000022}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.003 0.0033 0.0037 0.82
+      }
+      VerticalLayoutWidgetClass "{AB21040000000023}" {
+       Name "StatsColumn"
+       Slot OverlayWidgetSlot "{AB21040000000024}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding 16 12 16 12
+       }
+       {
+        TextWidgetClass "{AB21040000000025}" {
+         Name "StatsTitle"
+         Slot LayoutSlot "{AB21040000000026}" {
+          HorizontalAlign 3
+         }
+         Color 0.72 0.76 0.81 1
+         Text ""
+         "Font Size" 16
+         "Min Font Size" 13
+         FontProperties FontProperties "{AB21040000000027}" {
+          Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+         }
+        }
+        SizeLayoutWidgetClass "{AB21040000000028}" {
+         Name "StatsRuleSize"
+         Slot LayoutSlot "{AB21040000000029}" {
+          HorizontalAlign 3
+          Padding 0 8 0 8
+         }
+         AllowHeightOverride 1
+         HeightOverride 2
+         {
+          ImageWidgetClass "{AB2104000000002A}" {
+           Name "StatsRule"
+           Slot LayoutSlot "{AB2104000000002B}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           Color 0.851 0.537 0.169 1
+          }
+         }
+        }
+        RichTextWidgetClass "{AB2104000000002C}" {
+         Name "StatsText"
+         Slot LayoutSlot "{AB2104000000002D}" {
+          HorizontalAlign 3
+         }
+          Color 0.88 0.91 0.94 1
+          Text ""
+          "Font Size" 14
+          "Min Font Size" 9
+         FontProperties FontProperties "{AB2104000000002E}" {
+          Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+  SizeLayoutWidgetClass "{AB2104000000002F}" {
+   Name "ReceiverCard"
+   Slot OverlayWidgetSlot "{AB21040000000030}" {
+    HorizontalAlign 2
+    VerticalAlign 2
+    Padding 0 0 48 64
+   }
+   "Is Visible" 0
+   AllowWidthOverride 1
+   WidthOverride 340
+   {
+    OverlayWidgetClass "{AB21040000000031}" {
+     Name "ReceiverOverlay"
+     Slot LayoutSlot "{AB21040000000032}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      ImageWidgetClass "{AB21040000000033}" {
+       Name "ReceiverBg"
+       Slot OverlayWidgetSlot "{AB21040000000034}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.003 0.0033 0.0037 0.82
+      }
+      VerticalLayoutWidgetClass "{AB21040000000035}" {
+       Name "ReceiverColumn"
+       Slot OverlayWidgetSlot "{AB21040000000036}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding 10 8 10 10
+       }
+       {
+        TextWidgetClass "{AB21040000000037}" {
+         Name "ReceiverLabel"
+         Slot LayoutSlot "{AB21040000000038}" {
+          HorizontalAlign 3
+          Padding 6 0 0 6
+         }
+          Color 0.72 0.76 0.81 1
+          Text "WEAPON"
+          "Font Size" 12
+          "Min Font Size" 10
+         FontProperties FontProperties "{AB21040000000039}" {
+          Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+         }
+        }
+        VerticalLayoutWidgetClass "{AB2104000000003A}" {
+         Name "ReceiverCardSlot"
+         Slot LayoutSlot "{AB2104000000003B}" {
+          HorizontalAlign 3
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+  SizeLayoutWidgetClass "{AB2104000000000C}" {
+   Name "CandidatesPanel"
+   Slot OverlayWidgetSlot "{AB2104000000000D}" {
+    HorizontalAlign 3
+    VerticalAlign 2
+    Padding 240 0 240 64
+   }
+   "Is Visible" 0
+   AllowHeightOverride 1
+   HeightOverride 188
+   {
+    OverlayWidgetClass "{AB2104000000000E}" {
+     Name "CandidatesOverlay"
+     Slot LayoutSlot "{AB2104000000000F}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      ImageWidgetClass "{AB21040000000010}" {
+       Name "CandidatesBg"
+       Slot OverlayWidgetSlot "{AB21040000000011}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.003 0.0033 0.0037 0.82
+      }
+      VerticalLayoutWidgetClass "{AB21040000000012}" {
+       Name "CandidatesColumn"
+       Slot OverlayWidgetSlot "{AB21040000000013}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding 12 12 12 12
+       }
+       {
+        TextWidgetClass "{AB21040000000014}" {
+         Name "CandidatesTitle"
+         Slot LayoutSlot "{AB21040000000015}" {
+          HorizontalAlign 3
+          Padding 8 4 8 12
+         }
+          Color 0.88 0.91 0.94 1
+          Text ""
+          "Font Size" 16
+          "Min Font Size" 10
+         FontProperties FontProperties "{AB21040000000016}" {
+          Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+         }
+        }
+        HorizontalLayoutWidgetClass "{AB21040000000046}" {
+         Name "PositionRow"
+         Slot LayoutSlot "{AB21040000000047}" {
+          HorizontalAlign 3
+          Padding 8 0 8 8
+         }
+         "Is Visible" 0
+         {
+          TextWidgetClass "{AB21040000000048}" {
+           Name "PositionLabel"
+           Slot LayoutSlot "{AB21040000000049}" {
+            VerticalAlign 1
+            Padding 0 0 12 0
+           }
+           Color 0.72 0.76 0.81 1
+            Text "POSITION"
+            "Font Size" 14
+            "Min Font Size" 12
+           FontProperties FontProperties "{AB2104000000004A}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          ButtonWidgetClass "{AB2104000000004B}" : "{4A41296C0E9A889F}UI/layouts/WidgetLibrary/WLib_Slider.layout" {
+           Name "PositionSlider"
+           Slot LayoutSlot "{AB2104000000004C}" {
+            VerticalAlign 1
+            SizeMode Fill
+            FillWeight 1
+           }
+          }
+          TextWidgetClass "{AB2104000000004D}" {
+           Name "PositionValue"
+           Slot LayoutSlot "{AB2104000000004E}" {
+            VerticalAlign 1
+            Padding 12 0 0 0
+           }
+           Color 0.88 0.91 0.94 1
+            Text ""
+            "Font Size" 14
+            "Min Font Size" 12
+           FontProperties FontProperties "{AB2104000000004F}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+         }
+        }
+        HorizontalLayoutWidgetClass "{AB2104000000003C}" {
+         Name "BrowserClasses"
+         Slot LayoutSlot "{AB2104000000003D}" {
+          HorizontalAlign 0
+          Padding 8 0 8 8
+         }
+         "Is Visible" 0
+        }
+        OverlayWidgetClass "{AB21040000000050}" {
+         Name "CandidatesCarousel"
+         Slot LayoutSlot "{AB21040000000051}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          SizeMode Fill
+          FillWeight 1
+         }
+         {
+           FrameWidgetClass "{AB21040000000017}" {
+            Name "CandidatesScroll"
+            Slot OverlayWidgetSlot "{AB21040000000018}" {
+             HorizontalAlign 3
+             VerticalAlign 3
+             Padding 72 0 72 0
+            }
+            Clipping True
+            components {
+             GRSA_CarouselComponent "{AB2104000000001C}" {
+              m_sContentName "CandidatesContentSize"
+              m_sStartIndicatorName "CarouselStartIndicator"
+              m_sEndIndicatorName "CarouselEndIndicator"
+             }
+            }
+            {
+             SizeLayoutWidgetClass "{AB2104000000006C}" {
+              Name "CandidatesContentSize"
+              Slot FrameWidgetSlot "{AB2104000000006D}" {
+               Anchor 0 0 0 0
+               Alignment 0 0
+              }
+             AllowWidthOverride 1
+             WidthOverride 1
+             {
+              HorizontalLayoutWidgetClass "{AB21040000000019}" {
+               Name "CandidatesList"
+               Slot AlignableSlot "{AB2104000000001A}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+               }
+              }
+             }
+            }
+           }
+          }
+          ButtonWidgetClass "{AB21040000000052}" {
+           Name "CarouselStartIndicator"
+           Slot OverlayWidgetSlot "{AB21040000000053}" {
+            HorizontalAlign 0
+            VerticalAlign 1
+            Padding 4 0 0 0
+           }
+           "Z Order" 10
+           components {
+            GRSA_ThemedButtonTextComponent "{AB21040000000054}" {
+             m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
+             m_BackgroundDefault 0.003 0.0033 0.0037 0.92
+             m_BackgroundHovered 0.851 0.537 0.169 1
+             m_BackgroundClicked 0.851 0.537 0.169 1
+             m_bShowBorderOnFocus 1
+             m_sText "START"
+            }
+           }
+           "Is Visible" 0
+           style blank
+           {
+            SizeLayoutWidgetClass "{AB21040000000058}" {
+             Name "CarouselStartSize"
+             Slot ButtonWidgetSlot "{AB21040000000059}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             AllowWidthOverride 1
+             WidthOverride 64
+             AllowHeightOverride 1
+             HeightOverride 38
+             {
+              OverlayWidgetClass "{AB2104000000005A}" {
+               Name "CarouselStartOverlay"
+               Slot LayoutSlot "{AB2104000000005B}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+               }
+               {
+                ImageWidgetClass "{AB2104000000005C}" {
+                 Name "Background"
+                 Slot OverlayWidgetSlot "{AB2104000000005D}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                }
+                PanelWidgetClass "{AB2104000000005E}" {
+                 Name "Border"
+                 Slot OverlayWidgetSlot "{AB2104000000005F}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                 Color 0.851 0.537 0.169 1
+                 style outline_1px
+                }
+                TextWidgetClass "{AB21040000000060}" : "{E64DA8292CD7DBDD}UI/layouts/WidgetLibrary/TextWidgets/Text_InteractiveSmall.layout" {
+                 Name "Text"
+                 Slot OverlayWidgetSlot "{AB21040000000061}" {
+                  HorizontalAlign 1
+                  VerticalAlign 1
+                 }
+                 Color 0.88 0.91 0.94 1
+                 "Font Size" 12
+                 "Min Font Size" 10
+                 Wrap 0
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+          ButtonWidgetClass "{AB21040000000055}" {
+           Name "CarouselEndIndicator"
+           Slot OverlayWidgetSlot "{AB21040000000056}" {
+            HorizontalAlign 2
+            VerticalAlign 1
+            Padding 0 0 4 0
+           }
+           "Z Order" 10
+           components {
+            GRSA_ThemedButtonTextComponent "{AB21040000000057}" {
+             m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
+             m_BackgroundDefault 0.003 0.0033 0.0037 0.92
+             m_BackgroundHovered 0.851 0.537 0.169 1
+             m_BackgroundClicked 0.851 0.537 0.169 1
+             m_bShowBorderOnFocus 1
+             m_sText "NEXT"
+            }
+           }
+           "Is Visible" 0
+           style blank
+           {
+            SizeLayoutWidgetClass "{AB21040000000062}" {
+             Name "CarouselEndSize"
+             Slot ButtonWidgetSlot "{AB21040000000063}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             AllowWidthOverride 1
+             WidthOverride 64
+             AllowHeightOverride 1
+             HeightOverride 38
+             {
+              OverlayWidgetClass "{AB21040000000064}" {
+               Name "CarouselEndOverlay"
+               Slot LayoutSlot "{AB21040000000065}" {
+                HorizontalAlign 3
+                VerticalAlign 3
+               }
+               {
+                ImageWidgetClass "{AB21040000000066}" {
+                 Name "Background"
+                 Slot OverlayWidgetSlot "{AB21040000000067}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                }
+                PanelWidgetClass "{AB21040000000068}" {
+                 Name "Border"
+                 Slot OverlayWidgetSlot "{AB21040000000069}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                 Color 0.851 0.537 0.169 1
+                 style outline_1px
+                }
+                TextWidgetClass "{AB2104000000006A}" : "{E64DA8292CD7DBDD}UI/layouts/WidgetLibrary/TextWidgets/Text_InteractiveSmall.layout" {
+                 Name "Text"
+                 Slot OverlayWidgetSlot "{AB2104000000006B}" {
+                  HorizontalAlign 1
+                  VerticalAlign 1
+                 }
+                 Color 0.88 0.91 0.94 1
+                 "Font Size" 12
+                 "Min Font Size" 10
+                 Wrap 0
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+  SizeLayoutWidgetClass "{AB2104000000003E}" {
+   Name "HardpointRail"
+   Slot OverlayWidgetSlot "{AB2104000000003F}" {
+    HorizontalAlign 2
+    VerticalAlign 3
+    Padding 0 96 48 96
+   }
+   "Is Visible" 0
+   AllowWidthOverride 1
+   WidthOverride 300
+   {
+    ScrollLayoutWidgetClass "{AB21040000000040}" {
+     Name "HardpointRailScroll"
+     Slot LayoutSlot "{AB21040000000041}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     components {
+      SCR_GamepadScrollComponent "{AB21040000000042}" {
+      }
+      GRSA_SmoothScrollComponent "{AB21040000000043}" {
+      }
+     }
+     style Small
+     {
+      VerticalLayoutWidgetClass "{AB21040000000044}" {
+       Name "HardpointRailList"
+       Slot AlignableSlot "{AB21040000000045}" {
+        HorizontalAlign 3
+        VerticalAlign 0
+       }
+      }
+     }
+    }
+   }
+  }
+  TextWidgetClass "{AB21040000000003}" {
+   Name "HardpointCounter"
+   Slot OverlayWidgetSlot "{AB21040000000004}" {
+    HorizontalAlign 2
+    VerticalAlign 0
+    Padding 0 16 48 0
+   }
+   Color 0.851 0.537 0.169 1
+   Text ""
+   "Font Size" 18
+   "Min Font Size" 14
+   FontProperties FontProperties "{AB21040000000005}" {
+    Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+   }
+  }
+ }
+}

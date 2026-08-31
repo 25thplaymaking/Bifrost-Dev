@@ -69,10 +69,12 @@ VerticalLayoutWidgetClass "{DCA1000000000001}" {
      {
       TextWidgetClass "{DCA1000000000032}" {
        Name "DCO_CalendarMonthLabel"
-       Slot AlignableSlot "{DCA1000000000033}" { HorizontalAlign 1 VerticalAlign 1 Padding 8 0 8 0 }
+       Slot AlignableSlot "{DCA1000000000033}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 0 8 0 }
        Text "AUGUST"
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 15
+       "Min Font Size" 10
       }
      }
     }

@@ -1,5 +1,11 @@
 # Third-party notices
 
+## GRS Armory
+
+Portions of the Bifrost Arsenal are adapted from the GRS Armory package supplied to the project owner. The GRS team granted explicit permission for this use. The GRS logo and Armory interface identity remain credited in the in-game Arsenal and Bifrost help screen.
+
+No public open-source license was included in the supplied archive, so this notice does not assert or grant rights beyond that permission. Original GRS source and assets remain attributable to the GRS team; Bifrost-specific integration and modifications are identified in the repository history.
+
 ## Game-icons.net
 
 Selected interface glyphs are used under Creative Commons Attribution 3.0. Individual authors and glyph names are listed in [CREDITS.md](CREDITS.md).

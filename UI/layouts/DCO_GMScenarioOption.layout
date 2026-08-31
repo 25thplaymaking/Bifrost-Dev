@@ -9,8 +9,8 @@ FrameWidgetClass "{DC05CEAA00000001}" {
    }
    AllowWidthOverride 1
    WidthOverride 924
-   AllowHeightOverride 1
-   HeightOverride 160
+   AllowMinDesiredHeight 1
+   MinDesiredHeight 160
    {
     OverlayWidgetClass "{DC05CEAA00000004}" {
      Name "DCO_OptionSurface"
@@ -48,13 +48,15 @@ FrameWidgetClass "{DC05CEAA00000001}" {
        }
        {
          TextWidgetClass "{DC05CEAA0000000E}" {
-          Name "DCO_OptionLabel"
-          Slot LayoutSlot "{DC05CEAA0000000F}" {
-           Padding 0 0 0 4
-          }
-          Text "SETTING"
-          Color 0.90 0.93 0.95 1
-          "Font Size" 15
+         Name "DCO_OptionLabel"
+         Slot LayoutSlot "{DC05CEAA0000000F}" {
+          HorizontalAlign 3
+          Padding 0 0 0 4
+         }
+         Text "SETTING"
+         Color 0.90 0.93 0.95 1
+         "Font Size" 15
+         "Min Font Size" 10
          }
          SizeLayoutWidgetClass "{DC05CEAA00000012}" {
           Name "DCO_OptionControlSize"
@@ -159,16 +161,18 @@ FrameWidgetClass "{DC05CEAA00000001}" {
                    Size 0 2
                   }
                   TextWidgetClass "{DC05CEAA00000028}" {
-                   Name "DCO_OptionValue"
-                   Slot OverlayWidgetSlot "{DC05CEAA00000029}" {
-                    HorizontalAlign 1
+                  Name "DCO_OptionValue"
+                  Slot OverlayWidgetSlot "{DC05CEAA00000029}" {
+                    HorizontalAlign 3
                     VerticalAlign 1
                     Padding 8 0 8 0
                    }
                    "Ignore Cursor" 1
                    Text "VALUE"
+                   "Horizontal Alignment" Center
                    Color 0.90 0.93 0.95 1
                    "Font Size" 14
+                   "Min Font Size" 9
                   }
                  }
                 }
@@ -252,16 +256,18 @@ FrameWidgetClass "{DC05CEAA00000001}" {
                    Size 0 40
                   }
                   TextWidgetClass "{DC05CEAA0000008A}" {
-                   Name "DCO_OptionSliderValue"
-                   Slot OverlayWidgetSlot "{DC05CEAA0000008B}" {
-                    HorizontalAlign 1
+                  Name "DCO_OptionSliderValue"
+                  Slot OverlayWidgetSlot "{DC05CEAA0000008B}" {
+                    HorizontalAlign 3
                     VerticalAlign 1
                     Padding 6 0 6 0
                    }
                    "Ignore Cursor" 1
                    Text "VALUE"
+                   "Horizontal Alignment" Center
                    Color 0.90 0.93 0.95 1
                    "Font Size" 13
+                   "Min Font Size" 9
                   }
                   EditBoxWidgetClass "{DC05CEAA000000D0}" {
                    Name "DCO_OptionSliderTimeEdit"
@@ -390,7 +396,7 @@ FrameWidgetClass "{DC05CEAA00000001}" {
                  WidthOverride 224
                  AllowHeightOverride 1
                  HeightOverride 32
-                 { ButtonWidgetClass "{DC05CEAA00000040}" { Name "DCO_OptionSeg0" Slot AlignableSlot "{DC05CEAA00000041}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA00000042}" { Name "DCO_OptionSeg0Surface" Slot ButtonWidgetSlot "{DC05CEAA00000043}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA00000044}" { Name "DCO_OptionSeg0Plate" Slot OverlayWidgetSlot "{DC05CEAA00000045}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000046}" { Name "DCO_OptionSeg0Label" Slot OverlayWidgetSlot "{DC05CEAA00000047}" { HorizontalAlign 1 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" Color 0.90 0.93 0.95 1 "Font Size" 12 } } } } }
+                 { ButtonWidgetClass "{DC05CEAA00000040}" { Name "DCO_OptionSeg0" Slot AlignableSlot "{DC05CEAA00000041}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA00000042}" { Name "DCO_OptionSeg0Surface" Slot ButtonWidgetSlot "{DC05CEAA00000043}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA00000044}" { Name "DCO_OptionSeg0Plate" Slot OverlayWidgetSlot "{DC05CEAA00000045}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000046}" { Name "DCO_OptionSeg0Label" Slot OverlayWidgetSlot "{DC05CEAA00000047}" { HorizontalAlign 3 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" "Horizontal Alignment" Center Color 0.90 0.93 0.95 1 "Font Size" 12 "Min Font Size" 8 } } } } }
                 }
                 }
                 SizeLayoutWidgetClass "{DC05CEAA000000A2}" {
@@ -400,7 +406,7 @@ FrameWidgetClass "{DC05CEAA00000001}" {
                  WidthOverride 224
                  AllowHeightOverride 1
                  HeightOverride 32
-                 { ButtonWidgetClass "{DC05CEAA00000048}" { Name "DCO_OptionSeg1" Slot AlignableSlot "{DC05CEAA00000049}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA0000004A}" { Name "DCO_OptionSeg1Surface" Slot ButtonWidgetSlot "{DC05CEAA0000004B}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA0000004C}" { Name "DCO_OptionSeg1Plate" Slot OverlayWidgetSlot "{DC05CEAA0000004D}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA0000004E}" { Name "DCO_OptionSeg1Label" Slot OverlayWidgetSlot "{DC05CEAA0000004F}" { HorizontalAlign 1 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" Color 0.90 0.93 0.95 1 "Font Size" 12 } } } } }
+                 { ButtonWidgetClass "{DC05CEAA00000048}" { Name "DCO_OptionSeg1" Slot AlignableSlot "{DC05CEAA00000049}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA0000004A}" { Name "DCO_OptionSeg1Surface" Slot ButtonWidgetSlot "{DC05CEAA0000004B}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA0000004C}" { Name "DCO_OptionSeg1Plate" Slot OverlayWidgetSlot "{DC05CEAA0000004D}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA0000004E}" { Name "DCO_OptionSeg1Label" Slot OverlayWidgetSlot "{DC05CEAA0000004F}" { HorizontalAlign 3 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" "Horizontal Alignment" Center Color 0.90 0.93 0.95 1 "Font Size" 12 "Min Font Size" 8 } } } } }
                 }
                 }
                 SizeLayoutWidgetClass "{DC05CEAA000000A4}" {
@@ -410,7 +416,7 @@ FrameWidgetClass "{DC05CEAA00000001}" {
                  WidthOverride 224
                  AllowHeightOverride 1
                  HeightOverride 32
-                 { ButtonWidgetClass "{DC05CEAA00000050}" { Name "DCO_OptionSeg2" Slot AlignableSlot "{DC05CEAA00000051}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA00000052}" { Name "DCO_OptionSeg2Surface" Slot ButtonWidgetSlot "{DC05CEAA00000053}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA00000054}" { Name "DCO_OptionSeg2Plate" Slot OverlayWidgetSlot "{DC05CEAA00000055}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000056}" { Name "DCO_OptionSeg2Label" Slot OverlayWidgetSlot "{DC05CEAA00000057}" { HorizontalAlign 1 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" Color 0.90 0.93 0.95 1 "Font Size" 12 } } } } }
+                 { ButtonWidgetClass "{DC05CEAA00000050}" { Name "DCO_OptionSeg2" Slot AlignableSlot "{DC05CEAA00000051}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA00000052}" { Name "DCO_OptionSeg2Surface" Slot ButtonWidgetSlot "{DC05CEAA00000053}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA00000054}" { Name "DCO_OptionSeg2Plate" Slot OverlayWidgetSlot "{DC05CEAA00000055}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000056}" { Name "DCO_OptionSeg2Label" Slot OverlayWidgetSlot "{DC05CEAA00000057}" { HorizontalAlign 3 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" "Horizontal Alignment" Center Color 0.90 0.93 0.95 1 "Font Size" 12 "Min Font Size" 8 } } } } }
                 }
                 }
                 SizeLayoutWidgetClass "{DC05CEAA000000A6}" {
@@ -420,7 +426,7 @@ FrameWidgetClass "{DC05CEAA00000001}" {
                  WidthOverride 224
                  AllowHeightOverride 1
                  HeightOverride 32
-                 { ButtonWidgetClass "{DC05CEAA00000058}" { Name "DCO_OptionSeg3" Slot AlignableSlot "{DC05CEAA00000059}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA0000005A}" { Name "DCO_OptionSeg3Surface" Slot ButtonWidgetSlot "{DC05CEAA0000005B}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA0000005C}" { Name "DCO_OptionSeg3Plate" Slot OverlayWidgetSlot "{DC05CEAA0000005D}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA0000005E}" { Name "DCO_OptionSeg3Label" Slot OverlayWidgetSlot "{DC05CEAA0000005F}" { HorizontalAlign 1 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" Color 0.90 0.93 0.95 1 "Font Size" 12 } } } } }
+                 { ButtonWidgetClass "{DC05CEAA00000058}" { Name "DCO_OptionSeg3" Slot AlignableSlot "{DC05CEAA00000059}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA0000005A}" { Name "DCO_OptionSeg3Surface" Slot ButtonWidgetSlot "{DC05CEAA0000005B}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA0000005C}" { Name "DCO_OptionSeg3Plate" Slot OverlayWidgetSlot "{DC05CEAA0000005D}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA0000005E}" { Name "DCO_OptionSeg3Label" Slot OverlayWidgetSlot "{DC05CEAA0000005F}" { HorizontalAlign 3 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" "Horizontal Alignment" Center Color 0.90 0.93 0.95 1 "Font Size" 12 "Min Font Size" 8 } } } } }
                 }
                 }
                }
@@ -436,7 +442,7 @@ FrameWidgetClass "{DC05CEAA00000001}" {
                  WidthOverride 224
                  AllowHeightOverride 1
                  HeightOverride 32
-                 { ButtonWidgetClass "{DC05CEAA00000062}" { Name "DCO_OptionSeg4" Slot AlignableSlot "{DC05CEAA00000063}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA00000064}" { Name "DCO_OptionSeg4Surface" Slot ButtonWidgetSlot "{DC05CEAA00000065}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA00000066}" { Name "DCO_OptionSeg4Plate" Slot OverlayWidgetSlot "{DC05CEAA00000067}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000068}" { Name "DCO_OptionSeg4Label" Slot OverlayWidgetSlot "{DC05CEAA00000069}" { HorizontalAlign 1 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" Color 0.90 0.93 0.95 1 "Font Size" 12 } } } } }
+                 { ButtonWidgetClass "{DC05CEAA00000062}" { Name "DCO_OptionSeg4" Slot AlignableSlot "{DC05CEAA00000063}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA00000064}" { Name "DCO_OptionSeg4Surface" Slot ButtonWidgetSlot "{DC05CEAA00000065}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA00000066}" { Name "DCO_OptionSeg4Plate" Slot OverlayWidgetSlot "{DC05CEAA00000067}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000068}" { Name "DCO_OptionSeg4Label" Slot OverlayWidgetSlot "{DC05CEAA00000069}" { HorizontalAlign 3 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" "Horizontal Alignment" Center Color 0.90 0.93 0.95 1 "Font Size" 12 "Min Font Size" 8 } } } } }
                 }
                 }
                 SizeLayoutWidgetClass "{DC05CEAA000000AA}" {
@@ -446,7 +452,7 @@ FrameWidgetClass "{DC05CEAA00000001}" {
                  WidthOverride 224
                  AllowHeightOverride 1
                  HeightOverride 32
-                 { ButtonWidgetClass "{DC05CEAA0000006A}" { Name "DCO_OptionSeg5" Slot AlignableSlot "{DC05CEAA0000006B}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA0000006C}" { Name "DCO_OptionSeg5Surface" Slot ButtonWidgetSlot "{DC05CEAA0000006D}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA0000006E}" { Name "DCO_OptionSeg5Plate" Slot OverlayWidgetSlot "{DC05CEAA0000006F}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000070}" { Name "DCO_OptionSeg5Label" Slot OverlayWidgetSlot "{DC05CEAA00000071}" { HorizontalAlign 1 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" Color 0.90 0.93 0.95 1 "Font Size" 12 } } } } }
+                 { ButtonWidgetClass "{DC05CEAA0000006A}" { Name "DCO_OptionSeg5" Slot AlignableSlot "{DC05CEAA0000006B}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA0000006C}" { Name "DCO_OptionSeg5Surface" Slot ButtonWidgetSlot "{DC05CEAA0000006D}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA0000006E}" { Name "DCO_OptionSeg5Plate" Slot OverlayWidgetSlot "{DC05CEAA0000006F}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000070}" { Name "DCO_OptionSeg5Label" Slot OverlayWidgetSlot "{DC05CEAA00000071}" { HorizontalAlign 3 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" "Horizontal Alignment" Center Color 0.90 0.93 0.95 1 "Font Size" 12 "Min Font Size" 8 } } } } }
                 }
                 }
                 SizeLayoutWidgetClass "{DC05CEAA000000AC}" {
@@ -456,7 +462,7 @@ FrameWidgetClass "{DC05CEAA00000001}" {
                  WidthOverride 224
                  AllowHeightOverride 1
                  HeightOverride 32
-                 { ButtonWidgetClass "{DC05CEAA00000072}" { Name "DCO_OptionSeg6" Slot AlignableSlot "{DC05CEAA00000073}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA00000074}" { Name "DCO_OptionSeg6Surface" Slot ButtonWidgetSlot "{DC05CEAA00000075}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA00000076}" { Name "DCO_OptionSeg6Plate" Slot OverlayWidgetSlot "{DC05CEAA00000077}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000078}" { Name "DCO_OptionSeg6Label" Slot OverlayWidgetSlot "{DC05CEAA00000079}" { HorizontalAlign 1 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" Color 0.90 0.93 0.95 1 "Font Size" 12 } } } } }
+                 { ButtonWidgetClass "{DC05CEAA00000072}" { Name "DCO_OptionSeg6" Slot AlignableSlot "{DC05CEAA00000073}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA00000074}" { Name "DCO_OptionSeg6Surface" Slot ButtonWidgetSlot "{DC05CEAA00000075}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA00000076}" { Name "DCO_OptionSeg6Plate" Slot OverlayWidgetSlot "{DC05CEAA00000077}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000078}" { Name "DCO_OptionSeg6Label" Slot OverlayWidgetSlot "{DC05CEAA00000079}" { HorizontalAlign 3 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" "Horizontal Alignment" Center Color 0.90 0.93 0.95 1 "Font Size" 12 "Min Font Size" 8 } } } } }
                 }
                 }
                 SizeLayoutWidgetClass "{DC05CEAA000000AE}" {
@@ -466,7 +472,7 @@ FrameWidgetClass "{DC05CEAA00000001}" {
                  WidthOverride 224
                  AllowHeightOverride 1
                  HeightOverride 32
-                 { ButtonWidgetClass "{DC05CEAA0000007A}" { Name "DCO_OptionSeg7" Slot AlignableSlot "{DC05CEAA0000007B}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA0000007C}" { Name "DCO_OptionSeg7Surface" Slot ButtonWidgetSlot "{DC05CEAA0000007D}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA0000007E}" { Name "DCO_OptionSeg7Plate" Slot OverlayWidgetSlot "{DC05CEAA0000007F}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000080}" { Name "DCO_OptionSeg7Label" Slot OverlayWidgetSlot "{DC05CEAA00000081}" { HorizontalAlign 1 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" Color 0.90 0.93 0.95 1 "Font Size" 12 } } } } }
+                 { ButtonWidgetClass "{DC05CEAA0000007A}" { Name "DCO_OptionSeg7" Slot AlignableSlot "{DC05CEAA0000007B}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{DC05CEAA0000007C}" { Name "DCO_OptionSeg7Surface" Slot ButtonWidgetSlot "{DC05CEAA0000007D}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 { ImageWidgetClass "{DC05CEAA0000007E}" { Name "DCO_OptionSeg7Plate" Slot OverlayWidgetSlot "{DC05CEAA0000007F}" { HorizontalAlign 3 VerticalAlign 3 } "Ignore Cursor" 1 Color 0.105 0.125 0.130 1 Size 0 0 } TextWidgetClass "{DC05CEAA00000080}" { Name "DCO_OptionSeg7Label" Slot OverlayWidgetSlot "{DC05CEAA00000081}" { HorizontalAlign 3 VerticalAlign 1 Padding 6 2 6 2 } "Ignore Cursor" 1 Text "OPTION" "Horizontal Alignment" Center Color 0.90 0.93 0.95 1 "Font Size" 12 "Min Font Size" 8 } } } } }
                 }
                 }
                }
@@ -478,13 +484,16 @@ FrameWidgetClass "{DC05CEAA00000001}" {
           }
          }
          TextWidgetClass "{DC05CEAA00000010}" {
-          Name "DCO_OptionDescription"
-          Slot LayoutSlot "{DC05CEAA00000011}" {
-           Padding 0 6 0 0
-          }
-          Text "Setting description"
-          Color 0.68 0.72 0.75 1
-          "Font Size" 12
+         Name "DCO_OptionDescription"
+         Slot LayoutSlot "{DC05CEAA00000011}" {
+          HorizontalAlign 3
+          Padding 0 6 0 0
+         }
+         Text "Setting description"
+         Color 0.68 0.72 0.75 1
+         "Font Size" 12
+         "Min Font Size" 9
+         Wrap 1
          }
        }
       }

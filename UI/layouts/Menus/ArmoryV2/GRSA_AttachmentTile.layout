@@ -1,0 +1,155 @@
+ButtonWidgetClass {
+ Name "AttachmentTile"
+ Slot LayoutSlot "{A000000000000001}" {
+  Padding 0 0 6 0
+ }
+ components {
+  GRSA_ItemRowComponent "{A000000000000002}" {
+   m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
+   m_BackgroundDefault 1 1 1 0.025
+   m_BackgroundHovered 1 1 1 0.05
+   m_BackgroundSelected 0.32 0.16 0.035 1
+   m_BackgroundSelectedHovered 0.851 0.537 0.169 1
+   m_BackgroundClicked 0.851 0.537 0.169 1
+   m_bShowBorderOnFocus 1
+  }
+ }
+ style blank
+ {
+  SizeLayoutWidgetClass "{A000000000000003}" {
+   Name "SizeLayout"
+   Slot ButtonWidgetSlot "{A000000000000004}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   AllowWidthOverride 1
+   WidthOverride 128
+   AllowHeightOverride 1
+   HeightOverride 118
+   {
+    OverlayWidgetClass "{A000000000000005}" {
+     Name "Overlay"
+     Slot LayoutSlot "{A000000000000006}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      ImageWidgetClass "{A000000000000007}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{A000000000000008}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+      }
+      PanelWidgetClass "{A000000000000009}" {
+       Name "Border"
+       Slot OverlayWidgetSlot "{A00000000000000A}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Is Visible" 0
+       Color 0.851 0.537 0.169 1
+       style outline_1px
+      }
+      VerticalLayoutWidgetClass "{A00000000000000B}" {
+       Name "TileColumn"
+       Slot OverlayWidgetSlot "{A00000000000000C}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding 6 6 6 6
+       }
+       {
+        SizeLayoutWidgetClass "{A00000000000000D}" {
+         Name "ThumbSize"
+         Slot LayoutSlot "{A00000000000000E}" {
+          HorizontalAlign 3
+         }
+         AllowHeightOverride 1
+         HeightOverride 62
+         {
+          ItemPreviewWidgetClass "{A00000000000000F}" {
+           Name "RowThumb"
+           Slot LayoutSlot "{A000000000000010}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           "Use Engine Scale" 0
+           xscale 1
+           yscale 1
+           Filter Bilinear
+           Format LDR
+           "Use clear color" 1
+           "Clear Color" 0 0 0 0
+           "Blend mode" Blend
+          }
+         }
+        }
+        OverlayWidgetClass "{A000000000000011}" {
+         Name "NameClip"
+         Slot LayoutSlot "{A000000000000012}" {
+          HorizontalAlign 3
+          SizeMode Fill
+          FillWeight 1
+          Padding 2 4 2 0
+         }
+         Clipping True
+         {
+          TextWidgetClass "{A000000000000013}" : "{E64DA8292CD7DBDD}UI/layouts/WidgetLibrary/TextWidgets/Text_InteractiveSmall.layout" {
+           Name "RowName"
+           Slot OverlayWidgetSlot "{A000000000000014}" {
+            HorizontalAlign 3
+            VerticalAlign 0
+           }
+           "Font Size" 12
+           "Min Font Size" 8
+           Wrap 1
+           "Line Spacing" 0
+           Color 0.88 0.91 0.94 1
+          }
+         }
+        }
+        HorizontalLayoutWidgetClass "{A000000000000015}" {
+         Name "TileFooter"
+         Slot LayoutSlot "{A000000000000016}" {
+          HorizontalAlign 3
+          Padding 2 2 2 0
+         }
+         {
+          TextWidgetClass "{A000000000000017}" {
+           Name "RowState"
+           Slot LayoutSlot "{A000000000000018}" {
+            VerticalAlign 1
+           }
+           Color 0.851 0.537 0.169 1
+           Text ""
+            "Font Size" 11
+            "Min Font Size" 10
+           FontProperties FontProperties "{A000000000000019}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          TextWidgetClass "{A00000000000001A}" {
+           Name "RowCost"
+           Slot LayoutSlot "{A00000000000001B}" {
+            SizeMode Fill
+            HorizontalAlign 2
+            VerticalAlign 1
+           }
+           Color 0.72 0.76 0.81 1
+           Text ""
+           "Font Size" 12
+           "Min Font Size" 10
+           FontProperties FontProperties "{A00000000000001C}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

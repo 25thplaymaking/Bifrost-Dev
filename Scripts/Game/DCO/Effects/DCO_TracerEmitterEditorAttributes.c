@@ -36,7 +36,7 @@ class DCO_TracerRoundEditorAttribute : DCO_TracerEmitterAttributeBase
 
 	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
 	{
-		foreach (string name : DCO_TracerEmitterComponent.ROUND_NAMES)
+		foreach (string name : DCO_TracerEmitterComponent.DCO_GetRoundNames())
 			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(name));
 		return outEntries.Count();
 	}

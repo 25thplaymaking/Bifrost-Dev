@@ -8,6 +8,9 @@ class DCO_GMNametags
 
 	protected const int   POOL = 12;
 	protected const float HEAD_OFFSET = 2.0;
+	protected const float TAG_WIDTH = 260;
+	protected const float TAG_HEIGHT = 30;
+	protected const float EDGE_GAP = 8;
 
 	void Init(Widget root)
 	{
@@ -28,11 +31,12 @@ class DCO_GMNametags
 			m_Texts.Insert(txt);
 			if (tag)
 			{
+				FrameSlot.SetSizeToContent(tag, false);
+				FrameSlot.SetSize(tag, TAG_WIDTH, TAG_HEIGHT);
 				FrameSlot.SetAlignment(tag, 0.5, 1.0);	// pivot bottom-centre => the tag sits above the projected head point.
 				tag.SetVisible(false);
 			}
 		}
-		Print(string.Format("[DCO-GM] nametags bound (pool=%1)", m_Tags.Count()), LogLevel.NORMAL);
 	}
 
 	void Start()
@@ -74,6 +78,13 @@ class DCO_GMNametags
 
 		array<int> ids = {};
 		pm.GetPlayers(ids);
+		float rootX, rootY, rootW, rootH;
+		m_wRoot.GetScreenPos(rootX, rootY);
+		m_wRoot.GetScreenSize(rootW, rootH);
+		rootX = ws.DPIUnscale(rootX);
+		rootY = ws.DPIUnscale(rootY);
+		rootW = ws.DPIUnscale(rootW);
+		rootH = ws.DPIUnscale(rootH);
 
 		int used = 0;
 		foreach (int id : ids)
@@ -96,8 +107,14 @@ class DCO_GMNametags
 			TextWidget txt = m_Texts[used];
 			if (!tag || !txt)
 				continue;
-			txt.SetText(name);
-			FrameSlot.SetPos(tag, scr[0], scr[1]);
+			txt.SetText(BoundName(name));
+			float tagX = rootX + rootW * 0.5;
+			if (rootW > TAG_WIDTH + EDGE_GAP * 2)
+				tagX = Math.Clamp(scr[0], rootX + EDGE_GAP + TAG_WIDTH * 0.5, rootX + rootW - EDGE_GAP - TAG_WIDTH * 0.5);
+			float tagY = rootY + rootH * 0.5;
+			if (rootH > TAG_HEIGHT + EDGE_GAP * 2)
+				tagY = Math.Clamp(scr[1], rootY + EDGE_GAP + TAG_HEIGHT, rootY + rootH - EDGE_GAP);
+			FrameSlot.SetPos(tag, tagX, tagY);
 			tag.SetVisible(true);
 			used++;
 		}
@@ -108,6 +125,13 @@ class DCO_GMNametags
 			if (m_Tags[i])
 				m_Tags[i].SetVisible(false);
 		}
+	}
+
+	protected string BoundName(string value)
+	{
+		if (value.Length() <= 46)
+			return value;
+		return value.Substring(0, 43) + "...";
 	}
 
 	void Shutdown()

@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{AB205AD4E2000005}UI/layouts/Menus/ArmoryV2/GRSA_ScreenKits.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass PS5 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

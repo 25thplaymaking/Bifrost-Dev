@@ -134,7 +134,6 @@ class DCO_ArsenalCatalog
 		}
 		SortByName();
 		m_bReady = !m_Entries.IsEmpty();
-		Print(string.Format("[DCO-ARS] catalog built: %1 entries, %2 factions", m_Entries.Count(), m_FactionKeys.Count()), LogLevel.NORMAL);
 	}
 
 	protected void SortByName()

@@ -52,7 +52,6 @@ class DCO_ArsenalLoadouts
 		}
 		if (!m_Store.m_aLoadouts)
 			m_Store.m_aLoadouts = {};
-		Print(string.Format("[DCO-ARS] loadout store loaded: %1 loadout(s)", m_Store.m_aLoadouts.Count()), LogLevel.NORMAL);
 	}
 
 	protected void Persist()
@@ -90,7 +89,7 @@ class DCO_ArsenalLoadouts
 	// SAVE the character's current kit under a name.
 	void SaveFrom(IEntity character, string name, notnull array<string> manifest)
 	{
-		if (!character || name.IsEmpty())
+		if (!character || name.IsEmpty() || !GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
 			return;
 		EnsureLoaded();
 
@@ -158,13 +157,12 @@ class DCO_ArsenalLoadouts
 				rec.m_aPrefabs.Insert(p);
 		}
 		Persist();
-		Print(string.Format("[DCO-ARS] loadout saved: '%1' (%2 distinct prefabs)", name, rec.m_aPrefabs.Count()), LogLevel.NORMAL);
 	}
 
 	// APPLY a stored loadout onto a character.
 	void ApplyTo(IEntity character, notnull DCO_ArsenalLoadoutRec rec)
 	{
-		if (!character || rec.m_sJson.IsEmpty())
+		if (!character || rec.m_sJson.IsEmpty() || !GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
 			return;
 		if (!IsAvailable(rec))
 		{
@@ -186,12 +184,13 @@ class DCO_ArsenalLoadouts
 
 	void Delete(notnull DCO_ArsenalLoadoutRec rec)
 	{
+		if (!GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
+			return;
 		EnsureLoaded();
 		int idx = m_Store.m_aLoadouts.Find(rec);
 		if (idx < 0)
 			return;
 		m_Store.m_aLoadouts.Remove(idx);
 		Persist();
-		Print(string.Format("[DCO-ARS] loadout deleted: '%1'", rec.m_sName), LogLevel.NORMAL);
 	}
 }

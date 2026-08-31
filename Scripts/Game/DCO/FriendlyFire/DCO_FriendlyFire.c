@@ -16,14 +16,10 @@ modded class SCR_AIGroupUtilityComponent
 			return;
 
 		DCO_MoraleSettings cfg = DCO_MoraleSettings.Get();
-		if (!cfg.m_bEnableFriendlyFire || !m_Owner || !m_Perception)
+		if (!cfg.m_bEnableFriendlyFire || !m_Owner)
 			return;
 		// The CQB state machine already serializes point/cover lanes.
 		if (DCO_CqbIsClearingActive())
-			return;
-
-		array<IEntity> targets = m_Perception.m_aTargetEntities;
-		if (!targets || targets.IsEmpty())
 			return;
 
 		BaseWorld world = GetGame().GetWorld();
@@ -49,28 +45,22 @@ modded class SCR_AIGroupUtilityComponent
 			if (DCO_PlayerUtil.IsPlayer(ent))
 				continue;	// never touch a player's fire/movement.
 
-			vector shooterPos = ent.GetOrigin();
-			IEntity nearestEnemy;
-			float nearestSq = 1000000000.0;	// ~31 km^2 cap; perceived targets are well within this.
-			foreach (IEntity t : targets)
-			{
-				if (!t)
-					continue;
-				float dSq = vector.DistanceSq(t.GetOrigin(), shooterPos);
-				if (dSq < nearestSq)
-				{
-					nearestSq = dSq;
-					nearestEnemy = t;
-				}
-			}
-			if (!nearestEnemy)
+			SCR_AICombatComponent combat = SCR_AICombatComponent.Cast(ent.FindComponent(SCR_AICombatComponent));
+			if (!combat)
+				continue;
+			BaseTarget currentTarget = combat.GetCurrentTarget();
+			if (!currentTarget)
+				continue;
+			IEntity currentEnemy = currentTarget.GetTargetEntity();
+			if (!currentEnemy)
 				continue;
 
-			vector enemyPos = nearestEnemy.GetOrigin();
+			vector shooterPos = ent.GetOrigin();
+			vector enemyPos = currentEnemy.GetOrigin();
 			if (!DCO_FriendlyInLane(world, shooterPos, enemyPos, ent))
 				continue;	// barrel line to the enemy is clear - fire freely.
 
-// Prevents friendly fire by holding fire whenever an ally crosses the barrel line.
+			// Hold fire while an ally crosses this shooter's target lane.
 			SCR_CharacterControllerComponent cc = SCR_CharacterControllerComponent.Cast(ent.FindComponent(SCR_CharacterControllerComponent));
 			if (cc)
 				cc.SetWeaponNoFireTime(cfg.m_fFriendlyFireHold);

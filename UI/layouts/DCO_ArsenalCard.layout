@@ -1,0 +1,75 @@
+SizeLayoutWidgetClass "{DCA2000000000001}" {
+ Name "DCO_ArsDynRow"
+ Slot LayoutSlot "{DCA2000000000002}" { Padding 6 4 6 4 VerticalAlign 3 }
+ AllowWidthOverride 1
+ WidthOverride 224
+ AllowHeightOverride 1
+ HeightOverride 154
+ {
+  OverlayWidgetClass "{DCA2000000000003}" {
+   Slot AlignableSlot "{DCA2000000000004}" { HorizontalAlign 3 VerticalAlign 3 }
+   {
+    ImageWidgetClass "{DCA2000000000005}" {
+     Name "DCO_ArsDynBg"
+     Slot OverlayWidgetSlot "{DCA2000000000006}" { HorizontalAlign 3 VerticalAlign 3 }
+     Color 0.035 0.041 0.049 0.97
+    }
+    ImageWidgetClass "{DCA2000000000007}" {
+     Slot OverlayWidgetSlot "{DCA2000000000008}" { HorizontalAlign 3 VerticalAlign 2 }
+     Color 0.851 0.537 0.169 0.72
+     Size 2 2
+    }
+    ButtonWidgetClass "{DCA2000000000009}" {
+     Name "DCO_ArsDynBtn"
+     Slot OverlayWidgetSlot "{DCA200000000000A}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 }
+     style blank
+     {
+      VerticalLayoutWidgetClass "{DCA200000000000B}" {
+       Slot ButtonWidgetSlot "{DCA200000000000C}" { HorizontalAlign 3 VerticalAlign 3 Padding 8 6 8 7 }
+       {
+        SizeLayoutWidgetClass "{DCA200000000000D}" {
+         Slot LayoutSlot "{DCA200000000000E}" { HorizontalAlign 3 }
+         AllowHeightOverride 1
+         HeightOverride 102
+         {
+          ItemPreviewWidgetClass "{DCA200000000000F}" {
+           Name "DCO_ArsDynImg"
+           Slot AlignableSlot "{DCA2000000000010}" { HorizontalAlign 3 VerticalAlign 3 }
+           Filter Bilinear
+           Format LDR
+           "Use clear color" 1
+           "Clear Color" 0 0 0 0
+          }
+         }
+        }
+        TextWidgetClass "{DCA2000000000011}" {
+         Name "DCO_ArsDynTxt"
+         Slot LayoutSlot "{DCA2000000000012}" { HorizontalAlign 3 Padding 3 3 3 0 }
+         Text "ITEM"
+         Color 0.88 0.91 0.94 1
+         "Font Size" 16
+         "Min Font Size" 11
+         "Horizontal Alignment" Center
+         Wrap 1
+        }
+       }
+      }
+     }
+    }
+    ButtonWidgetClass "{DCA2000000000013}" {
+     Name "DCO_ArsDynBag"
+     Slot OverlayWidgetSlot "{DCA2000000000014}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 8 8 0 }
+     style blank
+     {
+      ImageWidgetClass "{DCA2000000000015}" {
+       Name "DCO_ArsDynBagIco"
+       Slot ButtonWidgetSlot "{DCA2000000000016}" { HorizontalAlign 1 VerticalAlign 1 Padding 4 4 4 4 }
+       Color 0.851 0.537 0.169 1
+       Size 26 26
+      }
+     }
+    }
+   }
+  }
+ }
+}

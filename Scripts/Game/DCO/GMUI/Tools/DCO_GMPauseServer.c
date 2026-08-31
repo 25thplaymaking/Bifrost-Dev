@@ -39,6 +39,8 @@ class DCO_GMPauseServer
 
 	static int ApplyPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
 	{
+		if (!Replication.IsServer())
+			return 0;
 		if (scope == EDCO_PauseScope.SELECTED && on)
 		{
 			if (selectedTargetId.IsValid())
@@ -89,6 +91,8 @@ class DCO_GMPauseServer
 
 	static void ApplyClock(float mult)
 	{
+		if (!Replication.IsServer())
+			return;
 		DCO_GMClock.SetMultiplier(mult);
 	}
 }
@@ -97,21 +101,28 @@ class DCO_GMPausePresentationState
 {
 	protected static bool s_bPaused;
 	protected static bool s_bPending;
-	protected static int s_iFrozenCount = -1;
+	protected static bool s_bHasFrozenCount;
+	protected static int s_iFrozenCount;
 	static void SetPaused(bool paused)
 	{
 		s_bPaused = paused;
 		s_bPending = false;
-		s_iFrozenCount = -1;
+		s_bHasFrozenCount = false;
 	}
 	static void BeginRequest() { s_bPending = true; }
 	static void SetConfirmed(bool paused, int frozenCount)
 	{
 		s_bPaused = paused;
 		s_iFrozenCount = frozenCount;
+		s_bHasFrozenCount = true;
 		s_bPending = false;
 	}
 	static bool IsPaused() { return s_bPaused; }
 	static bool IsPending() { return s_bPending; }
-	static int GetFrozenCount() { return s_iFrozenCount; }
+	static int GetFrozenCount()
+	{
+		if (!s_bHasFrozenCount)
+			return -1;
+		return s_iFrozenCount;
+	}
 }

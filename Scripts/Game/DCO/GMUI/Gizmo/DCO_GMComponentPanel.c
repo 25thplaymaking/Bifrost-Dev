@@ -21,12 +21,12 @@ class DCO_SimPillHandler : ScriptedWidgetEventHandler
 }
 
 // One per stance button.
-class DCO_SimPoseHandler : ScriptedWidgetEventHandler
+class DCO_SimStanceHandler : ScriptedWidgetEventHandler
 {
 	protected DCO_GMComponentPanel m_Owner;
 	protected int m_Value;
 
-	void DCO_SimPoseHandler(DCO_GMComponentPanel owner, int value)
+	void DCO_SimStanceHandler(DCO_GMComponentPanel owner, int value)
 	{
 		m_Owner = owner;
 		m_Value = value;
@@ -35,7 +35,7 @@ class DCO_SimPoseHandler : ScriptedWidgetEventHandler
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
 		if (m_Owner)
-			return m_Owner.OnPoseClicked(m_Value);
+			return m_Owner.OnStanceClicked(m_Value);
 		return false;
 	}
 }
@@ -60,6 +60,15 @@ class DCO_SimCloseHandler : ScriptedWidgetEventHandler
 
 class DCO_GMComponentPanel
 {
+	protected static ref array<string> s_StanceButtons;
+
+	protected static array<string> StanceButtons()
+	{
+		if (!s_StanceButtons)
+			s_StanceButtons = {"DCO_SimStance_STAND", "DCO_SimStance_CROUCH", "DCO_SimStance_PRONE"};
+		return s_StanceButtons;
+	}
+
 	static const int ROW_SIM       = 0;
 	static const int ROW_DAMAGE    = 1;
 	static const int ROW_AI        = 2;
@@ -68,10 +77,6 @@ class DCO_GMComponentPanel
 	static const int ROW_TRACER    = 5;
 	static const int ROW_COUNT     = 6;
 
-	// Pose buttons.
-	static const ref array<string> STANCE_BTNS = {"DCO_SimStance_STAND", "DCO_SimStance_CROUCH", "DCO_SimStance_PRONE"};
-
-	// The fourth button on the stance row: a pre-emptive hook for a future bone-posing system.
 	static const int REFRESH_MS = 250;
 
 	// Pill colours that are NOT the accent.
@@ -89,7 +94,7 @@ class DCO_GMComponentPanel
 	protected ref array<ImageWidget> m_PillBgs   = {};
 	protected ref array<TextWidget>  m_PillTexts = {};
 	protected ref array<ref DCO_SimPillHandler> m_PillHandlers = {};
-	protected ref array<ref DCO_SimPoseHandler> m_PoseHandlers = {};
+	protected ref array<ref DCO_SimStanceHandler> m_StanceHandlers = {};
 	protected ref array<ImageWidget> m_StanceIcons = {};
 	protected ref DCO_SimCloseHandler m_CloseHandler;
 
@@ -112,7 +117,6 @@ class DCO_GMComponentPanel
 			m_btnClose.AddHandler(m_CloseHandler);
 		}
 
-		int bound = 0;
 		for (int i = 0; i < ROW_COUNT; i++)
 		{
 			string prefix = "DCO_SimRow" + i.ToString();
@@ -126,46 +130,28 @@ class DCO_GMComponentPanel
 				DCO_SimPillHandler h = new DCO_SimPillHandler(this, i);
 				pill.AddHandler(h);
 				m_PillHandlers.Insert(h);
-				bound++;
 			}
 		}
 
-		int poses = 0;
-		for (int s = 0; s < STANCE_BTNS.Count(); s++)
+		for (int s = 0; s < StanceButtons().Count(); s++)
 		{
-			m_StanceIcons.Insert(ImageWidget.Cast(root.FindAnyWidget(STANCE_BTNS[s] + "_Icon")));
-			if (BindPose(root, STANCE_BTNS[s], s))
-				poses++;
+			m_StanceIcons.Insert(ImageWidget.Cast(root.FindAnyWidget(StanceButtons()[s] + "_Icon")));
+			BindStance(root, StanceButtons()[s], s);
 		}
 
 		if (m_wPanel)
 			m_wPanel.SetVisible(false);	// hidden until the toolbar's SIM button opens it.
 		m_bOpen = false;
-
-		Print(string.Format("[DCO-GM] sim options panel bound (panel=%1 pills=%2/%3 pose=%4/3 glyphs=%5/3 close=%6)",
-			m_wPanel != null, bound, ROW_COUNT, poses, CountBoundGlyphs(), m_btnClose != null), LogLevel.NORMAL);
 	}
 
-	protected bool BindPose(Widget root, string name, int value)
+	protected void BindStance(Widget root, string name, int value)
 	{
 		ButtonWidget b = ButtonWidget.Cast(root.FindAnyWidget(name));
 		if (!b)
-			return false;
-		DCO_SimPoseHandler h = new DCO_SimPoseHandler(this, value);
+			return;
+		DCO_SimStanceHandler h = new DCO_SimStanceHandler(this, value);
 		b.AddHandler(h);
-		m_PoseHandlers.Insert(h);
-		return true;
-	}
-
-	protected int CountBoundGlyphs()
-	{
-		int n = 0;
-		foreach (ImageWidget g : m_StanceIcons)
-		{
-			if (g)
-				n++;
-		}
-		return n;
+		m_StanceHandlers.Insert(h);
 	}
 
 	bool IsOpen()
@@ -210,10 +196,7 @@ class DCO_GMComponentPanel
 	{
 		IEntity owner = TargetOwner();
 		if (!owner)
-		{
-			Print("[DCO-GM] sim options: no gizmo target - toggle ignored", LogLevel.NORMAL);
 			return true;
-		}
 
 		DCO_GMTools tools = DCO_GMTools.Get();
 		int toolId;
@@ -271,14 +254,11 @@ class DCO_GMComponentPanel
 	}
 
 	// A stance button was clicked.
-	bool OnPoseClicked(int value)
+	bool OnStanceClicked(int value)
 	{
 		IEntity owner = TargetOwner();
 		if (!owner)
-		{
-			Print("[DCO-GM] sim options: no gizmo target - pose ignored", LogLevel.NORMAL);
 			return true;
-		}
 		if (!DCO_GMTools.Get().IsCharacter(owner) || DCO_PlayerUtil.IsPlayer(owner))
 			return true;
 
@@ -422,7 +402,7 @@ class DCO_GMComponentPanel
 		GetGame().GetCallqueue().Remove(Refresh);
 		m_bOpen = false;
 		m_PillHandlers.Clear();
-		m_PoseHandlers.Clear();
+		m_StanceHandlers.Clear();
 		m_StanceIcons.Clear();
 		m_Labels.Clear();
 		m_PillBgs.Clear();

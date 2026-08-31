@@ -116,8 +116,6 @@ class DCO_FxMortarComponent : ScriptComponent
 			m_iShotsLeft = m_iSalvoCount;
 			DCO_ScheduleShell(1);	// first round immediately.
 		}
-		Print(string.Format("[DCO-FX] mortar emitter firing: %1 (spread=%2m salvo=%3 interval=%4s live=%5)",
-			fire, m_fSpreadRadius, m_iSalvoCount, m_fImpactIntervalSec, m_bLive), LogLevel.NORMAL);
 	}
 
 	float DCO_GetSpread()			{ return m_fSpreadRadius; }

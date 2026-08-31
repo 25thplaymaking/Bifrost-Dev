@@ -1,7 +1,44 @@
 // Central theme for the Bifrost GM UI.
+class DCO_GMThemeStaticData
+{
+	ref array<string> m_CommandFontWidgets = {
+		"DCO_ClockMode", "DCO_ClockText", "DCO_CompassHeading", "DCO_CompassTick0", "DCO_CompassTick1",
+		"DCO_CompassText", "DCO_CompassTick3", "DCO_CompassTick4", "DCO_TopSelection", "DCO_TopWorldState",
+		"DCO_BottomBrand", "DCO_BottomStatus"
+	};
+
+	ref array<string> m_MasterExtra = {
+		"DCO_ScenarioBackdrop", "DCO_ScenarioPanel", "DCO_OptionsPanel", "DCO_SimPanel", "DCO_ArsenalScreen",
+		"DCO_ContextMenu", "DCO_MenuBackdrop", "DCO_HoverPreview", "DCO_LayoutChip"
+	};
+
+	ref array<string> m_PanelSurfaces = {
+		"DCO_OverlayBg", "DCO_OrdersBg", "DCO_ScenarioBg", "DCO_MenuBg", "DCO_OptionsBg",
+		"DCO_TreeBg", "DCO_CreateBg", "DCO_TopBarBg", "DCO_BottomBarBg", "DCO_SimBg",
+		"DCO_GizmoBg", "DCO_NotifBg", "DCO_ChatBg", "DCO_TacticsBg"
+	};
+
+	ref array<string> m_PanelBorders = {
+		"DCO_OverlayBorder", "DCO_OrdersBorder", "DCO_ScenarioBorder", "DCO_MenuBorder", "DCO_OptionsBorder",
+		"DCO_EditBorder", "DCO_CreateBorder", "DCO_TopBarBorder", "DCO_BottomBarBorder", "DCO_SimBorder",
+		"DCO_GizmoBorder", "DCO_NotifBorder", "DCO_ChatBorder", "DCO_TacticsBorder"
+	};
+
+	ref array<string> m_GeometryPanels = {"DCO_OrdersBox", "DCO_OverlayBar", "DCO_OptionsPanel", "DCO_GizmoPanel",
+		"DCO_NotifPanel", "DCO_ChatPanel", "DCO_TacticsPanel"};
+}
+
 class DCO_GMTheme
 {
 	protected static ref DCO_GMTheme s_Instance;
+	protected static ref DCO_GMThemeStaticData s_StaticData;
+
+	protected static DCO_GMThemeStaticData StaticData()
+	{
+		if (!s_StaticData)
+			s_StaticData = new DCO_GMThemeStaticData();
+		return s_StaticData;
+	}
 
 	// Client-side per-user UI preferences.
 	static const string PROFILE_PATH = "$profile:DCO_GMTheme.json";
@@ -11,12 +48,6 @@ class DCO_GMTheme
 	static const int FONT_COMMAND = 1;
 	static const ResourceName FONT_FACE_COMPACT = "{3E7733BAC8C831F6}UI/Fonts/RobotoCondensed/RobotoCondensed_Regular.fnt";
 	static const ResourceName FONT_FACE_COMMAND = "{CD2634D279AB011A}UI/Fonts/Roboto/Roboto_Bold.fnt";
-	static const ref array<string> COMMAND_FONT_WIDGETS = {
-		"DCO_ClockMode", "DCO_ClockText", "DCO_CompassHeading", "DCO_CompassTick0", "DCO_CompassTick1",
-		"DCO_CompassText", "DCO_CompassTick3", "DCO_CompassTick4", "DCO_TopSelection", "DCO_TopWorldState",
-		"DCO_BottomBrand", "DCO_BottomStatus"
-	};
-
 	// Persisted HUD element switches.
 	static const int UI_OVERLAYS = 0;
 	static const int UI_ORDERS = 1;
@@ -36,11 +67,6 @@ class DCO_GMTheme
 
 	// The bottom bar carries the OPTIONS button, so hiding it would strand every switch.
 	static const string REOPEN_CHIP = "DCO_LayoutChip";
-
-	static const ref array<string> MASTER_EXTRA = {
-		"DCO_ScenarioPanel", "DCO_OptionsPanel", "DCO_SimPanel", "DCO_ArsenalScreen",
-		"DCO_ContextMenu", "DCO_MenuBackdrop", "DCO_HoverPreview", "DCO_LayoutChip"
-	};
 
 	protected bool m_bMasterHidden;
 	protected ref map<string, bool> m_MasterStash = new map<string, bool>();	// widget name -> visibility before the hide.
@@ -86,23 +112,9 @@ class DCO_GMTheme
 	// Panel-opacity floor.
 	static const float OPACITY_MIN = 0.15;
 
-	// Apply opacity to panel plates so child text and icons remain readable.
-	static const ref array<string> PANEL_SURFACES = {
-		"DCO_OverlayBg", "DCO_OrdersBg", "DCO_ScenarioBg", "DCO_MenuBg", "DCO_OptionsBg",
-		"DCO_TreeBg", "DCO_CreateBg", "DCO_TopBarBg", "DCO_BottomBarBg", "DCO_SimBg",
-		"DCO_GizmoBg", "DCO_NotifBg", "DCO_ChatBg", "DCO_TacticsBg"
-	};
-
-	static const ref array<string> PANEL_BORDERS = {
-		"DCO_OverlayBorder", "DCO_OrdersBorder", "DCO_ScenarioBorder", "DCO_MenuBorder", "DCO_OptionsBorder",
-		"DCO_EditBorder", "DCO_CreateBorder", "DCO_TopBarBorder", "DCO_BottomBarBorder", "DCO_SimBorder",
-		"DCO_GizmoBorder", "DCO_NotifBorder", "DCO_ChatBorder", "DCO_TacticsBorder"
-	};
 	static const float BORDER_EASE_HI = 1.0;
 	static const float BORDER_EASE_LO = 0.8;
 
-	static const ref array<string> GEOM_PANELS = {"DCO_OrdersBox", "DCO_OverlayBar", "DCO_OptionsPanel", "DCO_GizmoPanel",
-		"DCO_NotifPanel", "DCO_ChatPanel", "DCO_TacticsPanel"};
 	protected ref map<string, vector> m_GeomPos = new map<string, vector>();
 	protected ref map<string, vector> m_GeomSize = new map<string, vector>();
 
@@ -164,7 +176,7 @@ class DCO_GMTheme
 				m_ElementPersisted[vi] = enabled;
 			}
 		}
-		foreach (string pn : GEOM_PANELS)
+		foreach (string pn : StaticData().m_GeometryPanels)
 		{
 			float gx, gy, gw, gh;
 			if (ctx.ReadValue("geomX_" + pn, gx) && ctx.ReadValue("geomY_" + pn, gy)
@@ -194,7 +206,7 @@ class DCO_GMTheme
 	// Persists explicit options without session-only overrides.
 		for (int vi = 0; vi < UI_ELEMENT_COUNT; vi++)
 			ctx.WriteValue("hudVisible_" + vi.ToString(), m_ElementPersisted[vi]);
-		foreach (string pn : GEOM_PANELS)
+		foreach (string pn : StaticData().m_GeometryPanels)
 		{
 			vector p;
 			vector s;
@@ -210,7 +222,7 @@ class DCO_GMTheme
 
 	void SetPanelGeom(string name, float x, float y, float w, float h)
 	{
-		if (!GEOM_PANELS.Contains(name))
+		if (!StaticData().m_GeometryPanels.Contains(name))
 			return;
 		m_GeomPos.Set(name, Vector(x, y, 0));
 		m_GeomSize.Set(name, Vector(w, h, 0));
@@ -415,12 +427,11 @@ class DCO_GMTheme
 			m_MasterStash.Clear();
 			for (int i = 0; i < UI_ELEMENT_COUNT; i++)
 				StashHide(root, ElementWidget(i));
-			foreach (string extra : MASTER_EXTRA)
+			foreach (string extra : StaticData().m_MasterExtra)
 				StashHide(root, extra);
 			StashCues();
 			DCO_GMTutorial.SetHidden(true);	// takes the INFO chip and parks an open tutorial for exact restore.
 			root.SetVisible(false);	// parent gate: owner polls cannot leak a child panel back onto a cinematic screen.
-			Print("[DCO-GM] cinematic master-hide ON", LogLevel.NORMAL);
 			return;
 		}
 
@@ -434,7 +445,6 @@ class DCO_GMTheme
 				w.SetVisible(wasVisible);
 		}
 		m_MasterStash.Clear();
-		Print("[DCO-GM] cinematic master-hide OFF (layout restored)", LogLevel.NORMAL);
 	}
 
 	// Drop the master-hide state without touching widgets - for a shell teardown, whose widgets are about to die.
@@ -519,7 +529,7 @@ class DCO_GMTheme
 	{
 		if (!root)
 			return;
-		foreach (string name : PANEL_SURFACES)
+		foreach (string name : StaticData().m_PanelSurfaces)
 		{
 			Widget w = root.FindAnyWidget(name);
 			if (w)
@@ -527,7 +537,7 @@ class DCO_GMTheme
 		}
 
 		float borderFrac = Math.Clamp((m_PanelOpacity - BORDER_EASE_LO) / (BORDER_EASE_HI - BORDER_EASE_LO), 0.0, 1.0);
-		foreach (string bname : PANEL_BORDERS)
+		foreach (string bname : StaticData().m_PanelBorders)
 		{
 			Widget b = root.FindAnyWidget(bname);
 			if (b)
@@ -568,7 +578,7 @@ class DCO_GMTheme
 		ResourceName face = FONT_FACE_COMPACT;
 		if (m_DisplayFontMode == FONT_COMMAND)
 			face = FONT_FACE_COMMAND;
-		foreach (string name : COMMAND_FONT_WIDGETS)
+		foreach (string name : StaticData().m_CommandFontWidgets)
 		{
 			TextWidget text = TextWidget.Cast(root.FindAnyWidget(name));
 			if (text)

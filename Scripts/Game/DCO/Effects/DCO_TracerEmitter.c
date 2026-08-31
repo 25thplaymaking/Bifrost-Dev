@@ -8,12 +8,64 @@ enum EDCO_TracerRound
 	SOV_762X54R_MG,	// 7.62x54R 7T2   — green, PKM MG.
 }
 
+class DCO_TracerEmitterStaticData
+{
+	ref array<string> m_RoundNames = {
+		"Rifle - US 5.56 (red)",
+		"Machine Gun - US 7.62 (red)",
+		"Heavy MG - US .50cal (red)",
+		"Rifle - Soviet 5.45 (green)",
+		"Rifle - Soviet 7.62x39 (green)",
+		"Machine Gun - Soviet 7.62x54R (green)",
+	};
+
+	ref array<float> m_NominalSoundRadius = {350, 700, 1200, 350, 450, 750};
+
+	ref array<ResourceName> m_RoundPrefabs = {
+		"{A0CEFA7FA41091F7}Prefabs/Weapons/Ammo/Ammo_556x45_Tracer_M856.et",
+		"{9CCBDD2ACB73FFA9}Prefabs/Weapons/Ammo/Ammo_762x51_Tracer_M62.et",
+		"{678188455B777E61}Prefabs/Weapons/Ammo/Ammo_127x99_Tracer_M10.et",
+		"{2BC4C9C3D171A53B}Prefabs/Weapons/Ammo/Ammo_545x39_Tracer_7T3.et",
+		"{B9AB11A51D795EC5}Prefabs/Weapons/Ammo/Ammo_762x39_Tracer_57T231P.et",
+		"{279B4FEECCA799BD}Prefabs/Weapons/Ammo/Ammo_762x54r_Tracer_7T2.et",
+	};
+
+	ref array<ResourceName> m_BallPrefabs = {
+		"{AC26AB660097633D}Prefabs/Weapons/Ammo/Ammo_556x45_Ball_M855.et",
+		"{C14C5DE6F97F06F0}Prefabs/Weapons/Ammo/Ammo_762x51_Ball_M80.et",
+		"{A4E070505C87AD42}Prefabs/Weapons/Ammo/Ammo_127x99_Ball_M33.et",
+		"{1D9DDE1632F33A9E}Prefabs/Weapons/Ammo/Ammo_545x39_Ball_7N6.et",
+		"{2FBCA0A7CEDDE7B0}Prefabs/Weapons/Ammo/Ammo_762x39_Ball_57N231.et",
+		"{AC29AE3D5ECD6390}Prefabs/Weapons/Ammo/Ammo_762x54r_Ball_57N323S.et",
+	};
+
+	ref array<ResourceName> m_ShotAcps = {
+		"{DB92C647E05B2512}Sounds/Weapons/Rifles/M16A2/Weapons_Rifles_M16A2_Shot.acp",
+		"{FE8279CA292FC6EE}Sounds/Weapons/Machineguns/M60/Weapons_Machineguns_M60_Shot.acp",
+		"{EE8892C4180091FD}Sounds/Weapons/HeavyWeapons/M2/Weapons_HeavyWeapons_M2_Shot.acp",
+		"{2C3081D1EE023D68}Sounds/Weapons/Rifles/AK-74/Weapons_Rifles_AK-74_Shot.acp",
+		"{2C3081D1EE023D68}Sounds/Weapons/Rifles/AK-74/Weapons_Rifles_AK-74_Shot.acp",
+		"{DD1D885601C14070}Sounds/Weapons/Machineguns/PKM/Weapons_Machineguns_PKM_Shot.acp",
+	};
+}
+
 class DCO_TracerEmitterComponentClass : ScriptComponentClass
 {
 }
 
 class DCO_TracerEmitterComponent : ScriptComponent
 {
+	protected static ref DCO_TracerEmitterStaticData s_StaticData;
+
+	protected static DCO_TracerEmitterStaticData StaticData()
+	{
+		if (!s_StaticData)
+			s_StaticData = new DCO_TracerEmitterStaticData();
+		return s_StaticData;
+	}
+
+	static array<string> DCO_GetRoundNames() { return StaticData().m_RoundNames; }
+
 	[Attribute("0", UIWidgets.ComboBox, "Round type fired by this stream (tracer variants of the vanilla calibers).", "", ParamEnumArray.FromEnum(EDCO_TracerRound), category: "Bifrost"), RplProp()]
 	EDCO_TracerRound m_eRound;
 
@@ -42,45 +94,7 @@ class DCO_TracerEmitterComponent : ScriptComponent
 	static const float AIM_LINE_LEN = 12.0;
 	static const int VISUAL_MS = 1000;
 
-	static const ref array<string> ROUND_NAMES = {
-		"Rifle - US 5.56 (red)",
-		"Machine Gun - US 7.62 (red)",
-		"Heavy MG - US .50cal (red)",
-		"Rifle - Soviet 5.45 (green)",
-		"Rifle - Soviet 7.62x39 (green)",
-		"Machine Gun - Soviet 7.62x54R (green)",
-	};
-
-	static const ref array<float> NOMINAL_SOUND_RADIUS = {350, 700, 1200, 350, 450, 750};
-
-	static const ref array<ResourceName> ROUND_PREFABS = {
-		"{A0CEFA7FA41091F7}Prefabs/Weapons/Ammo/Ammo_556x45_Tracer_M856.et",
-		"{9CCBDD2ACB73FFA9}Prefabs/Weapons/Ammo/Ammo_762x51_Tracer_M62.et",
-		"{678188455B777E61}Prefabs/Weapons/Ammo/Ammo_127x99_Tracer_M10.et",
-		"{2BC4C9C3D171A53B}Prefabs/Weapons/Ammo/Ammo_545x39_Tracer_7T3.et",
-		"{B9AB11A51D795EC5}Prefabs/Weapons/Ammo/Ammo_762x39_Tracer_57T231P.et",
-		"{279B4FEECCA799BD}Prefabs/Weapons/Ammo/Ammo_762x54r_Tracer_7T2.et",
-	};
-
-	static const ref array<ResourceName> BALL_PREFABS = {
-		"{AC26AB660097633D}Prefabs/Weapons/Ammo/Ammo_556x45_Ball_M855.et",
-		"{C14C5DE6F97F06F0}Prefabs/Weapons/Ammo/Ammo_762x51_Ball_M80.et",
-		"{A4E070505C87AD42}Prefabs/Weapons/Ammo/Ammo_127x99_Ball_M33.et",
-		"{1D9DDE1632F33A9E}Prefabs/Weapons/Ammo/Ammo_545x39_Ball_7N6.et",
-		"{2FBCA0A7CEDDE7B0}Prefabs/Weapons/Ammo/Ammo_762x39_Ball_57N231.et",
-		"{AC29AE3D5ECD6390}Prefabs/Weapons/Ammo/Ammo_762x54r_Ball_57N323S.et",
-	};
-
 	static const string SHOT_EVENT = "SOUND_SHOT";
-	static const ref array<ResourceName> SHOT_ACPS = {
-		"{DB92C647E05B2512}Sounds/Weapons/Rifles/M16A2/Weapons_Rifles_M16A2_Shot.acp",
-		"{FE8279CA292FC6EE}Sounds/Weapons/Machineguns/M60/Weapons_Machineguns_M60_Shot.acp",
-		"{EE8892C4180091FD}Sounds/Weapons/HeavyWeapons/M2/Weapons_HeavyWeapons_M2_Shot.acp",
-		"{2C3081D1EE023D68}Sounds/Weapons/Rifles/AK-74/Weapons_Rifles_AK-74_Shot.acp",
-		"{2C3081D1EE023D68}Sounds/Weapons/Rifles/AK-74/Weapons_Rifles_AK-74_Shot.acp",
-		"{DD1D885601C14070}Sounds/Weapons/Machineguns/PKM/Weapons_Machineguns_PKM_Shot.acp",
-	};
-
 	protected int m_iBurstLeft;
 	protected int m_iShotCounter;	// running shot index driving the every-Nth tracer pick.
 	protected int m_iSpawnFails;
@@ -136,13 +150,10 @@ class DCO_TracerEmitterComponent : ScriptComponent
 			m_iSpawnFails = 0;
 			DCO_ScheduleNext(1);	// first round immediately.
 		}
-		Print(string.Format("[DCO-FX] tracer emitter firing: %1 (%2, rpm=%3 burst=%4 tracerEvery=%5 live=%6)",
-			fire, ROUND_NAMES[Math.Clamp(m_eRound, 0, ROUND_NAMES.Count() - 1)], m_fRpm, m_iBurstLen,
-			m_iTracerEvery, m_bLive), LogLevel.NORMAL);
 	}
 
 	int DCO_GetRound()					{ return m_eRound; }
-	void DCO_SetRound(int r)			{ m_eRound = Math.Clamp(r, 0, ROUND_PREFABS.Count() - 1); DCO_ReplicateState(); }
+	void DCO_SetRound(int r)			{ m_eRound = Math.Clamp(r, 0, StaticData().m_RoundPrefabs.Count() - 1); DCO_ReplicateState(); }
 	float DCO_GetRpm()					{ return m_fRpm; }
 	void DCO_SetRpm(float v)			{ m_fRpm = Math.Clamp(v, 60, 1200); DCO_ReplicateState(); }
 	int DCO_GetBurstLen()				{ return m_iBurstLen; }
@@ -217,11 +228,11 @@ class DCO_TracerEmitterComponent : ScriptComponent
 		if (!owner)
 			return;
 
-		int roundIdx = Math.Clamp(m_eRound, 0, ROUND_PREFABS.Count() - 1);
+		int roundIdx = Math.Clamp(m_eRound, 0, StaticData().m_RoundPrefabs.Count() - 1);
 		if (!m_LoadedTracer || m_eLoadedFor != m_eRound)
 		{
-			m_LoadedTracer = Resource.Load(ROUND_PREFABS[roundIdx]);
-			m_LoadedBall = Resource.Load(BALL_PREFABS[roundIdx]);
+			m_LoadedTracer = Resource.Load(StaticData().m_RoundPrefabs[roundIdx]);
+			m_LoadedBall = Resource.Load(StaticData().m_BallPrefabs[roundIdx]);
 			m_eLoadedFor = m_eRound;
 		}
 		if (!m_LoadedTracer)
@@ -273,7 +284,7 @@ class DCO_TracerEmitterComponent : ScriptComponent
 			move.Launch(dir, vector.Zero, 1.0, proj, null, owner, null, null);
 
 		if (m_bSound)
-			AudioSystem.PlayEvent(SHOT_ACPS[roundIdx], SHOT_EVENT, sp.Transform);	// positional, engine attenuation.
+			AudioSystem.PlayEvent(StaticData().m_ShotAcps[roundIdx], SHOT_EVENT, sp.Transform);	// positional, engine attenuation.
 	}
 
 	// Aim line: muzzle -> forward.
@@ -308,8 +319,8 @@ class DCO_TracerEmitterComponent : ScriptComponent
 		m_SoundRadiusShape = null;
 		if (m_bSound)
 		{
-			int roundIdx = Math.Clamp(m_eRound, 0, NOMINAL_SOUND_RADIUS.Count() - 1);
-			m_SoundRadiusShape = DCO_ZoneShape.FlatCircle(owner.GetOrigin(), NOMINAL_SOUND_RADIUS[roundIdx], 0x6680D8FF);
+			int roundIdx = Math.Clamp(m_eRound, 0, StaticData().m_NominalSoundRadius.Count() - 1);
+			m_SoundRadiusShape = DCO_ZoneShape.FlatCircle(owner.GetOrigin(), StaticData().m_NominalSoundRadius[roundIdx], 0x6680D8FF);
 		}
 	}
 }

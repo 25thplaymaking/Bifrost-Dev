@@ -11,8 +11,6 @@ class DCO_GMRenderManager
 	protected ref array<SCR_EditableEntityComponent> m_SelectedUnits = {};
 	protected bool m_bActive;
 	protected bool m_bCommandCapLogged;
-	protected int m_iLastDiagAt;
-	protected int m_iLastDiagCount = -1;
 	protected int m_iLastSelectionRefreshAt;
 
 	ScriptInvoker GetOnRender()
@@ -36,9 +34,7 @@ class DCO_GMRenderManager
 
 		m_bActive = true;
 		GetGame().GetCallqueue().CallLater(Update, UPDATE_MS, true);
-		if (m_wCanvas)
-			Print(string.Format("[DCO-GM] GM-client canvas renderer STARTED (client=%1x%2 interval=%3ms)", workspace.GetWidth(), workspace.GetHeight(), UPDATE_MS), LogLevel.NORMAL);
-		else
+		if (!m_wCanvas)
 			Print("[DCO-GM] GM-client canvas renderer FAILED: canvas unavailable", LogLevel.ERROR);
 	}
 
@@ -53,7 +49,6 @@ class DCO_GMRenderManager
 			m_wCanvas.SetDrawCommands(m_DrawCommands);
 			m_wCanvas = null;
 		}
-		Print("[DCO-GM] GM-client canvas renderer STOPPED", LogLevel.NORMAL);
 	}
 
 	protected void Update()
@@ -71,20 +66,6 @@ class DCO_GMRenderManager
 		RefreshSelectionIfNeeded();
 		DrawSelectionBoxes();
 		m_wCanvas.SetDrawCommands(m_DrawCommands);
-		LogRendererHealth();
-	}
-
-	protected void LogRendererHealth()
-	{
-		int count = m_DrawCommands.Count();
-		int now = System.GetTickCount();
-		bool edge = (count == 0) != (m_iLastDiagCount == 0);
-		if (m_iLastDiagCount < 0 || edge || now - m_iLastDiagAt >= 5000)
-		{
-			Print(string.Format("[DCO-GM] canvas renderer health: commands=%1 canvas=%2", count, m_wCanvas != null), LogLevel.NORMAL);
-			m_iLastDiagAt = now;
-			m_iLastDiagCount = count;
-		}
 	}
 
 	protected bool Project(vector worldPosition, out vector screenPosition)
@@ -200,6 +181,12 @@ class DCO_GMRenderManager
 		vector b;
 		if (ProjectLine(from, to, a, b))
 			AddScreenLine(a, b, colorARGB, width);
+	}
+
+	// Screen-space leg for cursor-following editor affordances such as trigger sync.
+	void DrawScreenLine(vector from, vector to, int colorARGB, float width = 2.0)
+	{
+		AddScreenLine(from, to, colorARGB, width);
 	}
 
 	void DrawStick(vector groundPos, float height, int colorARGB)

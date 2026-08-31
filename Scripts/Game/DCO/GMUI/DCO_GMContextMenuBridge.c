@@ -19,21 +19,25 @@ class DCO_GMContextMenuBridge
 	static const int ID_RESET_LOADOUT   = 73;
 
 	protected static const float PANEL_CLAIM_WINDOW_MS = 250.0;
-	protected static float s_fPanelClaimAtMs = -1;
+	protected static float s_fPanelClaimAtMs;
+	protected static bool s_bPanelClaimed;
 	static void ClaimRightClick()
 	{
 		BaseWorld world = GetGame().GetWorld();
 		if (world)
+		{
 			s_fPanelClaimAtMs = world.GetWorldTime();
+			s_bPanelClaimed = true;
+		}
 	}
 	// True when a panel claimed a right-click within the same click's window; always clears the claim.
 	protected static bool ConsumeFreshClaim()
 	{
-		if (s_fPanelClaimAtMs < 0)
+		if (!s_bPanelClaimed)
 			return false;
 		BaseWorld world = GetGame().GetWorld();
 		bool fresh = world && (world.GetWorldTime() - s_fPanelClaimAtMs) <= PANEL_CLAIM_WINDOW_MS;
-		s_fPanelClaimAtMs = -1;
+		s_bPanelClaimed = false;
 		return fresh;
 	}
 
@@ -62,7 +66,6 @@ class DCO_GMContextMenuBridge
 
 		ResolveContextComponent();
 		GetGame().GetCallqueue().CallLater(PollContextComponent, 500, true);
-		Print(string.Format("[DCO-GM] context bridge init (ctx=%1)", m_Ctx != null), LogLevel.NORMAL);
 	}
 
 	protected void PollContextComponent()
@@ -89,7 +92,6 @@ class DCO_GMContextMenuBridge
 			ScriptInvoker newInvoker = m_Ctx.GetOnMenuOpen();
 			if (newInvoker)
 				newInvoker.Insert(OnVanillaMenuOpen);
-			Print("[DCO-GM] context bridge bound to current editor-mode context component", LogLevel.NORMAL);
 			m_bContextMissingLogged = false;
 			return true;
 		}
@@ -118,9 +120,7 @@ class DCO_GMContextMenuBridge
 			}
 			w = top.FindAnyWidget("ContextMenu");
 		}
-		if (w)
-			Print("[DCO-GM] vanilla ContextMenu widget resolved -> suppressing", LogLevel.NORMAL);
-		else
+		if (!w)
 			Print("[DCO-GM] vanilla ContextMenu widget NOT found", LogLevel.WARNING);
 		return w;
 	}
@@ -146,6 +146,8 @@ class DCO_GMContextMenuBridge
 	// Replaces the engine world menu with Bifrost actions.
 	protected void OnVanillaMenuOpen(notnull array<SCR_BaseEditorAction> actions, vector cursorWorldPosition, out notnull array<ref SCR_EditorActionData> filteredActions, out int flags = 0)
 	{
+		if (DCO_GMUIController.IsNativePropertiesOpen())
+			return;
 		if (!m_Ctx || !m_Menu)
 			return;
 		m_Entity = m_Ctx.GetHoveredEntity();
@@ -157,6 +159,8 @@ class DCO_GMContextMenuBridge
 
 	protected void BuildAndShowMenu()
 	{
+		if (DCO_GMUIController.IsNativePropertiesOpen())
+			return;
 		if (!ResolveContextComponent() || !m_Menu)
 			return;
 
@@ -186,10 +190,7 @@ class DCO_GMContextMenuBridge
 			if (placeAction && placeAction.DCO_PlacingFlag() == EEditorPlacingFlags.CHARACTER_PLAYER)
 				continue;
 
-			string label = "Action";
-			SCR_UIInfo info = action.GetInfo();
-			if (info && !info.GetName().IsEmpty())
-				label = info.GetName();
+			string label = ResolveNativeActionLabel(action);
 
 			int idx = m_NativeActions.Count();
 			m_NativeActions.Insert(action);
@@ -266,6 +267,36 @@ class DCO_GMContextMenuBridge
 		HideVanilla();
 	}
 
+	protected string ResolveNativeActionLabel(SCR_BaseEditorAction action)
+	{
+		if (!action)
+			return "Action";
+
+		string actionType = action.Type().ToString();
+		if (actionType == "SCR_FindInContentBrowserContextAction")
+			return "Find in Content Browser";
+		if (actionType == "SCR_OpenAttributeWindowContextAction")
+			return "Edit Properties";
+
+		SCR_UIInfo info = action.GetInfo();
+		if (!info || info.GetName().IsEmpty())
+			return "Action";
+
+		string authoredName = info.GetName();
+		if (authoredName[0] != "#")
+			return authoredName;
+
+		string translatedName = WidgetManager.Translate(authoredName);
+		if (!translatedName.IsEmpty() && translatedName[0] != "#")
+		{
+			string unprefixedName = authoredName.Substring(1, authoredName.Length() - 1);
+			if (translatedName != unprefixedName)
+				return translatedName;
+		}
+
+		return "Action";
+	}
+
 	protected void HideVanilla()
 	{
 		if (!m_wVanillaMenu)
@@ -303,7 +334,7 @@ class DCO_GMContextMenuBridge
 		if (actionId == ID_MARK_TP)         { DCO_GMTools.Get().MarkForTeleport(e);         return; }
 		if (actionId == ID_TP_HERE)         { DCO_GMTools.Get().TeleportMarkedTo(m_CursorPos);return; }
 		if (actionId == ID_FLYBY)           { DCO_GMTools.Get().SendOnFlyby(e);             return; }
-		if (actionId == ID_EDIT_LOADOUT)    { DCO_GMArsenalPanel.Get().OpenFor(e);         return; }
+		if (actionId == ID_EDIT_LOADOUT)    { if (e) DCO_GRSArmoryBridge.OpenForGameMaster(e.GetOwner()); return; }
 		if (actionId == ID_RESET_LOADOUT)   { if (e && e.GetOwner()) DCO_ArsenalServer.Route(DCO_ArsenalServer.VERB_RESET, e.GetOwner(), ""); return; }
 		if (actionId >= NATIVE_BASE)
 		{

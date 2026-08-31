@@ -62,7 +62,6 @@ class DCO_GMCreatePlayerPicker
 			m_Names.Insert(row.m_Label);
 			m_Prefabs.Insert(row.m_Prefab);
 		}
-		Print(string.Format("[DCO-GM] create-player picker: %1 MEN units (faction='%2')", m_Names.Count(), key), LogLevel.NORMAL);
 	}
 
 	// Render the current page into the shared context menu: up to PER_PAGE units + Prev/Next nav rows.

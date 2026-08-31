@@ -1,0 +1,70 @@
+ButtonWidgetClass {
+ Name "CategoryButton"
+ Slot LayoutSlot "{A002000000000001}" {
+  HorizontalAlign 3
+  Padding 0 0 0 2
+ }
+ components {
+  GRSA_ThemedButtonTextComponent "{A002000000000002}" {
+   m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
+   m_bCanBeToggled 1
+   m_BackgroundDefault 0.023 0.023 0.023 0
+   m_BackgroundHovered 0.109 0.109 0.109 1
+   m_BackgroundSelected 0.32 0.16 0.035 1
+   m_BackgroundSelectedHovered 0.851 0.537 0.169 1
+   m_BackgroundClicked 0.851 0.537 0.169 1
+   m_bShowBorderOnFocus 1
+   m_sText "Category"
+  }
+ }
+ style blank
+ {
+  SizeLayoutWidgetClass "{A002000000000003}" {
+   Name "SizeLayout"
+   Slot ButtonWidgetSlot "{A002000000000004}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   AllowHeightOverride 1
+   HeightOverride 30
+   {
+    OverlayWidgetClass "{A002000000000005}" {
+     Name "Overlay"
+     Slot LayoutSlot "{A002000000000006}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      ImageWidgetClass "{A002000000000007}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{A002000000000008}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+      }
+      PanelWidgetClass "{A002000000000009}" {
+       Name "Border"
+       Slot OverlayWidgetSlot "{A00200000000000A}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Is Visible" 0
+       Color 0.851 0.537 0.169 1
+       style outline_1px
+      }
+      TextWidgetClass "{A00200000000000B}" : "{E64DA8292CD7DBDD}UI/layouts/WidgetLibrary/TextWidgets/Text_InteractiveSmall.layout" {
+       Name "Text"
+       Slot OverlayWidgetSlot "{A00200000000000C}" {
+        VerticalAlign 1
+        Padding 16 0 16 0
+       }
+       "Font Size" 14
+       "Min Font Size" 12
+       Color 0.72 0.76 0.81 1
+      }
+     }
+    }
+   }
+  }
+ }
+}

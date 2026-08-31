@@ -36,6 +36,9 @@ class DCO_GMOrdersPanel
 	protected ButtonWidget m_btnWaypoints;
 	protected ButtonWidget m_btnObjectives;
 	protected ButtonWidget m_btnSpawn;
+	protected ButtonWidget m_btnLoop;
+	protected TextWidget m_wLoopLabel;
+	protected SCR_PlacingEditorComponent m_PlacingEditor;
 
 	protected SCR_EditableEntityComponent m_CurrentGroup;
 	protected ref array<SCR_EditableEntityComponent> m_aGroups = {};	// EVERY selected group - orders fan out over all of them.
@@ -62,10 +65,12 @@ class DCO_GMOrdersPanel
 		m_btnWaypoints  = Bind("DCO_Ord_Waypoints");
 		m_btnObjectives = Bind("DCO_Ord_Objectives");
 		m_btnSpawn      = Bind("DCO_Ord_Spawn");
+		m_btnLoop       = Bind("DCO_Ord_Loop");
+		m_wLoopLabel    = TextWidget.Cast(m_wBox.FindAnyWidget("DCO_Ord_Loop_Label"));
+		m_PlacingEditor = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
 		m_Cb.Insert(OnOrderPicked);
 		Refresh();
 		GetGame().GetCallqueue().CallLater(PollSelection, 300, true);	// track the live selection.
-		Print("[DCO-GM] orders box bound (selection-driven group orders)", LogLevel.NORMAL);
 	}
 
 	void Shutdown()
@@ -86,7 +91,10 @@ class DCO_GMOrdersPanel
 		array<SCR_EditableEntityComponent> groups = {};
 		ResolveSelectedGroups(groups);
 		if (SameAsTracked(groups))
+		{
+			RefreshLoopState();
 			return;
+		}
 		m_aGroups.Clear();
 		foreach (SCR_EditableEntityComponent g : groups)
 			m_aGroups.Insert(g);
@@ -150,6 +158,8 @@ class DCO_GMOrdersPanel
 		SetBtn(m_btnWaypoints, hasGroup);
 		SetBtn(m_btnObjectives, hasGroup);
 		SetBtn(m_btnSpawn, hasGroup);
+		SetBtn(m_btnLoop, hasGroup);
+		RefreshLoopState();
 		if (m_wTitle)
 		{
 			if (m_aGroups.Count() > 1)
@@ -169,7 +179,14 @@ class DCO_GMOrdersPanel
 
 	bool OnButton(Widget w)
 	{
-		if (!m_CurrentGroup || !m_Menu)
+		if (!m_CurrentGroup)
+			return false;
+		if (w == m_btnLoop)
+		{
+			ToggleLoopOrders();
+			return true;
+		}
+		if (!m_Menu)
 			return false;
 		int cat = -1;
 		bool isCmd = false;
@@ -217,6 +234,84 @@ class DCO_GMOrdersPanel
 		else if (w == m_btnSpawn) menuTitle = "SPAWN POINT";
 		m_Menu.ShowAdjacent(labels, ids, w, m_wBox, menuTitle, m_Cb, m_CurrentGroup);
 		return true;
+	}
+
+	protected void GetSelectedEditableGroups(notnull set<SCR_EditableGroupComponent> outGroups)
+	{
+		foreach (SCR_EditableEntityComponent entity : m_aGroups)
+		{
+			if (!entity)
+				continue;
+			SCR_EditableGroupComponent group = SCR_EditableGroupComponent.Cast(entity.GetAIGroup());
+			if (group)
+				outGroups.Insert(group);
+		}
+	}
+
+	protected void RefreshLoopState()
+	{
+		if (!m_wLoopLabel)
+			return;
+
+		set<SCR_EditableGroupComponent> groups = new set<SCR_EditableGroupComponent>();
+		GetSelectedEditableGroups(groups);
+		if (groups.IsEmpty())
+		{
+			m_wLoopLabel.SetText("[ ] LOOP ORDERS");
+			return;
+		}
+
+		int enabled;
+		foreach (SCR_EditableGroupComponent group : groups)
+		{
+			if (group.AreCycledWaypointsEnabled())
+				enabled++;
+		}
+
+		if (enabled == groups.Count())
+			m_wLoopLabel.SetText("[X] LOOP ORDERS");
+		else if (enabled > 0)
+			m_wLoopLabel.SetText("[-] LOOP ORDERS");
+		else
+			m_wLoopLabel.SetText("[ ] LOOP ORDERS");
+	}
+
+	protected void ToggleLoopOrders()
+	{
+		if (!m_PlacingEditor)
+			m_PlacingEditor = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
+		if (!m_PlacingEditor)
+		{
+			Print("[DCO-GM] loop orders unavailable: native placing editor not found", LogLevel.WARNING);
+			return;
+		}
+
+		set<SCR_EditableGroupComponent> groups = new set<SCR_EditableGroupComponent>();
+		GetSelectedEditableGroups(groups);
+		if (groups.IsEmpty())
+			return;
+
+		bool enable;
+		foreach (SCR_EditableGroupComponent group : groups)
+		{
+			if (!group.AreCycledWaypointsEnabled())
+			{
+				enable = true;
+				break;
+			}
+		}
+
+		// Native path serializes group RplIds, executes on authority, and updates
+		// the group's replicated cycle waypoint state for remote clients/JIP.
+		m_PlacingEditor.SetCycleWaypoints(groups, enable);
+		if (m_wLoopLabel)
+		{
+			if (enable)
+				m_wLoopLabel.SetText("[X] LOOP ORDERS");
+			else
+				m_wLoopLabel.SetText("[ ] LOOP ORDERS");
+		}
+		GetGame().GetCallqueue().CallLater(RefreshLoopState, 350, false);
 	}
 
 	protected void OnOrderPicked(int actionId, SCR_EditableEntityComponent e)

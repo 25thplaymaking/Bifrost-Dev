@@ -68,7 +68,6 @@ class DCO_GMTutorial
 	protected static const int BTN_BACKDROP = 1;
 	protected static const int BTN_SEC_BASE = 10;
 
-	// layout GUID wired after Workbench registration.
 	protected static const ResourceName TUT_LAYOUT = "{F0A67D908EFBCDBA}UI/layouts/DCO_GMTutorial.layout";
 
 	protected static const float PANEL_W  = 1180;
@@ -161,31 +160,22 @@ class DCO_GMTutorial
 		m_wInfoBox  = m_wRoot.FindAnyWidget("DCO_TutInfoBox");
 		m_wSecTitle = TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_TutSecTitle"));
 
-		int buttons = 0;
-		int icons = 0;
-		buttons += Bind("DCO_TutInfoBtn", BTN_INFO);
-		buttons += Bind("DCO_TutBackdrop", BTN_BACKDROP);
-		if (m_wRoot.FindAnyWidget("DCO_TutInfoIcon"))
-			icons++;
+		Bind("DCO_TutInfoBtn", BTN_INFO);
+		Bind("DCO_TutBackdrop", BTN_BACKDROP);
 		for (int s = 0; s < SECTION_COUNT; s++)
 		{
-			buttons += Bind("DCO_TutSec" + s.ToString(), BTN_SEC_BASE + s);
+			Bind("DCO_TutSec" + s.ToString(), BTN_SEC_BASE + s);
 			m_SecLabels.Insert(TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_TutSec" + s.ToString() + "_Label")));
 			ImageWidget ico = ImageWidget.Cast(m_wRoot.FindAnyWidget("DCO_TutSec" + s.ToString() + "_Icon"));
 			m_SecIcons.Insert(ico);
-			if (ico)
-				icons++;
 		}
 
-		int rows = 0;
 		for (int r = 0; r < ROW_POOL; r++)
 		{
 			Widget row = m_wRoot.FindAnyWidget("DCO_TutRow" + r.ToString());
 			m_Rows.Insert(row);
 			m_RowKeys.Insert(TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_TutRow" + r.ToString() + "_Key")));
 			m_RowTexts.Insert(TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_TutRow" + r.ToString() + "_Txt")));
-			if (row)
-				rows++;
 		}
 
 		PinBox("DCO_TutPanel",  0.5, 0.5, 0.5, 0.5, PANEL_W, PANEL_H, 0, 0);
@@ -198,10 +188,6 @@ class DCO_GMTutorial
 		if (m_wInfoBox)
 			m_wInfoBox.SetVisible(!m_bHidden);	// a rebuild under master-hide must not pop the chip back.
 		ShowSection(0);
-
-		Print(string.Format("[DCO-GM] tutorial bound (sections=%1/%2 rows=%3/%4 buttons=%5/%6 icons=%7/%8 overlay=%9)",
-			m_Sections.Count(), SECTION_COUNT, rows, ROW_POOL, buttons, SECTION_COUNT + 2,
-			icons, SECTION_COUNT + 1, m_wOverlay != null && m_wInfoBox != null), LogLevel.NORMAL);
 	}
 
 	void Shutdown()
@@ -231,15 +217,14 @@ class DCO_GMTutorial
 		m_wInfoBox = null;
 	}
 
-	protected int Bind(string name, int id)
+	protected void Bind(string name, int id)
 	{
 		ButtonWidget b = ButtonWidget.Cast(m_wRoot.FindAnyWidget(name));
 		if (!b)
-			return 0;
+			return;
 		DCO_TutorialButtonHandler h = new DCO_TutorialButtonHandler(this, id);
 		b.AddHandler(h);
 		m_Handlers.Insert(h);
-		return 1;
 	}
 
 	protected void PinBox(string name, float anchorX, float anchorY, float alignX, float alignY, float w, float h, float posX, float posY)
@@ -420,9 +405,10 @@ class DCO_GMTutorial
 		ars.Add("RMB character: Edit Loadout", "Open the Bifrost Arsenal on that unit.");
 		ars.Add("RMB character name: Restock Ammo", "Refill every magazine the living unit still carries.");
 		ars.Add("RMB character: Reset Loadout", "Restore the kit the unit had before editing, without opening the panel.");
-		ars.Add("Left category strip", "Pick a gear category. Clicking an item equips it into that slot.");
-		ars.Add("Right list", "Ammo and items for the active context. Clicking one adds it.");
-		ars.Add("Bag icon on a right row", "Stock the carried inventory with that magazine.");
+		ars.Add("SOLDIER", "Edit worn clothing and carried equipment around the full-character stage.");
+		ars.Add("GUNSMITH", "Focus a weapon, inspect its hardpoints, and mount only compatible attachments.");
+		ars.Add("Drag / wheel over stage", "Rotate the subject with LMB, pan with RMB, and zoom with the wheel.");
+		ars.Add("Wheel over a list", "Scroll that list. The horizontal Gunsmith strip scrolls side-to-side.");
 		ars.Add("Crate tab", "Switch the right column to EVERYTHING CARRIED.");
 		ars.Add("Back / ALL ITEMS", "Leave the item context for the full pool, and back again.");
 		ars.Add("Search box", "Filter the visible list as you type.");
@@ -430,8 +416,9 @@ class DCO_GMTutorial
 		ars.Add("RESET", "Restore the kit from when editing began.");
 		ars.Add("UNDO / REDO", "Step back and forward through the kit history.");
 		ars.Add("LOADOUTS", "Open the saved-loadout panel: save, load, delete, page.");
-		ars.Add("? (hint)", "Toggle the arsenal's own cheat sheet.");
-		ars.Add("CLOSE", "Leave the arsenal. The target is held in place for the whole edit session.");
+		ars.Add("KITS", "Save, rename, load, overwrite, or delete reusable loadout slots.");
+		ars.Add("GRS Armory", "Interface and armory foundation used with explicit permission from the GRS team.");
+		ars.Add("Close", "Leave the arsenal. The target is held in place for the whole edit session.");
 
 		DCO_TutorialSection fx = AddSection("FX & TRIGGERS");
 		fx.Add("CREATE: FX tab", "The Bifrost effect emitters. Place one like any other entity.");
@@ -446,7 +433,7 @@ class DCO_GMTutorial
 		fx.Add("RMB ground: Place Trigger Here", "Drop a trigger circle at the cursor.");
 		fx.Add("Trigger condition", "Who trips it: any character, players only, or one faction.");
 		fx.Add("Trigger action", "Notify, send QRF, spring an ambush, spawn a group, or fire a paired emitter.");
-		fx.Add("Trigger fire mode", "Once latches until Enabled is toggled. Repeat re-fires per cooldown.");
+		fx.Add("Trigger fire mode", "Once remains active after firing until Armed is toggled off. Repeat re-arms after the condition clears and its cooldown ends.");
 		fx.Add("RMB ground: Place Map Marker", "Drop a NATO map marker at the cursor.");
 
 		DCO_TutorialSection hud = AddSection("HUD & LAYOUT");

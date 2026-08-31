@@ -73,9 +73,6 @@ class DCO_GMTopBarComponent
 		UpdateClock();
 		UpdateCompass();
 		UpdateContext();
-
-		Print(string.Format("[DCO-GM] top bar bound (clock=%1 compass=%2 tabs=%3)",
-			m_wClock != null, m_wCompass != null, m_btnEdit != null && m_btnCreate != null), LogLevel.NORMAL);
 	}
 
 	protected ButtonWidget Bind(string name)

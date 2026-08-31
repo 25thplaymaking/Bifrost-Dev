@@ -10,7 +10,7 @@ class DCO_GMToolsServer
 	static const int TOOL_AI        = 5;
 	static const int TOOL_COLLISION = 6;
 
-	// Precise-mode POSING legs.
+	// Precise-mode stance controls.
 	static const int TOOL_STANCE    = 7;	// pos[0] = 0 stand / 1 crouch / 2 prone.
 	static const int TOOL_WEAPONRAISED = 9;
 	static const int TOOL_TRACER_FIRE = 10;
@@ -30,6 +30,9 @@ class DCO_GMToolsServer
 
 		if (Replication.IsServer())
 		{
+			SCR_PlayerController localController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+			if (!localController || !DCO_GMRights.Allow(localController.GetPlayerId(), "GM tool"))
+				return;
 			ApplyOn(target, toolId, pos);
 			return;
 		}
@@ -62,6 +65,8 @@ class DCO_GMToolsServer
 	// Server side: resolve the wire id back to the entity and apply.
 	static bool Apply(int toolId, RplId targetId, vector pos, out bool confirmedState)
 	{
+		if (!Replication.IsServer())
+			return false;
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
 		if (!rpl)
 		{
@@ -93,9 +98,9 @@ class DCO_GMToolsServer
 	// Applies the requested change on authority.
 	static void ApplyOn(IEntity target, int toolId, vector pos)
 	{
-		if (!target)
+		if (!Replication.IsServer() || !target)
 			return;
-		int ord = Math.Round(pos[0]);	// posing legs carry their ordinal in pos[0] (see the TOOL_* block above).
+		int ord = Math.Round(pos[0]);	// Stance and option controls carry their ordinal in pos[0].
 		switch (toolId)
 		{
 			case TOOL_INVULN:    { DCO_GMTools.Get().ToggleInvulnEntity(target);     break; }
@@ -145,6 +150,8 @@ class DCO_GMToolsServer
 	// Server side: resolve the editable component and use its replicated transform path.
 	static void ApplyTransform(RplId editableId, vector pos, vector anglesDeg, bool finalCommit)
 	{
+		if (!Replication.IsServer())
+			return;
 		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(editableId));
 		if (!editable)
 			return;
@@ -153,7 +160,7 @@ class DCO_GMToolsServer
 
 	protected static void ApplyTransform(SCR_EditableEntityComponent editable, vector pos, vector anglesDeg, bool finalCommit)
 	{
-		if (!editable || !editable.GetOwner())
+		if (!Replication.IsServer() || !editable || !editable.GetOwner())
 			return;
 		vector rot[3];
 		Math3D.AnglesToMatrix(anglesDeg, rot);
@@ -167,6 +174,145 @@ class DCO_GMToolsServer
 	}
 }
 
+// Clears only entities the engine already tracks as garbage. Characters and
+// vehicles receive stricter state checks so incapacitated AI, player corpses,
+// usable vehicles, and occupied wrecks fail closed.
+class DCO_GMGarbageServer
+{
+	protected static const int GARBAGE_SKIP = 0;
+	protected static const int GARBAGE_AI_BODY = 1;
+	protected static const int GARBAGE_WRECK = 2;
+	protected static const int GARBAGE_DISCARDED_ITEM = 3;
+
+	static int Clear(out int bodyCount, out int wreckCount, out int discardedCount, out int skippedCount)
+	{
+		bodyCount = 0;
+		wreckCount = 0;
+		discardedCount = 0;
+		skippedCount = 0;
+		if (!Replication.IsServer())
+			return 0;
+
+		ChimeraWorld world = ChimeraWorld.CastFrom(GetGame().GetWorld());
+		GarbageSystem garbageSystem;
+		if (world)
+			garbageSystem = world.GetGarbageSystem();
+		if (!garbageSystem)
+		{
+			Print("[DCO-GM] clear garbage unavailable: world garbage system not found", LogLevel.WARNING);
+			return 0;
+		}
+
+		array<IEntity> tracked = {};
+		garbageSystem.FetchTrackedEntities(tracked);
+		array<IEntity> bodies = {};
+		array<IEntity> wrecks = {};
+		array<IEntity> discarded = {};
+		foreach (IEntity entity : tracked)
+		{
+			int garbageType = Classify(entity);
+			switch (garbageType)
+			{
+				case GARBAGE_AI_BODY: { bodies.Insert(entity); break; }
+				case GARBAGE_WRECK: { wrecks.Insert(entity); break; }
+				case GARBAGE_DISCARDED_ITEM: { discarded.Insert(entity); break; }
+				default: { skippedCount++; break; }
+			}
+		}
+
+		bodyCount = DeleteAll(bodies);
+		wreckCount = DeleteAll(wrecks);
+		discardedCount = DeleteAll(discarded);
+		return bodyCount + wreckCount + discardedCount;
+	}
+
+	protected static int Classify(IEntity entity)
+	{
+		if (!entity || entity.IsDeleted())
+			return GARBAGE_SKIP;
+
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.GetEditableEntity(entity);
+		if (editable && editable.HasEntityFlag(EEditableEntityFlag.NON_DELETABLE))
+			return GARBAGE_SKIP;
+
+		if (ChimeraCharacter.Cast(entity))
+		{
+			if (IsPlayerEntity(entity))
+				return GARBAGE_SKIP;
+			DamageManagerComponent damageManager = DamageManagerComponent.Cast(entity.FindComponent(DamageManagerComponent));
+			if (!damageManager || !damageManager.IsDestroyed())
+				return GARBAGE_SKIP;
+			return GARBAGE_AI_BODY;
+		}
+
+		if (BaseVehicle.Cast(entity))
+		{
+			if (HasPlayerOccupant(entity))
+				return GARBAGE_SKIP;
+			DamageManagerComponent damageManager = DamageManagerComponent.Cast(entity.FindComponent(DamageManagerComponent));
+			if (!damageManager || !damageManager.IsDestroyed())
+				return GARBAGE_SKIP;
+			return GARBAGE_WRECK;
+		}
+
+		// The stock rules track dropped InventoryItemComponent entities. Refuse an
+		// attached item in case collection and inventory attachment cross in one frame.
+		IEntity root = entity.GetRootParent();
+		if (root && root != entity)
+			return GARBAGE_SKIP;
+		return GARBAGE_DISCARDED_ITEM;
+	}
+
+	protected static bool IsPlayerEntity(IEntity entity)
+	{
+		if (!entity)
+			return false;
+		SCR_EditableCharacterComponent editableCharacter = SCR_EditableCharacterComponent.Cast(
+			entity.FindComponent(SCR_EditableCharacterComponent));
+		if (editableCharacter && editableCharacter.GetPlayerID() > 0)
+			return true;
+		return SCR_PossessingManagerComponent.GetPlayerIdFromMainEntity(entity) > 0;
+	}
+
+	protected static bool HasPlayerOccupant(IEntity vehicle)
+	{
+		SCR_BaseCompartmentManagerComponent compartmentManager = SCR_BaseCompartmentManagerComponent.Cast(
+			vehicle.FindComponent(SCR_BaseCompartmentManagerComponent));
+		if (!compartmentManager)
+			return false;
+		array<IEntity> occupants = {};
+		compartmentManager.GetOccupants(occupants);
+		foreach (IEntity occupant : occupants)
+		{
+			if (IsPlayerEntity(occupant))
+				return true;
+		}
+		return false;
+	}
+
+	protected static int DeleteAll(notnull array<IEntity> entities)
+	{
+		int removed;
+		foreach (IEntity entity : entities)
+		{
+			if (!entity || entity.IsDeleted())
+				continue;
+			SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.GetEditableEntity(entity);
+			if (editable)
+			{
+				if (!editable.Delete(true, true))
+					continue;
+			}
+			else
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+			}
+			removed++;
+		}
+		return removed;
+	}
+}
+
 modded class SCR_PlayerController
 {
 	[RplProp(onRplName: "DCO_OnPauseStateChanged")]
@@ -177,7 +323,10 @@ modded class SCR_PlayerController
 	{
 		super.OnInit(owner);
 		if (Replication.IsServer())
+		{
 			m_bDCO_PauseState = DCO_GMPauseCore.Get().IsActive();
+			GRSA_InitializeArsenalScenarioPolicy(GRSA_ArsenalScenarioSettings.Get().Pack());
+		}
 	}
 
 	// Authority-owned replicated pause presentation.
@@ -217,7 +366,36 @@ modded class SCR_PlayerController
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
 		if (rpl)
 			DCO_GMTools.Get().MirrorAuthorityState(rpl.GetEntity(), toolId, confirmedState);
-		Print(string.Format("[DCO-GM] tool authority ACK: tool=%1 target=%2 state=%3", toolId, targetId, confirmedState), LogLevel.NORMAL);
+	}
+
+	void DCO_SendClearGarbage()
+	{
+		if (Replication.IsServer())
+		{
+			int bodies, wrecks, discarded, skipped;
+			DCO_ClearGarbageOnAuthority(bodies, wrecks, discarded, skipped);
+			return;
+		}
+		Rpc(DCO_RpcClearGarbage);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcClearGarbage()
+	{
+		int bodies, wrecks, discarded, skipped;
+		DCO_ClearGarbageOnAuthority(bodies, wrecks, discarded, skipped);
+	}
+
+	protected bool DCO_ClearGarbageOnAuthority(out int bodies, out int wrecks, out int discarded, out int skipped)
+	{
+		bodies = 0;
+		wrecks = 0;
+		discarded = 0;
+		skipped = 0;
+		if (!DCO_GMRights.Allow(GetPlayerId(), "clear garbage"))
+			return false;
+		DCO_GMGarbageServer.Clear(bodies, wrecks, discarded, skipped);
+		return true;
 	}
 
 	void DCO_RequestGMToolState(RplId targetId)
@@ -280,7 +458,6 @@ modded class SCR_PlayerController
 	protected void DCO_RpcGMPauseConfirmed(bool paused, int frozenCount)
 	{
 		DCO_GMPausePresentationState.SetConfirmed(paused, frozenCount);
-		Print(string.Format("[DCO-GM] pause authority ACK: active=%1 frozen=%2", paused, frozenCount), LogLevel.NORMAL);
 	}
 
 	void DCO_SendGMClock(float mult)
@@ -330,6 +507,8 @@ modded class SCR_PlayerController
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMDetachAll()
 	{
+		if (!DCO_GMRights.Allow(GetPlayerId(), "GM detach all"))
+			return;
 		DCO_GMAttach.DetachAllOnAuthority(GetPlayerId());
 	}
 
@@ -372,6 +551,78 @@ modded class SCR_PlayerController
 	void DCO_SendGMTransform(RplId editableId, vector pos, vector anglesDeg, bool finalCommit)
 	{
 		Rpc(DCO_RpcGMTransform, editableId, pos, anglesDeg, finalCommit);
+	}
+
+	void DCO_SendTriggerSync(RplId groupId, RplId triggerId)
+	{
+		Rpc(DCO_RpcTriggerSync, groupId, triggerId);
+	}
+
+	void DCO_SendTriggerPlacement(vector position)
+	{
+		Rpc(DCO_RpcTriggerPlacement, position);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcTriggerPlacement(vector position)
+	{
+		if (!DCO_GMRights.Allow(GetPlayerId(), "trigger placement"))
+		{
+			Rpc(DCO_RpcTriggerPlacementConfirmed, false, "Trigger placement refused: Game Master rights required.");
+			return;
+		}
+		string result;
+		bool success = DCO_TriggerPlacementServer.Apply(position, result);
+		Rpc(DCO_RpcTriggerPlacementConfirmed, success, result);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcTriggerPlacementConfirmed(bool success, string result)
+	{
+		DCO_GMTools.Get().OnTriggerPlacementResult(success, result);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcTriggerSync(RplId groupId, RplId triggerId)
+	{
+		if (!DCO_GMRights.Allow(GetPlayerId(), "trigger sync"))
+		{
+			Rpc(DCO_RpcTriggerSyncConfirmed, false, "Sync refused: Game Master rights required.");
+			return;
+		}
+		string result;
+		bool success = DCO_TriggerSyncServer.Apply(groupId, triggerId, result);
+		Rpc(DCO_RpcTriggerSyncConfirmed, success, result);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcTriggerSyncConfirmed(bool success, string result)
+	{
+		DCO_TriggerSyncDrag.Get().OnAuthorityResult(success, result);
+	}
+
+	void DCO_SendAnimationFx(RplId targetId, int animation, bool leaveWhenThreatened)
+	{
+		Rpc(DCO_RpcAnimationFx, targetId, animation, leaveWhenThreatened);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcAnimationFx(RplId targetId, int animation, bool leaveWhenThreatened)
+	{
+		if (!DCO_GMRights.Allow(GetPlayerId(), "animation FX"))
+		{
+			Rpc(DCO_RpcAnimationFxConfirmed, false, "Animation FX refused: Game Master rights required.");
+			return;
+		}
+		string result;
+		bool success = DCO_AIAnimationServer.Apply(targetId, animation, leaveWhenThreatened, result);
+		Rpc(DCO_RpcAnimationFxConfirmed, success, result);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcAnimationFxConfirmed(bool success, string result)
+	{
+		DCO_AIAnimationFxTool.Get().OnAuthorityResult(success, result);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -443,30 +694,70 @@ modded class SCR_PlayerController
 	}
 
 
-	// Fire a GM arsenal verb at the server.
+	// Non-GM clients may use the same server-authoritative verbs only on their own body and only
+	// while beside a replicated Arsenal Access binding. RELEASE remains available after deletion
+	// or disconnect cleanup so a player can never be left movement-locked.
+	protected bool DCO_CanUsePlayerArsenal(int verb, RplId targetId, bool allowRelease = false)
+	{
+		RplComponent replication = RplComponent.Cast(Replication.FindItem(targetId));
+		IEntity controlled = GetControlledEntity();
+		if (!replication || !controlled)
+			return false;
+
+		IEntity target = replication.GetEntity();
+		if (verb == DCO_ArsenalServer.VERB_INSERT)
+		{
+			int guard;
+			while (target && target.GetParent() && guard < 16)
+			{
+				target = target.GetParent();
+				guard++;
+			}
+		}
+		if (target != controlled)
+			return false;
+		return allowRelease || DCO_ArsenalAccessComponent.CanUseNearby(controlled);
+	}
+
+	// Fire an arsenal verb at the server. GM edits and player self-service share one mutation path.
 	void DCO_SendGMArsenal(int verb, RplId targetId, string payload)
 	{
 		Rpc(DCO_RpcGMArsenal, verb, targetId, payload);
 	}
 
-	void DCO_SendGMArsenalAccessAttach(RplId accessId, RplId targetId)
+	void DCO_SendGMArsenalAccessCreate(RplId targetId, vector interactionPosition, vector accentRgb, float panelOpacity)
 	{
-		Rpc(DCO_RpcGMArsenalAccessAttach, accessId, targetId);
+		Rpc(DCO_RpcGMArsenalAccessCreate, targetId, interactionPosition, accentRgb, panelOpacity);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void DCO_RpcGMArsenalAccessAttach(RplId accessId, RplId targetId)
+	protected void DCO_RpcGMArsenalAccessCreate(RplId targetId, vector interactionPosition, vector accentRgb, float panelOpacity)
 	{
 		if (!DCO_GMRights.Allow(GetPlayerId(), "arsenal access placement"))
+		{
+			Rpc(DCO_RpcGMArsenalAccessConfirmed, false, "Arsenal Access refused: Game Master rights required.");
 			return;
-		DCO_ArsenalAccessPlacement.ApplyRelayed(accessId, targetId);
+		}
+		string result;
+		bool success = DCO_ArsenalAccessPlacement.ApplyRelayed(targetId, interactionPosition, accentRgb, panelOpacity, result);
+		Rpc(DCO_RpcGMArsenalAccessConfirmed, success, result);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMArsenalAccessConfirmed(bool success, string result)
+	{
+		DCO_ArsenalAccessPlacement.Get().OnAuthorityResult(success, result);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMArsenal(int verb, RplId targetId, string payload)
 	{
-		if (!DCO_GMRights.Allow(GetPlayerId(), "arsenal verb"))
+		bool allowRelease = verb == DCO_ArsenalServer.VERB_RELEASE;
+		if (!DCO_GMRights.IsGameMaster(GetPlayerId()) && !DCO_CanUsePlayerArsenal(verb, targetId, allowRelease))
+		{
+			Print(string.Format("[DCO-ARS] REFUSED player arsenal verb %1 from player %2", verb, GetPlayerId()), LogLevel.WARNING);
 			return;
+		}
 		DCO_ArsenalServer.Apply(verb, targetId, payload);
 	}
 
@@ -479,8 +770,10 @@ modded class SCR_PlayerController
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMArsenalSnapshot(RplId targetId, int seq)
 	{
-		if (!DCO_GMRights.Allow(GetPlayerId(), "arsenal snapshot"))
-			return;	// a loadout snapshot is another player's full kit: never readable by a non-GM.
+		if (!GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
+			return;
+		if (!DCO_GMRights.IsGameMaster(GetPlayerId()) && !DCO_CanUsePlayerArsenal(0, targetId))
+			return;	// Players can read only their own kit while actively using a placed arsenal.
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
 		if (!rpl)
 			return;
@@ -502,8 +795,10 @@ modded class SCR_PlayerController
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMArsenalApply(RplId targetId, string json)
 	{
-		if (!DCO_GMRights.Allow(GetPlayerId(), "arsenal apply"))
-			return;	// a whole-loadout write onto any character: GM-only, same gate as the snapshot leg.
+		if (!GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
+			return;
+		if (!DCO_GMRights.IsGameMaster(GetPlayerId()) && !DCO_CanUsePlayerArsenal(0, targetId))
+			return;	// Players can write only their own kit while actively using a placed arsenal.
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
 		if (!rpl)
 			return;

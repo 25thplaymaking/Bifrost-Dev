@@ -1,0 +1,4 @@
+MatPBRBasic {
+ BCRMap "{5600D311185158CB}Assets/Stage/Set/Data/Textures/Locker_Module_05_Gunwall_BCR.edds"
+ NMOMap "{6ED86883C1260A55}Assets/Stage/Set/Data/Textures/Locker_Module_05_Gunwall_NMO.edds"
+}

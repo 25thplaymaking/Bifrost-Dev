@@ -12,7 +12,7 @@ Bifrost is an Arma Reforger Game Master addon focused on a compact operational i
 
 - CREATE, EDIT, ORDERS, SCENARIO, GAMEPLAY, and OPTIONS surfaces
 - Searchable placement catalog and full-screen loadout editor
-- Precise move/rotate tools, snapping, attachment, visibility, simulation, and pose controls
+- Precise move/rotate tools, snapping, attachment, visibility, simulation, and stance controls
 - Scenario presets, time/date controls, weather, side relations, and budget readouts
 - Tactical AI features including morale, formations, contact reactions, ambush, defence, QRF, CQB clearing, machine-gunner, and launcher discipline
 - Placeable triggers, tracer and explosion emitters, mortar effects, flybys, gunruns, and loitering aircraft
@@ -24,7 +24,7 @@ Open the project in Arma Reforger Workbench or install the published addon throu
 
 ## Release state
 
-Current release: **1.0.26**, targeting the public Bohemia Workshop package for Arma Reforger 1.8.0.10. Release candidates require a clean Workbench compile and static source-integrity checks. Compatibility with representative third-party mod stacks is tested after a Workshop build is available; see [docs/TESTING.md](docs/TESTING.md).
+Current release: **1.0.28** (candidate), targeting the public Bohemia Workshop package for Arma Reforger 1.8.0.10. The public Workshop build remains 1.0.27 until this candidate passes its multiplayer acceptance run and is published. See [docs/TESTING.md](docs/TESTING.md).
 
 ## License and credits
 

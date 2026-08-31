@@ -2,6 +2,7 @@ GenericEntity {
  ID "6A066240BED3059E"
  components {
   DCO_TriggerComponent "{FF8077DCA593F714}" {
+   m_bEnabled 0
   }
   SCR_EditableEntityVisibilityChildComponent "{DC0F000000000011}" {
    m_State 96
@@ -10,7 +11,7 @@ GenericEntity {
    m_EntityType GENERIC
    m_UIInfo SCR_EditableEntityUIInfo "{DC0F000000000013}" {
     Name "GM Trigger"
-    Description "Configurable trigger: set the radius, activation filter and response. Cyan = armed, grey = off, dark = spent Once trigger."
+    Description "Server-authoritative GM trigger with guided Setup, Units and Finalize tabs. New triggers start disarmed. Red = armed, amber = pending, green = active, grey = disabled."
     Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
     m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
     m_EntityBudgetCost {

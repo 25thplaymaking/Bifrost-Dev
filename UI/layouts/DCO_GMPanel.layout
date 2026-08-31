@@ -44,11 +44,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC000000000186C}" {
        Name "DCO_NametagText0"
        Slot OverlayWidgetSlot "{0DC000000000186D}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -70,11 +73,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC0000000001872}" {
        Name "DCO_NametagText1"
        Slot OverlayWidgetSlot "{0DC0000000001873}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -96,11 +102,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC0000000001878}" {
        Name "DCO_NametagText2"
        Slot OverlayWidgetSlot "{0DC0000000001879}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -122,11 +131,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC000000000187E}" {
        Name "DCO_NametagText3"
        Slot OverlayWidgetSlot "{0DC000000000187F}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -148,11 +160,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC0000000001884}" {
        Name "DCO_NametagText4"
        Slot OverlayWidgetSlot "{0DC0000000001885}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -174,11 +189,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC000000000188A}" {
        Name "DCO_NametagText5"
        Slot OverlayWidgetSlot "{0DC000000000188B}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -200,11 +218,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC0000000001890}" {
        Name "DCO_NametagText6"
        Slot OverlayWidgetSlot "{0DC0000000001891}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -226,11 +247,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC0000000001896}" {
        Name "DCO_NametagText7"
        Slot OverlayWidgetSlot "{0DC0000000001897}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -252,11 +276,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC000000000189C}" {
        Name "DCO_NametagText8"
        Slot OverlayWidgetSlot "{0DC000000000189D}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -278,11 +305,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC00000000018A2}" {
        Name "DCO_NametagText9"
        Slot OverlayWidgetSlot "{0DC00000000018A3}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -304,11 +334,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC00000000018A8}" {
        Name "DCO_NametagText10"
        Slot OverlayWidgetSlot "{0DC00000000018A9}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -330,11 +363,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC00000000018AE}" {
        Name "DCO_NametagText11"
        Slot OverlayWidgetSlot "{0DC00000000018AF}" {
+        HorizontalAlign 3
         Padding 6 2 6 2
        }
        Text ""
+       "Horizontal Alignment" Center
        Color 0.90 0.93 0.95 1
        "Font Size" 22
+       "Min Font Size" 10
       }
      }
     }
@@ -520,8 +556,8 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            Name "DCO_TopWorldReadout"
            Slot OverlayWidgetSlot "{0DCC000000012207}" { HorizontalAlign 3 VerticalAlign 1 Padding 24 3 8 2 }
            {
-            TextWidgetClass "{0DCC000000012208}" { Name "DCO_TopWorldLabel" Slot LayoutSlot "{0DCC000000012209}" { HorizontalAlign 0 } Text "SIMULATION" Color 0.45 0.49 0.54 1 "Font Size" 10 }
-            TextWidgetClass "{0DCC000000000112}" { Name "DCO_TopWorldState" Slot LayoutSlot "{0DCC000000000113}" { HorizontalAlign 0 } Text "ACTIVE" Color 0.337 0.761 0.439 1 "Font Size" 16 }
+            TextWidgetClass "{0DCC000000012208}" { Name "DCO_TopWorldLabel" Slot LayoutSlot "{0DCC000000012209}" { HorizontalAlign 3 } Text "SIMULATION" Color 0.45 0.49 0.54 1 "Font Size" 10 "Min Font Size" 8 }
+            TextWidgetClass "{0DCC000000000112}" { Name "DCO_TopWorldState" Slot LayoutSlot "{0DCC000000000113}" { HorizontalAlign 3 } Text "ACTIVE" Color 0.337 0.761 0.439 1 "Font Size" 16 "Min Font Size" 8 }
            }
           }
          }
@@ -638,7 +674,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          {
           ImageWidgetClass "{0DCC000000000106}" { Name "DCO_TopSelectionBg" Slot OverlayWidgetSlot "{0DCC000000000107}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.82 }
           ImageWidgetClass "{0DCC000000000108}" { Name "DCO_TopSelectionRail" Slot OverlayWidgetSlot "{0DCC000000000109}" { HorizontalAlign 0 VerticalAlign 3 } Color 0.851 0.537 0.169 0.85 Size 2 0 }
-          TextWidgetClass "{0DCC00000000010A}" { Name "DCO_TopSelection" Slot OverlayWidgetSlot "{0DCC00000000010B}" { HorizontalAlign 1 VerticalAlign 1 Padding 8 0 8 0 } Text "SELECTION  0" Color 0.86 0.89 0.91 1 "Font Size" 19 }
+          TextWidgetClass "{0DCC00000000010A}" { Name "DCO_TopSelection" Slot OverlayWidgetSlot "{0DCC00000000010B}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 0 8 0 } Text "SELECTION  0" "Horizontal Alignment" Center Color 0.86 0.89 0.91 1 "Font Size" 19 "Min Font Size" 8 }
          }
         }
        }
@@ -782,6 +818,39 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            Text "CLEAN VIEW"
            Color 0.851 0.537 0.169 1
            "Font Size" 19
+          }
+         }
+        }
+       }
+      }
+      ButtonWidgetClass "{0DCF00000000E100}" {
+       Name "DCO_ClearGarbageBtn"
+       Slot LayoutSlot "{0DCF00000000E101}" { Padding 0 0 6 0 VerticalAlign 1 }
+       style blank
+       {
+        OverlayWidgetClass "{0DCF00000000E102}" {
+         Name "DCO_ClearGarbageBtn_Box"
+         Slot ButtonWidgetSlot "{0DCF00000000E103}" { }
+         {
+          ImageWidgetClass "{0DCF00000000E104}" {
+           Name "DCO_ClearGarbageBtn_Bg"
+           Slot OverlayWidgetSlot "{0DCF00000000E105}" { HorizontalAlign 3 VerticalAlign 3 }
+           Color 0.16 0.065 0.055 0.88
+          }
+          ImageWidgetClass "{0DCF00000000E106}" {
+           Name "DCO_ClearGarbageBtn_Icon"
+           Slot OverlayWidgetSlot "{0DCF00000000E107}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 }
+           Texture "{0B6FC37A645D60C7}UI/Textures/Editor/ContextMenu/ContextAction_Delete.edds"
+           Color 0.91 0.40 0.32 1
+           Size 13 13
+          }
+          TextWidgetClass "{0DCF00000000E108}" {
+           Name "DCO_ClearGarbageBtn_Label"
+           Slot OverlayWidgetSlot "{0DCF00000000E109}" { HorizontalAlign 1 VerticalAlign 1 Padding 25 3 9 3 }
+           Text "CLEAR GARBAGE"
+           Color 0.91 0.40 0.32 1
+           "Font Size" 18
+           "Min Font Size" 9
           }
          }
         }
@@ -1040,6 +1109,25 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
     }
    }
   }
+  ButtonWidgetClass "{0DCF00000000A300}" {
+   Name "DCO_ScenarioBackdrop"
+   "Is Visible" 0
+   Slot FrameWidgetSlot "{0DCF00000000A301}" {
+    Anchor 0 0 1 1
+   }
+   style blank
+   {
+    ImageWidgetClass "{0DCF00000000A302}" {
+     Name "DCO_ScenarioBackdropDim"
+     Slot ButtonWidgetSlot "{0DCF00000000A303}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     "Ignore Cursor" 1
+     Color 0.01 0.015 0.02 0.38
+    }
+   }
+  }
   OverlayWidgetClass "{0DC0000000001500}" {
    Name "DCO_ScenarioPanel"
    "Is Visible" 0
@@ -1122,8 +1210,9 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             Padding 30 0 0 0
            }
            Text "SCENARIO SETTINGS"
-           Color 0.851 0.537 0.169 1
-           "Font Size" 22
+            Color 0.851 0.537 0.169 1
+            "Font Size" 22
+            "Min Font Size" 12
           }
           HorizontalLayoutWidgetClass "{DC0FA10000000001}" {
            Name "DCO_ScenarioPresetBar"
@@ -1344,11 +1433,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
                 TextWidgetClass "{0DC00000000F6012}" {
                  Name "DCO_ScenarioCat0_Label"
                  Slot ButtonWidgetSlot "{0DC00000000F6013}" {
+                  HorizontalAlign 3
                   Padding 8 5 8 5
                  }
                  Text "CATEGORY 1"
+                 "Horizontal Alignment" Center
                  Color 0.851 0.537 0.169 1
                  "Font Size" 20
+                 "Min Font Size" 8
                 }
                }
               }
@@ -1363,11 +1455,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
                 TextWidgetClass "{0DC00000000F6016}" {
                  Name "DCO_ScenarioCat1_Label"
                  Slot ButtonWidgetSlot "{0DC00000000F6017}" {
+                  HorizontalAlign 3
                   Padding 8 5 8 5
                  }
                  Text "CATEGORY 2"
+                 "Horizontal Alignment" Center
                  Color 0.66 0.70 0.74 1
                  "Font Size" 20
+                 "Min Font Size" 8
                 }
                }
               }
@@ -1382,11 +1477,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
                 TextWidgetClass "{0DC00000000F601A}" {
                  Name "DCO_ScenarioCat2_Label"
                  Slot ButtonWidgetSlot "{0DC00000000F601B}" {
+                  HorizontalAlign 3
                   Padding 8 5 8 5
                  }
                  Text "CATEGORY 3"
+                 "Horizontal Alignment" Center
                  Color 0.66 0.70 0.74 1
                  "Font Size" 20
+                 "Min Font Size" 8
                 }
                }
               }
@@ -1401,11 +1499,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
                 TextWidgetClass "{0DC00000000F601E}" {
                  Name "DCO_ScenarioCat3_Label"
                  Slot ButtonWidgetSlot "{0DC00000000F601F}" {
+                  HorizontalAlign 3
                   Padding 8 5 8 5
                  }
                  Text "CATEGORY 4"
+                 "Horizontal Alignment" Center
                  Color 0.66 0.70 0.74 1
                  "Font Size" 20
+                 "Min Font Size" 8
                 }
                }
               }
@@ -1428,11 +1529,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
                 TextWidgetClass "{0DC00000000F6022}" {
                  Name "DCO_ScenarioCat4_Label"
                  Slot ButtonWidgetSlot "{0DC00000000F6023}" {
+                  HorizontalAlign 3
                   Padding 8 5 8 5
                  }
                  Text "CATEGORY 5"
+                 "Horizontal Alignment" Center
                  Color 0.66 0.70 0.74 1
                  "Font Size" 20
+                 "Min Font Size" 8
                 }
                }
               }
@@ -1447,11 +1551,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
                 TextWidgetClass "{0DC00000000F6026}" {
                  Name "DCO_ScenarioCat5_Label"
                  Slot ButtonWidgetSlot "{0DC00000000F6027}" {
+                  HorizontalAlign 3
                   Padding 8 5 8 5
                  }
                  Text "CATEGORY 6"
+                 "Horizontal Alignment" Center
                  Color 0.66 0.70 0.74 1
                  "Font Size" 20
+                 "Min Font Size" 8
                 }
                }
               }
@@ -1466,11 +1573,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
                 TextWidgetClass "{0DC00000000F602A}" {
                  Name "DCO_ScenarioCat6_Label"
                  Slot ButtonWidgetSlot "{0DC00000000F602B}" {
+                  HorizontalAlign 3
                   Padding 8 5 8 5
                  }
                  Text "CATEGORY 7"
+                 "Horizontal Alignment" Center
                  Color 0.66 0.70 0.74 1
                  "Font Size" 20
+                 "Min Font Size" 8
                 }
                }
               }
@@ -1485,11 +1595,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
                 TextWidgetClass "{0DC00000000F602E}" {
                  Name "DCO_ScenarioCat7_Label"
                  Slot ButtonWidgetSlot "{0DC00000000F602F}" {
+                  HorizontalAlign 3
                   Padding 8 5 8 5
                  }
                  Text "OTHER"
+                 "Horizontal Alignment" Center
                  Color 0.66 0.70 0.74 1
                  "Font Size" 20
+                 "Min Font Size" 8
                 }
                }
               }
@@ -1552,8 +1665,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           Padding 10 6 10 6
          }
          Text "CLOSE"
+         "Horizontal Alignment" Center
          Color 0.90 0.93 0.95 1
          "Font Size" 21
+         "Min Font Size" 12
         }
        }
       }
@@ -1603,13 +1718,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            style blank
            {
             TextWidgetClass "{DC0FA1000000001A}" {
-             Name "DCO_ScenarioPresetSlot0_Label"
-             Slot ButtonWidgetSlot "{DC0FA1000000001B}" {
+            Name "DCO_ScenarioPresetSlot0_Label"
+            Slot ButtonWidgetSlot "{DC0FA1000000001B}" {
+              HorizontalAlign 3
               Padding 9 5 9 5
              }
              Text "SLOT 1 (EMPTY)"
              Color 0.90 0.93 0.95 1
              "Font Size" 19
+             "Min Font Size" 10
             }
            }
           }
@@ -1621,13 +1738,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            style blank
            {
             TextWidgetClass "{DC0FA1000000001E}" {
-             Name "DCO_ScenarioPresetSlot1_Label"
-             Slot ButtonWidgetSlot "{DC0FA1000000001F}" {
+            Name "DCO_ScenarioPresetSlot1_Label"
+            Slot ButtonWidgetSlot "{DC0FA1000000001F}" {
+              HorizontalAlign 3
               Padding 9 5 9 5
              }
              Text "SLOT 2 (EMPTY)"
              Color 0.90 0.93 0.95 1
              "Font Size" 19
+             "Min Font Size" 10
             }
            }
           }
@@ -1639,13 +1758,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            style blank
            {
             TextWidgetClass "{DC0FA10000000022}" {
-             Name "DCO_ScenarioPresetSlot2_Label"
-             Slot ButtonWidgetSlot "{DC0FA10000000023}" {
+            Name "DCO_ScenarioPresetSlot2_Label"
+            Slot ButtonWidgetSlot "{DC0FA10000000023}" {
+              HorizontalAlign 3
               Padding 9 5 9 5
              }
              Text "SLOT 3 (EMPTY)"
              Color 0.90 0.93 0.95 1
              "Font Size" 19
+             "Min Font Size" 10
             }
            }
           }
@@ -1846,13 +1967,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        Size 180 1
       }
       TextWidgetClass "{0DC0000000001308}" {
-       Name "DCO_OrdersHint"
-       Slot LayoutSlot "{0DC0000000001309}" {
+      Name "DCO_OrdersHint"
+      Slot LayoutSlot "{0DC0000000001309}" {
+        HorizontalAlign 3
         Padding 12 4 12 8
        }
        Text "Select a unit to issue orders"
        Color 0.60 0.64 0.68 1
-       "Font Size" 20
+      "Font Size" 20
+       "Min Font Size" 9
       }
       ButtonWidgetClass "{0DC000000000130A}" {
        Name "DCO_Ord_Stance"
@@ -1977,6 +2100,25 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          Text "Spawn Point  ▾"
          Color 0.80 0.84 0.88 1
          "Font Size" 21
+        }
+       }
+      }
+      ButtonWidgetClass "{0DCF00000000E200}" {
+       Name "DCO_Ord_Loop"
+       Slot LayoutSlot "{0DCF00000000E201}" {
+        Padding 10 3 10 3
+       }
+       style blank
+       {
+        TextWidgetClass "{0DCF00000000E202}" {
+         Name "DCO_Ord_Loop_Label"
+         Slot LayoutSlot "{0DCF00000000E203}" {
+          Padding 6 4 6 4
+         }
+         Text "[ ] LOOP ORDERS"
+         Color 0.851 0.537 0.169 1
+         "Font Size" 20
+         "Min Font Size" 9
         }
        }
       }
@@ -2764,13 +2906,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           TextWidgetClass "{0DC0000000000C06}" {
            Name "DCO_CreateHeader"
            Slot OverlayWidgetSlot "{0DC0000000000C07}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             VerticalAlign 1
-            Padding 12 0 0 0
+            Padding 12 0 12 0
            }
            Text "CREATE"
            Color 0.851 0.537 0.169 1
            "Font Size" 27
+           "Min Font Size" 10
           }
          }
         }
@@ -3056,13 +3199,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          style blank
          {
           TextWidgetClass "{0DC0000000000C22}" {
-           Name "DCO_Fac_0_Label"
-           Slot LayoutSlot "{0DC0000000000C23}" {
+          Name "DCO_Fac_0_Label"
+          Slot LayoutSlot "{0DC0000000000C23}" {
+            HorizontalAlign 3
             Padding 9 4 9 4
            }
            Text "ALL"
            Color 0.66 0.70 0.74 1
            "Font Size" 20
+           "Min Font Size" 8
           }
          }
         }
@@ -3077,6 +3222,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           HorizontalLayoutWidgetClass "{0DC000000000D000}" {
            Name "DCO_Fac_1_Box"
            Slot LayoutSlot "{0DC000000000D001}" {
+            HorizontalAlign 3
            }
            {
             ImageWidgetClass "{0DC000000000D002}" {
@@ -3087,13 +3233,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 12 12
             }
             TextWidgetClass "{0DC0000000000C26}" {
-             Name "DCO_Fac_1_Label"
-             Slot LayoutSlot "{0DC0000000000C27}" {
+            Name "DCO_Fac_1_Label"
+            Slot LayoutSlot "{0DC0000000000C27}" {
+              FillWeight 1
+              HorizontalAlign 3
+              SizeMode Fill
               Padding 0 4 0 4
              }
              Text "-"
              Color 0.66 0.70 0.74 1
-             "Font Size" 20
+            "Font Size" 20
+            "Min Font Size" 8
             }
            }
           }
@@ -3110,6 +3260,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           HorizontalLayoutWidgetClass "{0DC000000000D004}" {
            Name "DCO_Fac_2_Box"
            Slot LayoutSlot "{0DC000000000D005}" {
+            HorizontalAlign 3
            }
            {
             ImageWidgetClass "{0DC000000000D006}" {
@@ -3120,13 +3271,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 12 12
             }
             TextWidgetClass "{0DC0000000000C2A}" {
-             Name "DCO_Fac_2_Label"
-             Slot LayoutSlot "{0DC0000000000C2B}" {
+            Name "DCO_Fac_2_Label"
+            Slot LayoutSlot "{0DC0000000000C2B}" {
+              FillWeight 1
+              HorizontalAlign 3
+              SizeMode Fill
               Padding 0 4 0 4
              }
              Text "-"
              Color 0.66 0.70 0.74 1
-             "Font Size" 20
+            "Font Size" 20
+            "Min Font Size" 8
             }
            }
           }
@@ -3143,6 +3298,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           HorizontalLayoutWidgetClass "{0DC000000000D008}" {
            Name "DCO_Fac_3_Box"
            Slot LayoutSlot "{0DC000000000D009}" {
+            HorizontalAlign 3
            }
            {
             ImageWidgetClass "{0DC000000000D00A}" {
@@ -3153,13 +3309,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 12 12
             }
             TextWidgetClass "{0DC0000000000C2E}" {
-             Name "DCO_Fac_3_Label"
-             Slot LayoutSlot "{0DC0000000000C2F}" {
+            Name "DCO_Fac_3_Label"
+            Slot LayoutSlot "{0DC0000000000C2F}" {
+              FillWeight 1
+              HorizontalAlign 3
+              SizeMode Fill
               Padding 0 4 0 4
              }
              Text "-"
              Color 0.66 0.70 0.74 1
-             "Font Size" 20
+            "Font Size" 20
+            "Min Font Size" 8
             }
            }
           }
@@ -3176,6 +3336,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           HorizontalLayoutWidgetClass "{0DC000000000D00C}" {
            Name "DCO_Fac_4_Box"
            Slot LayoutSlot "{0DC000000000D00D}" {
+            HorizontalAlign 3
            }
            {
             ImageWidgetClass "{0DC000000000D00E}" {
@@ -3186,13 +3347,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 12 12
             }
             TextWidgetClass "{0DC0000000000C32}" {
-             Name "DCO_Fac_4_Label"
-             Slot LayoutSlot "{0DC0000000000C33}" {
+            Name "DCO_Fac_4_Label"
+            Slot LayoutSlot "{0DC0000000000C33}" {
+              FillWeight 1
+              HorizontalAlign 3
+              SizeMode Fill
               Padding 0 4 0 4
              }
              Text "-"
              Color 0.66 0.70 0.74 1
-             "Font Size" 20
+            "Font Size" 20
+            "Min Font Size" 8
             }
            }
           }
@@ -3209,6 +3374,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           HorizontalLayoutWidgetClass "{0DC000000000D010}" {
            Name "DCO_Fac_5_Box"
            Slot LayoutSlot "{0DC000000000D011}" {
+            HorizontalAlign 3
            }
            {
             ImageWidgetClass "{0DC000000000D012}" {
@@ -3219,13 +3385,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 12 12
             }
             TextWidgetClass "{0DC0000000000C36}" {
-             Name "DCO_Fac_5_Label"
-             Slot LayoutSlot "{0DC0000000000C37}" {
+            Name "DCO_Fac_5_Label"
+            Slot LayoutSlot "{0DC0000000000C37}" {
+              FillWeight 1
+              HorizontalAlign 3
+              SizeMode Fill
               Padding 0 4 0 4
              }
              Text "-"
              Color 0.66 0.70 0.74 1
-             "Font Size" 20
+            "Font Size" 20
+            "Min Font Size" 8
             }
            }
           }
@@ -3242,6 +3412,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           HorizontalLayoutWidgetClass "{0DC000000000D014}" {
            Name "DCO_Fac_6_Box"
            Slot LayoutSlot "{0DC000000000D015}" {
+            HorizontalAlign 3
            }
            {
             ImageWidgetClass "{0DC000000000D016}" {
@@ -3252,13 +3423,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 12 12
             }
             TextWidgetClass "{0DC0000000000C3A}" {
-             Name "DCO_Fac_6_Label"
-             Slot LayoutSlot "{0DC0000000000C3B}" {
+            Name "DCO_Fac_6_Label"
+            Slot LayoutSlot "{0DC0000000000C3B}" {
+              FillWeight 1
+              HorizontalAlign 3
+              SizeMode Fill
               Padding 0 4 0 4
              }
              Text "-"
              Color 0.66 0.70 0.74 1
-             "Font Size" 20
+            "Font Size" 20
+            "Min Font Size" 8
             }
            }
           }
@@ -3271,12 +3446,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        Slot LayoutSlot "{0DCF000000000101}" { Padding 12 0 12 5 HorizontalAlign 3 }
        "Is Visible" 0
        {
-        SizeLayoutWidgetClass "{0DCF000000000110}" { Name "DCO_CustomFac_0_Host" Slot LayoutSlot "{0DCF000000000111}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000112}" { Name "DCO_CustomFac_0" Slot AlignableSlot "{0DCF000000000113}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000114}" { Name "DCO_CustomFac_0_Box" Slot ButtonWidgetSlot "{0DCF000000000115}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000116}" { Name "DCO_CustomFac_0_Bg" Slot OverlayWidgetSlot "{0DCF000000000117}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000118}" { Name "DCO_CustomFac_0_Icon" Slot OverlayWidgetSlot "{0DCF000000000119}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000011A}" { Name "DCO_CustomFac_0_Label" Slot OverlayWidgetSlot "{0DCF00000000011B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 } } } } } } }
-        SizeLayoutWidgetClass "{0DCF000000000120}" { Name "DCO_CustomFac_1_Host" Slot LayoutSlot "{0DCF000000000121}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000122}" { Name "DCO_CustomFac_1" Slot AlignableSlot "{0DCF000000000123}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000124}" { Name "DCO_CustomFac_1_Box" Slot ButtonWidgetSlot "{0DCF000000000125}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000126}" { Name "DCO_CustomFac_1_Bg" Slot OverlayWidgetSlot "{0DCF000000000127}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000128}" { Name "DCO_CustomFac_1_Icon" Slot OverlayWidgetSlot "{0DCF000000000129}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000012A}" { Name "DCO_CustomFac_1_Label" Slot OverlayWidgetSlot "{0DCF00000000012B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 } } } } } } }
-        SizeLayoutWidgetClass "{0DCF000000000130}" { Name "DCO_CustomFac_2_Host" Slot LayoutSlot "{0DCF000000000131}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000132}" { Name "DCO_CustomFac_2" Slot AlignableSlot "{0DCF000000000133}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000134}" { Name "DCO_CustomFac_2_Box" Slot ButtonWidgetSlot "{0DCF000000000135}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000136}" { Name "DCO_CustomFac_2_Bg" Slot OverlayWidgetSlot "{0DCF000000000137}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000138}" { Name "DCO_CustomFac_2_Icon" Slot OverlayWidgetSlot "{0DCF000000000139}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000013A}" { Name "DCO_CustomFac_2_Label" Slot OverlayWidgetSlot "{0DCF00000000013B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 } } } } } } }
-        SizeLayoutWidgetClass "{0DCF000000000140}" { Name "DCO_CustomFac_3_Host" Slot LayoutSlot "{0DCF000000000141}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000142}" { Name "DCO_CustomFac_3" Slot AlignableSlot "{0DCF000000000143}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000144}" { Name "DCO_CustomFac_3_Box" Slot ButtonWidgetSlot "{0DCF000000000145}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000146}" { Name "DCO_CustomFac_3_Bg" Slot OverlayWidgetSlot "{0DCF000000000147}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000148}" { Name "DCO_CustomFac_3_Icon" Slot OverlayWidgetSlot "{0DCF000000000149}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000014A}" { Name "DCO_CustomFac_3_Label" Slot OverlayWidgetSlot "{0DCF00000000014B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 } } } } } } }
-        SizeLayoutWidgetClass "{0DCF000000000150}" { Name "DCO_CustomFac_4_Host" Slot LayoutSlot "{0DCF000000000151}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000152}" { Name "DCO_CustomFac_4" Slot AlignableSlot "{0DCF000000000153}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000154}" { Name "DCO_CustomFac_4_Box" Slot ButtonWidgetSlot "{0DCF000000000155}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000156}" { Name "DCO_CustomFac_4_Bg" Slot OverlayWidgetSlot "{0DCF000000000157}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000158}" { Name "DCO_CustomFac_4_Icon" Slot OverlayWidgetSlot "{0DCF000000000159}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000015A}" { Name "DCO_CustomFac_4_Label" Slot OverlayWidgetSlot "{0DCF00000000015B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 } } } } } } }
-        SizeLayoutWidgetClass "{0DCF000000000160}" { Name "DCO_CustomFac_5_Host" Slot LayoutSlot "{0DCF000000000161}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000162}" { Name "DCO_CustomFac_5" Slot AlignableSlot "{0DCF000000000163}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000164}" { Name "DCO_CustomFac_5_Box" Slot ButtonWidgetSlot "{0DCF000000000165}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000166}" { Name "DCO_CustomFac_5_Bg" Slot OverlayWidgetSlot "{0DCF000000000167}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000168}" { Name "DCO_CustomFac_5_Icon" Slot OverlayWidgetSlot "{0DCF000000000169}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000016A}" { Name "DCO_CustomFac_5_Label" Slot OverlayWidgetSlot "{0DCF00000000016B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 } } } } } } }
+        SizeLayoutWidgetClass "{0DCF000000000110}" { Name "DCO_CustomFac_0_Host" Slot LayoutSlot "{0DCF000000000111}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000112}" { Name "DCO_CustomFac_0" Slot AlignableSlot "{0DCF000000000113}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000114}" { Name "DCO_CustomFac_0_Box" Slot ButtonWidgetSlot "{0DCF000000000115}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000116}" { Name "DCO_CustomFac_0_Bg" Slot OverlayWidgetSlot "{0DCF000000000117}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000118}" { Name "DCO_CustomFac_0_Icon" Slot OverlayWidgetSlot "{0DCF000000000119}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000011A}" { Name "DCO_CustomFac_0_Label" Slot OverlayWidgetSlot "{0DCF00000000011B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 "Min Font Size" 8 } } } } } } }
+        SizeLayoutWidgetClass "{0DCF000000000120}" { Name "DCO_CustomFac_1_Host" Slot LayoutSlot "{0DCF000000000121}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000122}" { Name "DCO_CustomFac_1" Slot AlignableSlot "{0DCF000000000123}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000124}" { Name "DCO_CustomFac_1_Box" Slot ButtonWidgetSlot "{0DCF000000000125}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000126}" { Name "DCO_CustomFac_1_Bg" Slot OverlayWidgetSlot "{0DCF000000000127}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000128}" { Name "DCO_CustomFac_1_Icon" Slot OverlayWidgetSlot "{0DCF000000000129}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000012A}" { Name "DCO_CustomFac_1_Label" Slot OverlayWidgetSlot "{0DCF00000000012B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 "Min Font Size" 8 } } } } } } }
+        SizeLayoutWidgetClass "{0DCF000000000130}" { Name "DCO_CustomFac_2_Host" Slot LayoutSlot "{0DCF000000000131}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000132}" { Name "DCO_CustomFac_2" Slot AlignableSlot "{0DCF000000000133}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000134}" { Name "DCO_CustomFac_2_Box" Slot ButtonWidgetSlot "{0DCF000000000135}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000136}" { Name "DCO_CustomFac_2_Bg" Slot OverlayWidgetSlot "{0DCF000000000137}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000138}" { Name "DCO_CustomFac_2_Icon" Slot OverlayWidgetSlot "{0DCF000000000139}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000013A}" { Name "DCO_CustomFac_2_Label" Slot OverlayWidgetSlot "{0DCF00000000013B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 "Min Font Size" 8 } } } } } } }
+        SizeLayoutWidgetClass "{0DCF000000000140}" { Name "DCO_CustomFac_3_Host" Slot LayoutSlot "{0DCF000000000141}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000142}" { Name "DCO_CustomFac_3" Slot AlignableSlot "{0DCF000000000143}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000144}" { Name "DCO_CustomFac_3_Box" Slot ButtonWidgetSlot "{0DCF000000000145}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000146}" { Name "DCO_CustomFac_3_Bg" Slot OverlayWidgetSlot "{0DCF000000000147}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000148}" { Name "DCO_CustomFac_3_Icon" Slot OverlayWidgetSlot "{0DCF000000000149}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000014A}" { Name "DCO_CustomFac_3_Label" Slot OverlayWidgetSlot "{0DCF00000000014B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 "Min Font Size" 8 } } } } } } }
+        SizeLayoutWidgetClass "{0DCF000000000150}" { Name "DCO_CustomFac_4_Host" Slot LayoutSlot "{0DCF000000000151}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000152}" { Name "DCO_CustomFac_4" Slot AlignableSlot "{0DCF000000000153}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000154}" { Name "DCO_CustomFac_4_Box" Slot ButtonWidgetSlot "{0DCF000000000155}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000156}" { Name "DCO_CustomFac_4_Bg" Slot OverlayWidgetSlot "{0DCF000000000157}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000158}" { Name "DCO_CustomFac_4_Icon" Slot OverlayWidgetSlot "{0DCF000000000159}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000015A}" { Name "DCO_CustomFac_4_Label" Slot OverlayWidgetSlot "{0DCF00000000015B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 "Min Font Size" 8 } } } } } } }
+        SizeLayoutWidgetClass "{0DCF000000000160}" { Name "DCO_CustomFac_5_Host" Slot LayoutSlot "{0DCF000000000161}" { Padding 0 0 0 2 HorizontalAlign 3 } AllowHeightOverride 1 HeightOverride 30 { ButtonWidgetClass "{0DCF000000000162}" { Name "DCO_CustomFac_5" Slot AlignableSlot "{0DCF000000000163}" { HorizontalAlign 3 VerticalAlign 3 } style blank { OverlayWidgetClass "{0DCF000000000164}" { Name "DCO_CustomFac_5_Box" Slot ButtonWidgetSlot "{0DCF000000000165}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DCF000000000166}" { Name "DCO_CustomFac_5_Bg" Slot OverlayWidgetSlot "{0DCF000000000167}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.92 } ImageWidgetClass "{0DCF000000000168}" { Name "DCO_CustomFac_5_Icon" Slot OverlayWidgetSlot "{0DCF000000000169}" { HorizontalAlign 0 VerticalAlign 1 Padding 7 0 0 0 } Size 20 20 } TextWidgetClass "{0DCF00000000016A}" { Name "DCO_CustomFac_5_Label" Slot OverlayWidgetSlot "{0DCF00000000016B}" { HorizontalAlign 3 VerticalAlign 1 Padding 34 0 8 0 } Text "CUSTOM FACTION" Color 0.66 0.70 0.74 1 "Font Size" 15 "Min Font Size" 8 } } } } } } }
        }
       }
       HorizontalLayoutWidgetClass "{0DC00000000F3110}" {
@@ -3435,7 +3610,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000C44}" {
             Name "DCO_Row_0_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000C45}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003000}" {
@@ -3456,21 +3631,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000C48}" {
               Name "DCO_Row_0_Label"
-              Slot AlignableSlot "{0DC0000000000C49}" {
+              Slot LayoutSlot "{0DC0000000000C49}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000C4A}" {
               Name "DCO_Row_0_Budget"
-              Slot AlignableSlot "{0DC0000000000C4B}" {
+              Slot LayoutSlot "{0DC0000000000C4B}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -3487,7 +3668,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000C4E}" {
             Name "DCO_Row_1_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000C4F}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003002}" {
@@ -3508,21 +3689,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000C52}" {
               Name "DCO_Row_1_Label"
-              Slot AlignableSlot "{0DC0000000000C53}" {
+              Slot LayoutSlot "{0DC0000000000C53}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000C54}" {
               Name "DCO_Row_1_Budget"
-              Slot AlignableSlot "{0DC0000000000C55}" {
+              Slot LayoutSlot "{0DC0000000000C55}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -3539,7 +3726,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000C58}" {
             Name "DCO_Row_2_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000C59}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003004}" {
@@ -3560,21 +3747,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000C5C}" {
               Name "DCO_Row_2_Label"
-              Slot AlignableSlot "{0DC0000000000C5D}" {
+              Slot LayoutSlot "{0DC0000000000C5D}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000C5E}" {
               Name "DCO_Row_2_Budget"
-              Slot AlignableSlot "{0DC0000000000C5F}" {
+              Slot LayoutSlot "{0DC0000000000C5F}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -3591,7 +3784,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000C62}" {
             Name "DCO_Row_3_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000C63}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003006}" {
@@ -3612,21 +3805,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000C66}" {
               Name "DCO_Row_3_Label"
-              Slot AlignableSlot "{0DC0000000000C67}" {
+              Slot LayoutSlot "{0DC0000000000C67}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000C68}" {
               Name "DCO_Row_3_Budget"
-              Slot AlignableSlot "{0DC0000000000C69}" {
+              Slot LayoutSlot "{0DC0000000000C69}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -3643,7 +3842,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000C6C}" {
             Name "DCO_Row_4_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000C6D}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003008}" {
@@ -3664,21 +3863,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000C70}" {
               Name "DCO_Row_4_Label"
-              Slot AlignableSlot "{0DC0000000000C71}" {
+              Slot LayoutSlot "{0DC0000000000C71}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000C72}" {
               Name "DCO_Row_4_Budget"
-              Slot AlignableSlot "{0DC0000000000C73}" {
+              Slot LayoutSlot "{0DC0000000000C73}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -3695,7 +3900,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000C76}" {
             Name "DCO_Row_5_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000C77}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC000000000300A}" {
@@ -3716,21 +3921,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000C7A}" {
               Name "DCO_Row_5_Label"
-              Slot AlignableSlot "{0DC0000000000C7B}" {
+              Slot LayoutSlot "{0DC0000000000C7B}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000C7C}" {
               Name "DCO_Row_5_Budget"
-              Slot AlignableSlot "{0DC0000000000C7D}" {
+              Slot LayoutSlot "{0DC0000000000C7D}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -3747,7 +3958,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000C80}" {
             Name "DCO_Row_6_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000C81}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC000000000300C}" {
@@ -3768,21 +3979,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000C84}" {
               Name "DCO_Row_6_Label"
-              Slot AlignableSlot "{0DC0000000000C85}" {
+              Slot LayoutSlot "{0DC0000000000C85}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000C86}" {
               Name "DCO_Row_6_Budget"
-              Slot AlignableSlot "{0DC0000000000C87}" {
+              Slot LayoutSlot "{0DC0000000000C87}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -3799,7 +4016,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000C8A}" {
             Name "DCO_Row_7_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000C8B}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC000000000300E}" {
@@ -3820,21 +4037,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000C8E}" {
               Name "DCO_Row_7_Label"
-              Slot AlignableSlot "{0DC0000000000C8F}" {
+              Slot LayoutSlot "{0DC0000000000C8F}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000C90}" {
               Name "DCO_Row_7_Budget"
-              Slot AlignableSlot "{0DC0000000000C91}" {
+              Slot LayoutSlot "{0DC0000000000C91}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -3851,7 +4074,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000C94}" {
             Name "DCO_Row_8_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000C95}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003010}" {
@@ -3872,21 +4095,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000C98}" {
               Name "DCO_Row_8_Label"
-              Slot AlignableSlot "{0DC0000000000C99}" {
+              Slot LayoutSlot "{0DC0000000000C99}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000C9A}" {
               Name "DCO_Row_8_Budget"
-              Slot AlignableSlot "{0DC0000000000C9B}" {
+              Slot LayoutSlot "{0DC0000000000C9B}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -3903,7 +4132,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000C9E}" {
             Name "DCO_Row_9_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000C9F}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003012}" {
@@ -3924,21 +4153,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000CA2}" {
               Name "DCO_Row_9_Label"
-              Slot AlignableSlot "{0DC0000000000CA3}" {
+              Slot LayoutSlot "{0DC0000000000CA3}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000CA4}" {
               Name "DCO_Row_9_Budget"
-              Slot AlignableSlot "{0DC0000000000CA5}" {
+              Slot LayoutSlot "{0DC0000000000CA5}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -3955,7 +4190,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000CA8}" {
             Name "DCO_Row_10_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000CA9}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003014}" {
@@ -3976,21 +4211,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000CAC}" {
               Name "DCO_Row_10_Label"
-              Slot AlignableSlot "{0DC0000000000CAD}" {
+              Slot LayoutSlot "{0DC0000000000CAD}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000CAE}" {
               Name "DCO_Row_10_Budget"
-              Slot AlignableSlot "{0DC0000000000CAF}" {
+              Slot LayoutSlot "{0DC0000000000CAF}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4007,7 +4248,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000CB2}" {
             Name "DCO_Row_11_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000CB3}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003016}" {
@@ -4028,21 +4269,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000CB6}" {
               Name "DCO_Row_11_Label"
-              Slot AlignableSlot "{0DC0000000000CB7}" {
+              Slot LayoutSlot "{0DC0000000000CB7}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000CB8}" {
               Name "DCO_Row_11_Budget"
-              Slot AlignableSlot "{0DC0000000000CB9}" {
+              Slot LayoutSlot "{0DC0000000000CB9}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4059,7 +4306,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000CBC}" {
             Name "DCO_Row_12_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000CBD}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003018}" {
@@ -4080,21 +4327,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000CC0}" {
               Name "DCO_Row_12_Label"
-              Slot AlignableSlot "{0DC0000000000CC1}" {
+              Slot LayoutSlot "{0DC0000000000CC1}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000CC2}" {
               Name "DCO_Row_12_Budget"
-              Slot AlignableSlot "{0DC0000000000CC3}" {
+              Slot LayoutSlot "{0DC0000000000CC3}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4111,7 +4364,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000CC6}" {
             Name "DCO_Row_13_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000CC7}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC000000000301A}" {
@@ -4132,21 +4385,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000CCA}" {
               Name "DCO_Row_13_Label"
-              Slot AlignableSlot "{0DC0000000000CCB}" {
+              Slot LayoutSlot "{0DC0000000000CCB}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000CCC}" {
               Name "DCO_Row_13_Budget"
-              Slot AlignableSlot "{0DC0000000000CCD}" {
+              Slot LayoutSlot "{0DC0000000000CCD}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4163,7 +4422,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000CD0}" {
             Name "DCO_Row_14_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000CD1}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC000000000301C}" {
@@ -4184,21 +4443,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000CD4}" {
               Name "DCO_Row_14_Label"
-              Slot AlignableSlot "{0DC0000000000CD5}" {
+              Slot LayoutSlot "{0DC0000000000CD5}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000CD6}" {
               Name "DCO_Row_14_Budget"
-              Slot AlignableSlot "{0DC0000000000CD7}" {
+              Slot LayoutSlot "{0DC0000000000CD7}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4215,7 +4480,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000CDA}" {
             Name "DCO_Row_15_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000CDB}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC000000000301E}" {
@@ -4236,21 +4501,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000CDE}" {
               Name "DCO_Row_15_Label"
-              Slot AlignableSlot "{0DC0000000000CDF}" {
+              Slot LayoutSlot "{0DC0000000000CDF}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000CE0}" {
               Name "DCO_Row_15_Budget"
-              Slot AlignableSlot "{0DC0000000000CE1}" {
+              Slot LayoutSlot "{0DC0000000000CE1}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4267,7 +4538,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000CE4}" {
             Name "DCO_Row_16_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000CE5}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003020}" {
@@ -4288,21 +4559,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000CE8}" {
               Name "DCO_Row_16_Label"
-              Slot AlignableSlot "{0DC0000000000CE9}" {
+              Slot LayoutSlot "{0DC0000000000CE9}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000CEA}" {
               Name "DCO_Row_16_Budget"
-              Slot AlignableSlot "{0DC0000000000CEB}" {
+              Slot LayoutSlot "{0DC0000000000CEB}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4319,7 +4596,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC0000000000CEE}" {
             Name "DCO_Row_17_HBox"
             Slot ButtonWidgetSlot "{0DC0000000000CEF}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003022}" {
@@ -4340,21 +4617,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC0000000000CF2}" {
               Name "DCO_Row_17_Label"
-              Slot AlignableSlot "{0DC0000000000CF3}" {
+              Slot LayoutSlot "{0DC0000000000CF3}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC0000000000CF4}" {
               Name "DCO_Row_17_Budget"
-              Slot AlignableSlot "{0DC0000000000CF5}" {
+              Slot LayoutSlot "{0DC0000000000CF5}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4371,7 +4654,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC00000000F0002}" {
             Name "DCO_Row_18_HBox"
             Slot ButtonWidgetSlot "{0DC00000000F0003}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003024}" {
@@ -4392,21 +4675,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC00000000F0006}" {
               Name "DCO_Row_18_Label"
-              Slot AlignableSlot "{0DC00000000F0007}" {
+              Slot LayoutSlot "{0DC00000000F0007}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC00000000F0008}" {
               Name "DCO_Row_18_Budget"
-              Slot AlignableSlot "{0DC00000000F0009}" {
+              Slot LayoutSlot "{0DC00000000F0009}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4423,7 +4712,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC00000000F000C}" {
             Name "DCO_Row_19_HBox"
             Slot ButtonWidgetSlot "{0DC00000000F000D}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003026}" {
@@ -4444,21 +4733,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC00000000F0010}" {
               Name "DCO_Row_19_Label"
-              Slot AlignableSlot "{0DC00000000F0011}" {
+              Slot LayoutSlot "{0DC00000000F0011}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC00000000F0012}" {
               Name "DCO_Row_19_Budget"
-              Slot AlignableSlot "{0DC00000000F0013}" {
+              Slot LayoutSlot "{0DC00000000F0013}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4475,7 +4770,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC00000000F0016}" {
             Name "DCO_Row_20_HBox"
             Slot ButtonWidgetSlot "{0DC00000000F0017}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC0000000003028}" {
@@ -4496,21 +4791,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC00000000F001A}" {
               Name "DCO_Row_20_Label"
-              Slot AlignableSlot "{0DC00000000F001B}" {
+              Slot LayoutSlot "{0DC00000000F001B}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC00000000F001C}" {
               Name "DCO_Row_20_Budget"
-              Slot AlignableSlot "{0DC00000000F001D}" {
+              Slot LayoutSlot "{0DC00000000F001D}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4527,7 +4828,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            HorizontalLayoutWidgetClass "{0DC00000000F0020}" {
             Name "DCO_Row_21_HBox"
             Slot ButtonWidgetSlot "{0DC00000000F0021}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             }
             {
              ImageWidgetClass "{0DC000000000302A}" {
@@ -4548,21 +4849,27 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              }
              TextWidgetClass "{0DC00000000F0024}" {
               Name "DCO_Row_21_Label"
-              Slot AlignableSlot "{0DC00000000F0025}" {
+              Slot LayoutSlot "{0DC00000000F0025}" {
+               FillWeight 1
+               SizeMode Fill
                VerticalAlign 1
               }
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 21
+              "Min Font Size" 12
              }
              TextWidgetClass "{0DC00000000F0026}" {
               Name "DCO_Row_21_Budget"
-              Slot AlignableSlot "{0DC00000000F0027}" {
+              Slot LayoutSlot "{0DC00000000F0027}" {
+               Padding 6 0 4 0
                VerticalAlign 1
               }
               Text ""
               Color 0.66 0.70 0.74 1
+              "Horizontal Alignment" Right
               "Font Size" 19
+              "Min Font Size" 10
              }
             }
            }
@@ -4655,13 +4962,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               TextWidgetClass "{0DCB00000000000B}" {
                Name "DCO_BudgetLimitsLabel"
                Slot OverlayWidgetSlot "{0DCB00000000000C}" {
-                HorizontalAlign 1
+                HorizontalAlign 3
                 VerticalAlign 1
                 Padding 6 2 6 2
                }
                Text "LIMITS ON  /  CLICK TO DISABLE"
+               "Horizontal Alignment" Center
                Color 0.851 0.537 0.169 1
                "Font Size" 19
+               "Min Font Size" 9
               }
              }
             }
@@ -4955,12 +5264,11 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        }
       }
       TextWidgetClass "{0DC0000000000D02}" {
-       Name "DCO_BudgetLine"
+      Name "DCO_BudgetLine"
        Slot LayoutSlot "{0DC0000000000D03}" {
         Padding 10 5 10 7
         HorizontalAlign 3
        }
-       Clipping True
        Text "READY  ·  SELECT ASSET"
        Color 0.45 0.48 0.52 1
        "Font Size" 16
@@ -5048,13 +5356,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           TextWidgetClass "{0DC0000000000E06}" {
            Name "DCO_TreeHeader"
            Slot OverlayWidgetSlot "{0DC0000000000E07}" {
-            HorizontalAlign 0
+            HorizontalAlign 3
             VerticalAlign 1
-            Padding 12 0 0 0
+            Padding 12 0 12 0
            }
            Text "EDIT"
            Color 0.851 0.537 0.169 1
            "Font Size" 27
+           "Min Font Size" 10
           }
          }
         }
@@ -5099,6 +5408,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Text ""
              Color 0.66 0.70 0.74 1
              "Font Size" 19
+             "Min Font Size" 8
             }
            }
           }
@@ -5137,6 +5447,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Text ""
              Color 0.66 0.70 0.74 1
              "Font Size" 19
+             "Min Font Size" 8
             }
            }
           }
@@ -5175,6 +5486,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Text ""
              Color 0.66 0.70 0.74 1
              "Font Size" 19
+             "Min Font Size" 8
             }
            }
           }
@@ -5213,6 +5525,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Text ""
              Color 0.66 0.70 0.74 1
              "Font Size" 19
+             "Min Font Size" 8
             }
            }
           }
@@ -5251,6 +5564,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Text ""
              Color 0.66 0.70 0.74 1
              "Font Size" 19
+             "Min Font Size" 8
             }
            }
           }
@@ -5289,6 +5603,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Text ""
              Color 0.66 0.70 0.74 1
              "Font Size" 19
+             "Min Font Size" 8
             }
            }
           }
@@ -5349,16 +5664,36 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         HorizontalAlign 3
        }
        {
-        HorizontalLayoutWidgetClass "{0DCC000000000302}" {
+        VerticalLayoutWidgetClass "{0DCC000000000302}" {
          Name "DCO_ForceOverviewHeader"
          Slot LayoutSlot "{0DCC000000000303}" { Padding 0 0 0 4 HorizontalAlign 3 }
          {
-          TextWidgetClass "{0DCC00000000FD00}" { Name "DCO_ForceOverviewTitle" Slot LayoutSlot "{0DCC00000000FD01}" { } Text "FORCE COMMAND" Color 0.851 0.537 0.169 0.92 "Font Size" 16 }
-          TextWidgetClass "{0DCC00000000FD02}" { Name "DCO_ForceOverviewHint" Slot LayoutSlot "{0DCC00000000FD03}" { Padding 8 1 0 0 } Text "SELECT SYMBOL" Color 0.58 0.63 0.68 1 "Font Size" 14 }
-          TextWidgetClass "{0DCF000000000200}" { Name "DCO_ForcePageSpacer" Slot LayoutSlot "{0DCF000000000201}" { FillWeight 1 SizeMode Fill } Text "" }
-          ButtonWidgetClass "{0DCF000000000202}" { Name "DCO_ForcePrev" Slot LayoutSlot "{0DCF000000000203}" { Padding 4 0 4 0 } style blank { TextWidgetClass "{0DCF000000000204}" { Name "DCO_ForcePrevLabel" Slot ButtonWidgetSlot "{0DCF000000000205}" { HorizontalAlign 3 VerticalAlign 3 } Text "<" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
-          TextWidgetClass "{0DCF000000000206}" { Name "DCO_ForcePage" Slot LayoutSlot "{0DCF000000000207}" { Padding 4 1 4 0 } Text "1/1" Color 0.66 0.70 0.74 1 "Font Size" 13 }
-          ButtonWidgetClass "{0DCF000000000208}" { Name "DCO_ForceNext" Slot LayoutSlot "{0DCF000000000209}" { Padding 4 0 4 0 } style blank { TextWidgetClass "{0DCF00000000020A}" { Name "DCO_ForceNextLabel" Slot ButtonWidgetSlot "{0DCF00000000020B}" { HorizontalAlign 3 VerticalAlign 3 } Text ">" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+          HorizontalLayoutWidgetClass "{0DCF00000000020C}" {
+           Name "DCO_ForceOverviewHeaderTop"
+           Slot LayoutSlot "{0DCF00000000020D}" { HorizontalAlign 3 }
+           {
+            TextWidgetClass "{0DCC00000000FD00}" { Name "DCO_ForceOverviewTitle" Slot LayoutSlot "{0DCC00000000FD01}" { } Text "FORCE COMMAND" Color 0.851 0.537 0.169 0.92 "Font Size" 16 }
+            TextWidgetClass "{0DCF000000000200}" { Name "DCO_ForcePageSpacer" Slot LayoutSlot "{0DCF000000000201}" { FillWeight 1 SizeMode Fill } Text "" }
+            ButtonWidgetClass "{0DCF000000000202}" { Name "DCO_ForcePrev" Slot LayoutSlot "{0DCF000000000203}" { Padding 4 0 4 0 } style blank { TextWidgetClass "{0DCF000000000204}" { Name "DCO_ForcePrevLabel" Slot ButtonWidgetSlot "{0DCF000000000205}" { HorizontalAlign 3 VerticalAlign 3 } Text "<" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+            TextWidgetClass "{0DCF000000000206}" { Name "DCO_ForcePage" Slot LayoutSlot "{0DCF000000000207}" { Padding 4 1 4 0 } Text "1/1" Color 0.66 0.70 0.74 1 "Font Size" 13 }
+            ButtonWidgetClass "{0DCF000000000208}" { Name "DCO_ForceNext" Slot LayoutSlot "{0DCF000000000209}" { Padding 4 0 4 0 } style blank { TextWidgetClass "{0DCF00000000020A}" { Name "DCO_ForceNextLabel" Slot ButtonWidgetSlot "{0DCF00000000020B}" { HorizontalAlign 3 VerticalAlign 3 } Text ">" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+           }
+          }
+          HorizontalLayoutWidgetClass "{0DCC00000000FD10}" {
+           Name "DCO_ForceOverviewHintRow"
+           Slot LayoutSlot "{0DCC00000000FD11}" { Padding 0 1 0 0 HorizontalAlign 3 }
+           {
+            ImageWidgetClass "{0DCC00000000FD12}" {
+             Name "DCO_ForceOverviewRmbIcon"
+             Slot LayoutSlot "{0DCC00000000FD13}" { Padding 0 0 4 0 VerticalAlign 1 }
+             Texture "{013E6F671529A284}UI/Textures/Icons/icons_mouse/icons_mouse.imageset"
+             Image "RMB"
+             Color 0.66 0.70 0.74 1
+             Size 18 18
+            }
+            TextWidgetClass "{0DCC00000000FD02}" { Name "DCO_ForceOverviewHint" Slot LayoutSlot "{0DCC00000000FD03}" { FillWeight 1 SizeMode Fill VerticalAlign 1 } Text "CHOOSE FACTION" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
+           }
+          }
          }
         }
         SizeLayoutWidgetClass "{0DCC000000000304}" {
@@ -5380,10 +5715,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             ImageWidgetClass "{0DCC000000000308}" { Name "DCO_ForceBg_0" Slot OverlayWidgetSlot "{0DCC000000000309}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.78 }
             ImageWidgetClass "{0DCC00000000030A}" { Name "DCO_ForceRail_0" Slot OverlayWidgetSlot "{0DCC00000000030B}" { HorizontalAlign 0 VerticalAlign 3 } Color 0.851 0.537 0.169 0.8 Size 2 0 }
              ImageWidgetClass "{0DCC0000000003A0}" { Name "DCO_ForceIcon_0" Slot OverlayWidgetSlot "{0DCC0000000003A1}" { HorizontalAlign 0 VerticalAlign 1 Padding 8 0 0 0 } Color 1 1 1 1 Size 26 26 }
-             TextWidgetClass "{0DCC00000000030C}" { Name "DCO_ForceLabel_0" Slot OverlayWidgetSlot "{0DCC00000000030D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 82 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 }
-             TextWidgetClass "{0DCC00000000FE00}" { Name "DCO_ForceHealth_0" Slot OverlayWidgetSlot "{0DCC00000000FE01}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 }
-             TextWidgetClass "{0DCC00000000FE02}" { Name "DCO_ForceReady_0" Slot OverlayWidgetSlot "{0DCC00000000FE03}" { HorizontalAlign 0 VerticalAlign 2 Padding 42 0 0 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 }
-             TextWidgetClass "{0DCC00000000030E}" { Name "DCO_ForceAmmo_0" Slot OverlayWidgetSlot "{0DCC00000000030F}" { HorizontalAlign 2 VerticalAlign 2 Padding 0 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 }
+             TextWidgetClass "{0DCC00000000030C}" { Name "DCO_ForceLabel_0" Slot OverlayWidgetSlot "{0DCC00000000030D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 92 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
+             TextWidgetClass "{0DCC00000000FE00}" { Name "DCO_ForceHealth_0" Slot OverlayWidgetSlot "{0DCC00000000FE01}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
+             TextWidgetClass "{0DCC00000000FE02}" { Name "DCO_ForceReady_0" Slot OverlayWidgetSlot "{0DCC00000000FE03}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 160 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
+             TextWidgetClass "{0DCC00000000030E}" { Name "DCO_ForceAmmo_0" Slot OverlayWidgetSlot "{0DCC00000000030F}" { HorizontalAlign 3 VerticalAlign 2 Padding 160 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
             SizeLayoutWidgetClass "{0DCC000000000312}" {
              Name "DCO_ForceBarHost_0"
              Slot OverlayWidgetSlot "{0DCC000000000313}" { HorizontalAlign 3 VerticalAlign 2 Padding 2 0 2 0 }
@@ -5417,10 +5752,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             ImageWidgetClass "{0DCC000000000318}" { Name "DCO_ForceBg_1" Slot OverlayWidgetSlot "{0DCC000000000319}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.64 }
             ImageWidgetClass "{0DCC00000000031A}" { Name "DCO_ForceRail_1" Slot OverlayWidgetSlot "{0DCC00000000031B}" { HorizontalAlign 0 VerticalAlign 3 } Color 0.851 0.537 0.169 0.55 Size 2 0 }
              ImageWidgetClass "{0DCC0000000003A8}" { Name "DCO_ForceIcon_1" Slot OverlayWidgetSlot "{0DCC0000000003A9}" { HorizontalAlign 0 VerticalAlign 1 Padding 8 0 0 0 } Color 1 1 1 1 Size 26 26 }
-             TextWidgetClass "{0DCC00000000031C}" { Name "DCO_ForceLabel_1" Slot OverlayWidgetSlot "{0DCC00000000031D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 82 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 }
-             TextWidgetClass "{0DCC00000000FE04}" { Name "DCO_ForceHealth_1" Slot OverlayWidgetSlot "{0DCC00000000FE05}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 }
-             TextWidgetClass "{0DCC00000000FE06}" { Name "DCO_ForceReady_1" Slot OverlayWidgetSlot "{0DCC00000000FE07}" { HorizontalAlign 0 VerticalAlign 2 Padding 42 0 0 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 }
-             TextWidgetClass "{0DCC00000000031E}" { Name "DCO_ForceAmmo_1" Slot OverlayWidgetSlot "{0DCC00000000031F}" { HorizontalAlign 2 VerticalAlign 2 Padding 0 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 }
+             TextWidgetClass "{0DCC00000000031C}" { Name "DCO_ForceLabel_1" Slot OverlayWidgetSlot "{0DCC00000000031D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 92 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
+             TextWidgetClass "{0DCC00000000FE04}" { Name "DCO_ForceHealth_1" Slot OverlayWidgetSlot "{0DCC00000000FE05}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
+             TextWidgetClass "{0DCC00000000FE06}" { Name "DCO_ForceReady_1" Slot OverlayWidgetSlot "{0DCC00000000FE07}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 160 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
+             TextWidgetClass "{0DCC00000000031E}" { Name "DCO_ForceAmmo_1" Slot OverlayWidgetSlot "{0DCC00000000031F}" { HorizontalAlign 3 VerticalAlign 2 Padding 160 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
              SizeLayoutWidgetClass "{0DCC000000000322}" { Name "DCO_ForceBarHost_1" Slot OverlayWidgetSlot "{0DCC000000000323}" { HorizontalAlign 3 VerticalAlign 2 Padding 2 0 2 0 } AllowHeightOverride 1 HeightOverride 3 { ProgressBarWidgetClass "{0DCC000000000320}" { Name "DCO_ForceBar_1" Slot AlignableSlot "{0DCC000000000321}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.337 0.761 0.439 1 Current 0 } } }
              ButtonWidgetClass "{0DCC0000000003AA}" { Name "DCO_ForceSelect_1" Slot OverlayWidgetSlot "{0DCC0000000003AB}" { HorizontalAlign 3 VerticalAlign 3 Padding 0 0 30 0 } style blank }
              ButtonWidgetClass "{0DCC0000000003AC}" { Name "DCO_ForceHide_1" Slot OverlayWidgetSlot "{0DCC0000000003AD}" { HorizontalAlign 2 VerticalAlign 1 Padding 0 0 7 0 } style blank { ImageWidgetClass "{0DCC0000000003AE}" { Name "DCO_ForceHideIcon_1" Slot ButtonWidgetSlot "{0DCC0000000003AF}" { Padding 4 4 4 4 } Texture "{AA53CE1A22171748}UI/Textures/Editor/Toolbar/ToolbarAction_ToggleInterface.edds" Color 0.851 0.537 0.169 1 Size 16 16 } } }
@@ -5441,10 +5776,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             ImageWidgetClass "{0DCC000000000328}" { Name "DCO_ForceBg_2" Slot OverlayWidgetSlot "{0DCC000000000329}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.78 }
             ImageWidgetClass "{0DCC00000000032A}" { Name "DCO_ForceRail_2" Slot OverlayWidgetSlot "{0DCC00000000032B}" { HorizontalAlign 0 VerticalAlign 3 } Color 0.851 0.537 0.169 0.8 Size 2 0 }
              ImageWidgetClass "{0DCC0000000003B0}" { Name "DCO_ForceIcon_2" Slot OverlayWidgetSlot "{0DCC0000000003B1}" { HorizontalAlign 0 VerticalAlign 1 Padding 8 0 0 0 } Color 1 1 1 1 Size 26 26 }
-             TextWidgetClass "{0DCC00000000032C}" { Name "DCO_ForceLabel_2" Slot OverlayWidgetSlot "{0DCC00000000032D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 82 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 }
-             TextWidgetClass "{0DCC00000000FE08}" { Name "DCO_ForceHealth_2" Slot OverlayWidgetSlot "{0DCC00000000FE09}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 }
-             TextWidgetClass "{0DCC00000000FE0A}" { Name "DCO_ForceReady_2" Slot OverlayWidgetSlot "{0DCC00000000FE0B}" { HorizontalAlign 0 VerticalAlign 2 Padding 42 0 0 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 }
-             TextWidgetClass "{0DCC00000000032E}" { Name "DCO_ForceAmmo_2" Slot OverlayWidgetSlot "{0DCC00000000032F}" { HorizontalAlign 2 VerticalAlign 2 Padding 0 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 }
+             TextWidgetClass "{0DCC00000000032C}" { Name "DCO_ForceLabel_2" Slot OverlayWidgetSlot "{0DCC00000000032D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 92 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
+             TextWidgetClass "{0DCC00000000FE08}" { Name "DCO_ForceHealth_2" Slot OverlayWidgetSlot "{0DCC00000000FE09}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
+             TextWidgetClass "{0DCC00000000FE0A}" { Name "DCO_ForceReady_2" Slot OverlayWidgetSlot "{0DCC00000000FE0B}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 160 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
+             TextWidgetClass "{0DCC00000000032E}" { Name "DCO_ForceAmmo_2" Slot OverlayWidgetSlot "{0DCC00000000032F}" { HorizontalAlign 3 VerticalAlign 2 Padding 160 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
              SizeLayoutWidgetClass "{0DCC000000000332}" { Name "DCO_ForceBarHost_2" Slot OverlayWidgetSlot "{0DCC000000000333}" { HorizontalAlign 3 VerticalAlign 2 Padding 2 0 2 0 } AllowHeightOverride 1 HeightOverride 3 { ProgressBarWidgetClass "{0DCC000000000330}" { Name "DCO_ForceBar_2" Slot AlignableSlot "{0DCC000000000331}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.337 0.761 0.439 1 Current 0 } } }
              ButtonWidgetClass "{0DCC0000000003B2}" { Name "DCO_ForceSelect_2" Slot OverlayWidgetSlot "{0DCC0000000003B3}" { HorizontalAlign 3 VerticalAlign 3 Padding 0 0 30 0 } style blank }
              ButtonWidgetClass "{0DCC0000000003B4}" { Name "DCO_ForceHide_2" Slot OverlayWidgetSlot "{0DCC0000000003B5}" { HorizontalAlign 2 VerticalAlign 1 Padding 0 0 7 0 } style blank { ImageWidgetClass "{0DCC0000000003B6}" { Name "DCO_ForceHideIcon_2" Slot ButtonWidgetSlot "{0DCC0000000003B7}" { Padding 4 4 4 4 } Texture "{AA53CE1A22171748}UI/Textures/Editor/Toolbar/ToolbarAction_ToggleInterface.edds" Color 0.851 0.537 0.169 1 Size 16 16 } } }
@@ -5465,10 +5800,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             ImageWidgetClass "{0DCC000000000338}" { Name "DCO_ForceBg_3" Slot OverlayWidgetSlot "{0DCC000000000339}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.10 0.12 0.15 0.64 }
             ImageWidgetClass "{0DCC00000000033A}" { Name "DCO_ForceRail_3" Slot OverlayWidgetSlot "{0DCC00000000033B}" { HorizontalAlign 0 VerticalAlign 3 } Color 0.851 0.537 0.169 0.55 Size 2 0 }
              ImageWidgetClass "{0DCC0000000003B8}" { Name "DCO_ForceIcon_3" Slot OverlayWidgetSlot "{0DCC0000000003B9}" { HorizontalAlign 0 VerticalAlign 1 Padding 8 0 0 0 } Color 1 1 1 1 Size 26 26 }
-             TextWidgetClass "{0DCC00000000033C}" { Name "DCO_ForceLabel_3" Slot OverlayWidgetSlot "{0DCC00000000033D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 82 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 }
-             TextWidgetClass "{0DCC00000000FE0C}" { Name "DCO_ForceHealth_3" Slot OverlayWidgetSlot "{0DCC00000000FE0D}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 }
-             TextWidgetClass "{0DCC00000000FE0E}" { Name "DCO_ForceReady_3" Slot OverlayWidgetSlot "{0DCC00000000FE0F}" { HorizontalAlign 0 VerticalAlign 2 Padding 42 0 0 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 }
-             TextWidgetClass "{0DCC00000000033E}" { Name "DCO_ForceAmmo_3" Slot OverlayWidgetSlot "{0DCC00000000033F}" { HorizontalAlign 2 VerticalAlign 2 Padding 0 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 }
+             TextWidgetClass "{0DCC00000000033C}" { Name "DCO_ForceLabel_3" Slot OverlayWidgetSlot "{0DCC00000000033D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 92 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
+             TextWidgetClass "{0DCC00000000FE0C}" { Name "DCO_ForceHealth_3" Slot OverlayWidgetSlot "{0DCC00000000FE0D}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
+             TextWidgetClass "{0DCC00000000FE0E}" { Name "DCO_ForceReady_3" Slot OverlayWidgetSlot "{0DCC00000000FE0F}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 160 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
+             TextWidgetClass "{0DCC00000000033E}" { Name "DCO_ForceAmmo_3" Slot OverlayWidgetSlot "{0DCC00000000033F}" { HorizontalAlign 3 VerticalAlign 2 Padding 160 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
              SizeLayoutWidgetClass "{0DCC000000000342}" { Name "DCO_ForceBarHost_3" Slot OverlayWidgetSlot "{0DCC000000000343}" { HorizontalAlign 3 VerticalAlign 2 Padding 2 0 2 0 } AllowHeightOverride 1 HeightOverride 3 { ProgressBarWidgetClass "{0DCC000000000340}" { Name "DCO_ForceBar_3" Slot AlignableSlot "{0DCC000000000341}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.337 0.761 0.439 1 Current 0 } } }
              ButtonWidgetClass "{0DCC0000000003BA}" { Name "DCO_ForceSelect_3" Slot OverlayWidgetSlot "{0DCC0000000003BB}" { HorizontalAlign 3 VerticalAlign 3 Padding 0 0 30 0 } style blank }
              ButtonWidgetClass "{0DCC0000000003BC}" { Name "DCO_ForceHide_3" Slot OverlayWidgetSlot "{0DCC0000000003BD}" { HorizontalAlign 2 VerticalAlign 1 Padding 0 0 7 0 } style blank { ImageWidgetClass "{0DCC0000000003BE}" { Name "DCO_ForceHideIcon_3" Slot ButtonWidgetSlot "{0DCC0000000003BF}" { Padding 4 4 4 4 } Texture "{AA53CE1A22171748}UI/Textures/Editor/Toolbar/ToolbarAction_ToggleInterface.edds" Color 0.851 0.537 0.169 1 Size 16 16 } } }
@@ -5516,9 +5851,9 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        Slot LayoutSlot "{0DC00000000F4601}" {
         Padding 4 0 4 0
         HorizontalAlign 3
+        SizeMode Fill
+        FillWeight 1
        }
-       AllowHeightOverride 1
-       HeightOverride 330
        {
        ScrollLayoutWidgetClass "{0DC00000000F2003}" {
         Name "DCO_TreeScroll"
@@ -5564,13 +5899,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E2C}" {
-              Name "DCO_TreeRow_0_Label"
+             Name "DCO_TreeRow_0_Label"
               Slot LayoutSlot "{0DC0000000000E2D}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -5632,13 +5966,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E34}" {
-              Name "DCO_TreeRow_1_Label"
+             Name "DCO_TreeRow_1_Label"
               Slot LayoutSlot "{0DC0000000000E35}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -5700,13 +6033,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E3C}" {
-              Name "DCO_TreeRow_2_Label"
+             Name "DCO_TreeRow_2_Label"
               Slot LayoutSlot "{0DC0000000000E3D}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -5768,13 +6100,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E44}" {
-              Name "DCO_TreeRow_3_Label"
+             Name "DCO_TreeRow_3_Label"
               Slot LayoutSlot "{0DC0000000000E45}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -5836,13 +6167,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E4C}" {
-              Name "DCO_TreeRow_4_Label"
+             Name "DCO_TreeRow_4_Label"
               Slot LayoutSlot "{0DC0000000000E4D}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -5904,13 +6234,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E54}" {
-              Name "DCO_TreeRow_5_Label"
+             Name "DCO_TreeRow_5_Label"
               Slot LayoutSlot "{0DC0000000000E55}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -5972,13 +6301,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E5C}" {
-              Name "DCO_TreeRow_6_Label"
+             Name "DCO_TreeRow_6_Label"
               Slot LayoutSlot "{0DC0000000000E5D}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6040,13 +6368,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E64}" {
-              Name "DCO_TreeRow_7_Label"
+             Name "DCO_TreeRow_7_Label"
               Slot LayoutSlot "{0DC0000000000E65}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6108,13 +6435,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E6C}" {
-              Name "DCO_TreeRow_8_Label"
+             Name "DCO_TreeRow_8_Label"
               Slot LayoutSlot "{0DC0000000000E6D}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6176,13 +6502,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E74}" {
-              Name "DCO_TreeRow_9_Label"
+             Name "DCO_TreeRow_9_Label"
               Slot LayoutSlot "{0DC0000000000E75}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6244,13 +6569,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E7C}" {
-              Name "DCO_TreeRow_10_Label"
+             Name "DCO_TreeRow_10_Label"
               Slot LayoutSlot "{0DC0000000000E7D}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6312,13 +6636,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E84}" {
-              Name "DCO_TreeRow_11_Label"
+             Name "DCO_TreeRow_11_Label"
               Slot LayoutSlot "{0DC0000000000E85}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6380,13 +6703,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E8C}" {
-              Name "DCO_TreeRow_12_Label"
+             Name "DCO_TreeRow_12_Label"
               Slot LayoutSlot "{0DC0000000000E8D}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6448,13 +6770,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E94}" {
-              Name "DCO_TreeRow_13_Label"
+             Name "DCO_TreeRow_13_Label"
               Slot LayoutSlot "{0DC0000000000E95}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6516,13 +6837,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000E9C}" {
-              Name "DCO_TreeRow_14_Label"
+             Name "DCO_TreeRow_14_Label"
               Slot LayoutSlot "{0DC0000000000E9D}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6584,13 +6904,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC0000000000EA4}" {
-              Name "DCO_TreeRow_15_Label"
+             Name "DCO_TreeRow_15_Label"
               Slot LayoutSlot "{0DC0000000000EA5}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6652,13 +6971,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F0080}" {
-              Name "DCO_TreeRow_16_Label"
+             Name "DCO_TreeRow_16_Label"
               Slot LayoutSlot "{0DC00000000F0081}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6720,13 +7038,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F008A}" {
-              Name "DCO_TreeRow_17_Label"
+             Name "DCO_TreeRow_17_Label"
               Slot LayoutSlot "{0DC00000000F008B}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6788,13 +7105,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F0094}" {
-              Name "DCO_TreeRow_18_Label"
+             Name "DCO_TreeRow_18_Label"
               Slot LayoutSlot "{0DC00000000F0095}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6856,13 +7172,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F009E}" {
-              Name "DCO_TreeRow_19_Label"
+             Name "DCO_TreeRow_19_Label"
               Slot LayoutSlot "{0DC00000000F009F}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6924,13 +7239,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F00A8}" {
-              Name "DCO_TreeRow_20_Label"
+             Name "DCO_TreeRow_20_Label"
               Slot LayoutSlot "{0DC00000000F00A9}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -6992,13 +7306,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F00B2}" {
-              Name "DCO_TreeRow_21_Label"
+             Name "DCO_TreeRow_21_Label"
               Slot LayoutSlot "{0DC00000000F00B3}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -7060,13 +7373,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F00BC}" {
-              Name "DCO_TreeRow_22_Label"
+             Name "DCO_TreeRow_22_Label"
               Slot LayoutSlot "{0DC00000000F00BD}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -7128,13 +7440,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F00C6}" {
-              Name "DCO_TreeRow_23_Label"
+             Name "DCO_TreeRow_23_Label"
               Slot LayoutSlot "{0DC00000000F00C7}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -7196,13 +7507,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F00D0}" {
-              Name "DCO_TreeRow_24_Label"
+             Name "DCO_TreeRow_24_Label"
               Slot LayoutSlot "{0DC00000000F00D1}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -7264,13 +7574,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F00DA}" {
-              Name "DCO_TreeRow_25_Label"
+             Name "DCO_TreeRow_25_Label"
               Slot LayoutSlot "{0DC00000000F00DB}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -7332,13 +7641,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F00E4}" {
-              Name "DCO_TreeRow_26_Label"
+             Name "DCO_TreeRow_26_Label"
               Slot LayoutSlot "{0DC00000000F00E5}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -7400,13 +7708,12 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
               Size 18 18
              }
              TextWidgetClass "{0DC00000000F00EE}" {
-              Name "DCO_TreeRow_27_Label"
+             Name "DCO_TreeRow_27_Label"
               Slot LayoutSlot "{0DC00000000F00EF}" {
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 18
@@ -7569,14 +7876,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 18 18
             }
              TextWidgetClass "{0DC0000000000EBE}" {
-              Name "DCO_PlayerRow_0_Label"
+             Name "DCO_PlayerRow_0_Label"
               Slot LayoutSlot "{0DC0000000000EBF}" {
                Padding 2 0 3 0
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 16
@@ -7643,14 +7949,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 18 18
             }
              TextWidgetClass "{0DC0000000000EC6}" {
-              Name "DCO_PlayerRow_1_Label"
+             Name "DCO_PlayerRow_1_Label"
               Slot LayoutSlot "{0DC0000000000EC7}" {
                Padding 2 0 3 0
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 16
@@ -7717,14 +8022,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 18 18
             }
              TextWidgetClass "{0DC0000000000ECE}" {
-              Name "DCO_PlayerRow_2_Label"
+             Name "DCO_PlayerRow_2_Label"
               Slot LayoutSlot "{0DC0000000000ECF}" {
                Padding 2 0 3 0
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 16
@@ -7791,14 +8095,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 18 18
             }
              TextWidgetClass "{0DC0000000000ED6}" {
-              Name "DCO_PlayerRow_3_Label"
+             Name "DCO_PlayerRow_3_Label"
               Slot LayoutSlot "{0DC0000000000ED7}" {
                Padding 2 0 3 0
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 16
@@ -7865,14 +8168,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              Size 18 18
             }
              TextWidgetClass "{0DC0000000000EDE}" {
-              Name "DCO_PlayerRow_4_Label"
+             Name "DCO_PlayerRow_4_Label"
               Slot LayoutSlot "{0DC0000000000EDF}" {
                Padding 2 0 3 0
                VerticalAlign 1
                SizeMode Fill
                FillWeight 1
               }
-              Clipping True
               Text ""
               Color 0.86 0.89 0.91 1
               "Font Size" 16
@@ -8016,13 +8318,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        }
       }
       TextWidgetClass "{0DC000000000901A}" {
-       Name "DCO_SessionTimeText"
-       Slot LayoutSlot "{0DC000000000901B}" {
+      Name "DCO_SessionTimeText"
+      Slot LayoutSlot "{0DC000000000901B}" {
+        HorizontalAlign 3
         Padding 14 0 10 6
        }
        Text "Clock --"
        Color 0.66 0.70 0.74 1
-       "Font Size" 20
+      "Font Size" 20
+       "Min Font Size" 10
       }
       HorizontalLayoutWidgetClass "{0DC0000000009020}" {
        Name "DCO_TransportRow"
@@ -8110,13 +8414,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        }
       }
       TextWidgetClass "{0DC00000000F5302}" {
-       Name "DCO_PauseStatus"
-       Slot LayoutSlot "{0DC00000000F5303}" {
+      Name "DCO_PauseStatus"
+      Slot LayoutSlot "{0DC00000000F5303}" {
+        HorizontalAlign 3
         Padding 14 0 10 2
        }
        Text "World running"
        Color 0.66 0.70 0.74 1
-       "Font Size" 19
+      "Font Size" 19
+       "Min Font Size" 8
       }
       VerticalLayoutWidgetClass "{0DC0000000009030}" {
        Name "DCO_ClockRow"
@@ -8582,13 +8888,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
     TextWidgetClass "{0DC00000000F0102}" {
      Name "DCO_HoverPreview_Name"
      Slot OverlayWidgetSlot "{0DC00000000F0103}" {
-      HorizontalAlign 1
+      HorizontalAlign 3
       VerticalAlign 2
       Padding 4 0 4 6
      }
      Text ""
+     "Horizontal Alignment" Center
      Color 0.86 0.89 0.91 1
      "Font Size" 20
+     "Min Font Size" 10
     }
    }
   }
@@ -9045,13 +9353,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        Size 300 1
       }
       TextWidgetClass "{0DC0000000002A02}" {
-       Name "DCO_OptVisTitle"
-       Slot LayoutSlot "{0DC0000000002A03}" {
+      Name "DCO_OptVisTitle"
+      Slot LayoutSlot "{0DC0000000002A03}" {
+        HorizontalAlign 3
         Padding 16 2 16 5
        }
         Text "FLOATING PANELS  ·  TACTICAL LAYERS"
        Color 0.80 0.84 0.88 1
        "Font Size" 21
+       "Min Font Size" 10
       }
       HorizontalLayoutWidgetClass "{0DC0000000002A04}" {
        Name "DCO_OptVisRow0"
@@ -9060,9 +9370,9 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         HorizontalAlign 3
        }
        {
-        ButtonWidgetClass "{0DC0000000002A06}" { Name "DCO_OptVis0" Slot LayoutSlot "{0DC0000000002A07}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D00}" { Slot ButtonWidgetSlot "{0DC0000000002D01}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C00}" { Name "DCO_OptVis0_Icon" Slot LayoutSlot "{0DC0000000002C01}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{4634C7BB291995E5}UI/Textures/Editor/Attributes/Categories/Attribute_Category_Overlays.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A08}" { Name "DCO_OptVis0_Label" Slot LayoutSlot "{0DC0000000002A09}" { FillWeight 1 VerticalAlign 1 Padding 0 5 2 5 } Text "OVERLAYS ON" Color 0.851 0.537 0.169 1 "Font Size" 19 } } } } }
-        ButtonWidgetClass "{0DC0000000002A0A}" { Name "DCO_OptVis1" Slot LayoutSlot "{0DC0000000002A0B}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D02}" { Slot ButtonWidgetSlot "{0DC0000000002D03}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C02}" { Name "DCO_OptVis1_Icon" Slot LayoutSlot "{0DC0000000002C03}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{2006D8738EA93571}UI/Textures/Editor/Toolbar/Commanding/Toolbar_Commanding_Waypoint_Move.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A0C}" { Name "DCO_OptVis1_Label" Slot LayoutSlot "{0DC0000000002A0D}" { FillWeight 1 VerticalAlign 1 Padding 0 5 2 5 } Text "ORDERS ON" Color 0.851 0.537 0.169 1 "Font Size" 19 } } } } }
-        ButtonWidgetClass "{0DC0000000002A0E}" { Name "DCO_OptVis2" Slot LayoutSlot "{0DC0000000002A0F}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D04}" { Slot ButtonWidgetSlot "{0DC0000000002D05}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C04}" { Name "DCO_OptVis2_Icon" Slot LayoutSlot "{0DC0000000002C05}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{973D1956E4F734F6}UI/Textures/Editor/ContextMenu/ContextAction_Ping.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A10}" { Name "DCO_OptVis2_Label" Slot LayoutSlot "{0DC0000000002A11}" { FillWeight 1 VerticalAlign 1 Padding 0 5 2 5 } Text "NOTIFY ON" Color 0.851 0.537 0.169 1 "Font Size" 19 } } } } }
+        ButtonWidgetClass "{0DC0000000002A06}" { Name "DCO_OptVis0" Slot LayoutSlot "{0DC0000000002A07}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D00}" { Slot ButtonWidgetSlot "{0DC0000000002D01}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C00}" { Name "DCO_OptVis0_Icon" Slot LayoutSlot "{0DC0000000002C01}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{4634C7BB291995E5}UI/Textures/Editor/Attributes/Categories/Attribute_Category_Overlays.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A08}" { Name "DCO_OptVis0_Label" Slot LayoutSlot "{0DC0000000002A09}" { FillWeight 1 HorizontalAlign 3 VerticalAlign 1 Padding 0 5 2 5 } Text "OVERLAYS ON" Color 0.851 0.537 0.169 1 "Font Size" 19 "Min Font Size" 8 } } } } }
+        ButtonWidgetClass "{0DC0000000002A0A}" { Name "DCO_OptVis1" Slot LayoutSlot "{0DC0000000002A0B}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D02}" { Slot ButtonWidgetSlot "{0DC0000000002D03}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C02}" { Name "DCO_OptVis1_Icon" Slot LayoutSlot "{0DC0000000002C03}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{2006D8738EA93571}UI/Textures/Editor/Toolbar/Commanding/Toolbar_Commanding_Waypoint_Move.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A0C}" { Name "DCO_OptVis1_Label" Slot LayoutSlot "{0DC0000000002A0D}" { FillWeight 1 HorizontalAlign 3 VerticalAlign 1 Padding 0 5 2 5 } Text "ORDERS ON" Color 0.851 0.537 0.169 1 "Font Size" 19 "Min Font Size" 8 } } } } }
+        ButtonWidgetClass "{0DC0000000002A0E}" { Name "DCO_OptVis2" Slot LayoutSlot "{0DC0000000002A0F}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D04}" { Slot ButtonWidgetSlot "{0DC0000000002D05}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C04}" { Name "DCO_OptVis2_Icon" Slot LayoutSlot "{0DC0000000002C05}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{973D1956E4F734F6}UI/Textures/Editor/ContextMenu/ContextAction_Ping.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A10}" { Name "DCO_OptVis2_Label" Slot LayoutSlot "{0DC0000000002A11}" { FillWeight 1 HorizontalAlign 3 VerticalAlign 1 Padding 0 5 2 5 } Text "NOTIFY ON" Color 0.851 0.537 0.169 1 "Font Size" 19 "Min Font Size" 8 } } } } }
        }
       }
       HorizontalLayoutWidgetClass "{0DC0000000002A12}" {
@@ -9072,9 +9382,9 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         HorizontalAlign 3
        }
        {
-        ButtonWidgetClass "{0DC0000000002A14}" { Name "DCO_OptVis3" Slot LayoutSlot "{0DC0000000002A15}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D06}" { Slot ButtonWidgetSlot "{0DC0000000002D07}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C06}" { Name "DCO_OptVis3_Icon" Slot LayoutSlot "{0DC0000000002C07}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{5D9BA0547F2E3804}UI/Textures/Editor/ContextMenu/ContextAction_Control.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A16}" { Name "DCO_OptVis3_Label" Slot LayoutSlot "{0DC0000000002A17}" { FillWeight 1 VerticalAlign 1 Padding 0 5 2 5 } Text "CHAT ON" Color 0.851 0.537 0.169 1 "Font Size" 19 } } } } }
-        ButtonWidgetClass "{0DC0000000002A18}" { Name "DCO_OptVis4" Slot LayoutSlot "{0DC0000000002A19}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D08}" { Slot ButtonWidgetSlot "{0DC0000000002D09}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C08}" { Name "DCO_OptVis4_Icon" Slot LayoutSlot "{0DC0000000002C09}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{27D94704CC78A113}UI/Textures/Editor/ContextMenu/ContextAction_SnapToSurface.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A1A}" { Name "DCO_OptVis4_Label" Slot LayoutSlot "{0DC0000000002A1B}" { FillWeight 1 VerticalAlign 1 Padding 0 5 2 5 } Text "GIZMO ON" Color 0.851 0.537 0.169 1 "Font Size" 19 } } } } }
-        ButtonWidgetClass "{0DC0000000002A1C}" { Name "DCO_OptVis5" Slot LayoutSlot "{0DC0000000002A1D}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D0A}" { Slot ButtonWidgetSlot "{0DC0000000002D0B}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C0A}" { Name "DCO_OptVis5_Icon" Slot LayoutSlot "{0DC0000000002C0B}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{D46670ECBEA75110}UI/Textures/Editor/ContextMenu/ContextAction_SelectOccupants.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A1E}" { Name "DCO_OptVis5_Label" Slot LayoutSlot "{0DC0000000002A1F}" { FillWeight 1 VerticalAlign 1 Padding 0 5 2 5 } Text "NAMETAGS ON" Color 0.851 0.537 0.169 1 "Font Size" 19 } } } } }
+        ButtonWidgetClass "{0DC0000000002A14}" { Name "DCO_OptVis3" Slot LayoutSlot "{0DC0000000002A15}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D06}" { Slot ButtonWidgetSlot "{0DC0000000002D07}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C06}" { Name "DCO_OptVis3_Icon" Slot LayoutSlot "{0DC0000000002C07}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{5D9BA0547F2E3804}UI/Textures/Editor/ContextMenu/ContextAction_Control.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A16}" { Name "DCO_OptVis3_Label" Slot LayoutSlot "{0DC0000000002A17}" { FillWeight 1 HorizontalAlign 3 VerticalAlign 1 Padding 0 5 2 5 } Text "CHAT ON" Color 0.851 0.537 0.169 1 "Font Size" 19 "Min Font Size" 8 } } } } }
+        ButtonWidgetClass "{0DC0000000002A18}" { Name "DCO_OptVis4" Slot LayoutSlot "{0DC0000000002A19}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D08}" { Slot ButtonWidgetSlot "{0DC0000000002D09}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C08}" { Name "DCO_OptVis4_Icon" Slot LayoutSlot "{0DC0000000002C09}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{27D94704CC78A113}UI/Textures/Editor/ContextMenu/ContextAction_SnapToSurface.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A1A}" { Name "DCO_OptVis4_Label" Slot LayoutSlot "{0DC0000000002A1B}" { FillWeight 1 HorizontalAlign 3 VerticalAlign 1 Padding 0 5 2 5 } Text "GIZMO ON" Color 0.851 0.537 0.169 1 "Font Size" 19 "Min Font Size" 8 } } } } }
+        ButtonWidgetClass "{0DC0000000002A1C}" { Name "DCO_OptVis5" Slot LayoutSlot "{0DC0000000002A1D}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D0A}" { Slot ButtonWidgetSlot "{0DC0000000002D0B}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C0A}" { Name "DCO_OptVis5_Icon" Slot LayoutSlot "{0DC0000000002C0B}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{D46670ECBEA75110}UI/Textures/Editor/ContextMenu/ContextAction_SelectOccupants.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002A1E}" { Name "DCO_OptVis5_Label" Slot LayoutSlot "{0DC0000000002A1F}" { FillWeight 1 HorizontalAlign 3 VerticalAlign 1 Padding 0 5 2 5 } Text "NAMETAGS ON" Color 0.851 0.537 0.169 1 "Font Size" 19 "Min Font Size" 8 } } } } }
        }
       }
       HorizontalLayoutWidgetClass "{0DC0000000002C20}" {
@@ -9084,8 +9394,8 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         HorizontalAlign 3
        }
        {
-        ButtonWidgetClass "{0DC0000000002C28}" { Name "DCO_OptVis10" Slot LayoutSlot "{0DC0000000002C29}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D14}" { Slot ButtonWidgetSlot "{0DC0000000002D15}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C2A}" { Name "DCO_OptVis10_Icon" Slot LayoutSlot "{0DC0000000002C2B}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{36106BA9CF5483B0}UI/Textures/Editor/Toolbar/Commanding/Toolbar_Commanding_Waypoint_Attack.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002C2C}" { Name "DCO_OptVis10_Label" Slot LayoutSlot "{0DC0000000002C2D}" { FillWeight 1 VerticalAlign 1 Padding 0 5 2 5 } Text "TACTICS ON" Color 0.851 0.537 0.169 1 "Font Size" 19 } } } } }
-        ButtonWidgetClass "{0DC0000000002C2E}" { Name "DCO_OptVis11" Slot LayoutSlot "{0DC0000000002C2F}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D16}" { Slot ButtonWidgetSlot "{0DC0000000002D17}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C30}" { Name "DCO_OptVis11_Icon" Slot LayoutSlot "{0DC0000000002C31}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{E09F130847C8EB75}UI/Textures/Editor/Toolbar/ToolbarAction_Tutorial.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002C32}" { Name "DCO_OptVis11_Label" Slot LayoutSlot "{0DC0000000002C33}" { FillWeight 1 VerticalAlign 1 Padding 0 5 2 5 } Text "INFO ON" Color 0.851 0.537 0.169 1 "Font Size" 19 } } } } }
+        ButtonWidgetClass "{0DC0000000002C28}" { Name "DCO_OptVis10" Slot LayoutSlot "{0DC0000000002C29}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D14}" { Slot ButtonWidgetSlot "{0DC0000000002D15}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C2A}" { Name "DCO_OptVis10_Icon" Slot LayoutSlot "{0DC0000000002C2B}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{36106BA9CF5483B0}UI/Textures/Editor/Toolbar/Commanding/Toolbar_Commanding_Waypoint_Attack.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002C2C}" { Name "DCO_OptVis10_Label" Slot LayoutSlot "{0DC0000000002C2D}" { FillWeight 1 HorizontalAlign 3 VerticalAlign 1 Padding 0 5 2 5 } Text "TACTICS ON" Color 0.851 0.537 0.169 1 "Font Size" 19 "Min Font Size" 8 } } } } }
+        ButtonWidgetClass "{0DC0000000002C2E}" { Name "DCO_OptVis11" Slot LayoutSlot "{0DC0000000002C2F}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D16}" { Slot ButtonWidgetSlot "{0DC0000000002D17}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C30}" { Name "DCO_OptVis11_Icon" Slot LayoutSlot "{0DC0000000002C31}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{E09F130847C8EB75}UI/Textures/Editor/Toolbar/ToolbarAction_Tutorial.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002C32}" { Name "DCO_OptVis11_Label" Slot LayoutSlot "{0DC0000000002C33}" { FillWeight 1 HorizontalAlign 3 VerticalAlign 1 Padding 0 5 2 5 } Text "INFO ON" Color 0.851 0.537 0.169 1 "Font Size" 19 "Min Font Size" 8 } } } } }
        }
       }
       ButtonWidgetClass "{0DC0000000002C34}" {
@@ -9117,12 +9427,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            Name "DCO_OptMasterLabel"
            Slot LayoutSlot "{0DC0000000002C39}" {
             FillWeight 1
+            HorizontalAlign 3
             VerticalAlign 1
             Padding 0 7 0 7
            }
            Text "CINEMATIC HIDE  ·  I"
            Color 0.90 0.93 0.95 1
            "Font Size" 20
+           "Min Font Size" 10
           }
          }
         }
@@ -9778,11 +10090,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC0000000001960}" {
        Name "DCO_SimTarget"
        Slot LayoutSlot "{0DC0000000001961}" {
+        HorizontalAlign 3
         Padding 14 6 14 2
        }
        Text "no object selected"
        Color 0.66 0.70 0.74 1
        "Font Size" 19
+       "Min Font Size" 9
+       Wrap 1
       }
      }
     }
@@ -9913,13 +10228,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        Size 300 1
       }
       TextWidgetClass "{0DC000000000242C}" {
-       Name "DCO_GizmoReadout"
-       Slot LayoutSlot "{0DC000000000242D}" {
+      Name "DCO_GizmoReadout"
+      Slot LayoutSlot "{0DC000000000242D}" {
+        HorizontalAlign 3
         Padding 14 2 14 8
        }
        Text "X 0.0  Y 0.0  Z 0.0"
        Color 0.80 0.84 0.88 1
-       "Font Size" 21
+      "Font Size" 21
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC0000000002B00}" {
        Name "DCO_GizmoTypedTitle"
@@ -10356,58 +10673,70 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        Size 350 1
       }
       TextWidgetClass "{0DC0000000003210}" {
-       Name "DCO_Notif_Row0"
-       Slot LayoutSlot "{0DC0000000003211}" {
+      Name "DCO_Notif_Row0"
+      Slot LayoutSlot "{0DC0000000003211}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC0000000003212}" {
-       Name "DCO_Notif_Row1"
-       Slot LayoutSlot "{0DC0000000003213}" {
+      Name "DCO_Notif_Row1"
+      Slot LayoutSlot "{0DC0000000003213}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC0000000003214}" {
-       Name "DCO_Notif_Row2"
-       Slot LayoutSlot "{0DC0000000003215}" {
+      Name "DCO_Notif_Row2"
+      Slot LayoutSlot "{0DC0000000003215}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC0000000003216}" {
-       Name "DCO_Notif_Row3"
-       Slot LayoutSlot "{0DC0000000003217}" {
+      Name "DCO_Notif_Row3"
+      Slot LayoutSlot "{0DC0000000003217}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC0000000003218}" {
-       Name "DCO_Notif_Row4"
-       Slot LayoutSlot "{0DC0000000003219}" {
+      Name "DCO_Notif_Row4"
+      Slot LayoutSlot "{0DC0000000003219}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC000000000321A}" {
-       Name "DCO_Notif_Row5"
-       Slot LayoutSlot "{0DC000000000321B}" {
+      Name "DCO_Notif_Row5"
+      Slot LayoutSlot "{0DC000000000321B}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
      }
     }
@@ -10602,76 +10931,92 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        Size 400 1
       }
       TextWidgetClass "{0DC0000000003310}" {
-       Name "DCO_Chat_Row0"
-       Slot LayoutSlot "{0DC0000000003311}" {
+      Name "DCO_Chat_Row0"
+      Slot LayoutSlot "{0DC0000000003311}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC0000000003312}" {
-       Name "DCO_Chat_Row1"
-       Slot LayoutSlot "{0DC0000000003313}" {
+      Name "DCO_Chat_Row1"
+      Slot LayoutSlot "{0DC0000000003313}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC0000000003314}" {
-       Name "DCO_Chat_Row2"
-       Slot LayoutSlot "{0DC0000000003315}" {
+      Name "DCO_Chat_Row2"
+      Slot LayoutSlot "{0DC0000000003315}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC0000000003316}" {
-       Name "DCO_Chat_Row3"
-       Slot LayoutSlot "{0DC0000000003317}" {
+      Name "DCO_Chat_Row3"
+      Slot LayoutSlot "{0DC0000000003317}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC0000000003318}" {
-       Name "DCO_Chat_Row4"
-       Slot LayoutSlot "{0DC0000000003319}" {
+      Name "DCO_Chat_Row4"
+      Slot LayoutSlot "{0DC0000000003319}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC000000000331A}" {
-       Name "DCO_Chat_Row5"
-       Slot LayoutSlot "{0DC000000000331B}" {
+      Name "DCO_Chat_Row5"
+      Slot LayoutSlot "{0DC000000000331B}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC000000000331C}" {
-       Name "DCO_Chat_Row6"
-       Slot LayoutSlot "{0DC000000000331D}" {
+      Name "DCO_Chat_Row6"
+      Slot LayoutSlot "{0DC000000000331D}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
       TextWidgetClass "{0DC000000000331E}" {
-       Name "DCO_Chat_Row7"
-       Slot LayoutSlot "{0DC000000000331F}" {
+      Name "DCO_Chat_Row7"
+      Slot LayoutSlot "{0DC000000000331F}" {
+        HorizontalAlign 3
         Padding 10 2 10 2
        }
        Text " "
        Color 0.90 0.93 0.95 1
        "Font Size" 20
+       "Min Font Size" 8
       }
      }
     }
@@ -10869,11 +11214,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC000000000340A}" {
        Name "DCO_TacticsTarget"
        Slot LayoutSlot "{0DC000000000340B}" {
+        HorizontalAlign 3
         Padding 14 0 10 6
        }
        Text " "
        Color 0.66 0.70 0.74 1
        "Font Size" 19
+       "Min Font Size" 9
+       Wrap 1
       }
       VerticalLayoutWidgetClass "{0DC0000000003410}" {
        Name "DCO_TacRadiusRow"
@@ -11302,10 +11650,95 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
     Anchor 0 0 1 1
    }
    {
+    BlurWidgetClass "{A5E4A10000000020}" {
+     Name "DCO_ArsWorldBlur"
+     Slot FrameWidgetSlot "{A5E4A10000000021}" {
+      Anchor 0 0 1 1
+     }
+     Color 0.027 0.033 0.043 0.62
+     Intensity 0.72
+     "Ignore Cursor" 1
+    }
+    ImageWidgetClass "{A5E4A10000000030}" {
+     Name "DCO_ArsWorldVeil"
+     Slot FrameWidgetSlot "{A5E4A10000000031}" {
+      Anchor 0 0 1 1
+     }
+     Color 0.016 0.020 0.027 0.42
+     "Ignore Cursor" 1
+    }
+    OverlayWidgetClass "{A5E4A10000000001}" {
+     Name "DCO_ArsCharacterPreview"
+     Slot FrameWidgetSlot "{A5E4A10000000002}" {
+      Anchor 0.29 0.07 0.71 0.90
+     }
+     "Is Visible" 0
+     {
+      ItemPreviewWidgetClass "{A5E4A10000000003}" {
+       Name "playerRender"
+       Slot OverlayWidgetSlot "{A5E4A10000000004}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding 0 -80 0 -80
+       }
+       "Ignore Cursor" 0
+       "Use Engine Scale" 0
+       Filter Bilinear
+       Format LDR
+       "Use clear color" 1
+       "Clear Color" 0 0 0 0
+       "Blend mode" Blend
+      }
+      VerticalLayoutWidgetClass "{A5E4A10000000022}" {
+       Name "DCO_ArsStageInfo"
+       Slot OverlayWidgetSlot "{A5E4A10000000023}" {
+        HorizontalAlign 3
+        VerticalAlign 2
+        Padding 24 0 24 18
+       }
+       "Ignore Cursor" 1
+       {
+        TextWidgetClass "{A5E4A10000000024}" {
+         Name "DCO_ArsStageTitle"
+         Slot LayoutSlot "{A5E4A10000000025}" {
+          HorizontalAlign 3
+          Padding 0 2 0 1
+         }
+         Text "LOADOUT"
+         "Horizontal Alignment" Center
+         Color 0.851 0.537 0.169 1
+         "Font Size" 22
+         "Min Font Size" 12
+        }
+        ImageWidgetClass "{A5E4A10000000026}" {
+         Slot LayoutSlot "{A5E4A10000000027}" {
+          HorizontalAlign 1
+          Padding 70 0 70 3
+         }
+         Color 0.851 0.537 0.169 0.45
+         Size 360 1
+        }
+        TextWidgetClass "{A5E4A10000000028}" {
+         Name "DCO_ArsStageHelp"
+         Slot LayoutSlot "{A5E4A10000000029}" {
+          HorizontalAlign 3
+          Padding 12 0 12 2
+         }
+         Text "Choose a loadout area to begin."
+         "Horizontal Alignment" Center
+         Color 0.80 0.84 0.88 1
+         "Font Size" 16
+         "Min Font Size" 10
+         Wrap 1
+        }
+       }
+      }
+     }
+    }
     OverlayWidgetClass "{0DC00000000A7502}" {
      Name "DCO_ArsLeftCol"
      Slot FrameWidgetSlot "{0DC00000000A7503}" {
-      Anchor 0 0 0.22 1
+       Anchor 0 0 0.29 1
      }
      {
       ImageWidgetClass "{0DC00000000A7504}" {
@@ -11561,9 +11994,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            Slot LayoutSlot "{0DC00000000A7539}" {
             Padding 8 8 8 0
            }
-           Text "ARSENAL"
+           Text "PRIMARY WEAPONS"
            Color 0.851 0.537 0.169 1
-           "Font Size" 22
+           "Font Size" 21
+           "Min Font Size" 10
           }
           ImageWidgetClass "{0DC00000000A753C}" {
            Slot LayoutSlot "{0DC00000000A753D}" {
@@ -11605,7 +12039,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              style blank
              "Font Size" 20
              "Use placeholder text" 1
-             "Placeholder text" "type to filter..."
+             "Placeholder text" "Search equipment..."
             }
            }
           }
@@ -11638,49 +12072,60 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
                   VerticalAlign 3
                  }
                 }
-              }
+               }
               }
              }
             }
-            OverlayWidgetClass "{053F7BA1FEAF4C16}" {
-             Name "DCO_ArsBarL"
-             Slot LayoutSlot "{1898721FE64A45A5}" {
-              VerticalAlign 3
-              Padding 4 0 2 0
-             }
-             {
-              ImageWidgetClass "{795D4B52EFED4426}" {
-               Name "DCO_ArsBarTrackL"
-               Slot OverlayWidgetSlot "{DAB69D7487CE4847}" {
-                HorizontalAlign 3
-                VerticalAlign 3
-               }
-               Color 0.35 0.38 0.43 0.75
-               Size 8 1
+             SizeLayoutWidgetClass "{A1157A0000000010}" {
+              Name "DCO_ArsBarHostL"
+              Slot LayoutSlot "{1898721FE64A45A5}" {
+               VerticalAlign 3
+               Padding 4 0 2 0
               }
-              VerticalLayoutWidgetClass "{3006CD6F26B94213}" {
-               Name "DCO_ArsBarStackL"
-               Slot OverlayWidgetSlot "{812BADB440A34722}" {
-                HorizontalAlign 3
-                VerticalAlign 3
-               }
-               {
-                ImageWidgetClass "{962E12F609FF4130}" {
-                 Name "DCO_ArsBarSpacerL"
-                 Slot AlignableSlot "{D1B4A8F72C834C12}" {
-                 }
-                 Color 0 0 0 0
-                 Size 8 0
+              AllowWidthOverride 1
+              WidthOverride 22
+              {
+               OverlayWidgetClass "{053F7BA1FEAF4C16}" {
+                Name "DCO_ArsBarL"
+                Slot AlignableSlot "{A1157A0000000011}" {
+                 HorizontalAlign 3
+                 VerticalAlign 3
                 }
-                ImageWidgetClass "{6A93ACAC462C4E2A}" {
-                 Name "DCO_ArsBarThumbL"
-                 Slot AlignableSlot "{B9E75A4231904B07}" {
+                {
+                 ImageWidgetClass "{795D4B52EFED4426}" {
+                  Name "DCO_ArsBarTrackL"
+                  Slot OverlayWidgetSlot "{DAB69D7487CE4847}" {
+                   HorizontalAlign 1
+                   VerticalAlign 3
+                  }
+                  Color 0.30 0.34 0.40 0.90
+                  Size 14 1
                  }
-                 Color 0.851 0.537 0.169 1
-                 Size 8 36
+                 VerticalLayoutWidgetClass "{3006CD6F26B94213}" {
+                  Name "DCO_ArsBarStackL"
+                  Slot OverlayWidgetSlot "{812BADB440A34722}" {
+                   HorizontalAlign 1
+                   VerticalAlign 3
+                  }
+                  {
+                   ImageWidgetClass "{962E12F609FF4130}" {
+                    Name "DCO_ArsBarSpacerL"
+                    Slot AlignableSlot "{D1B4A8F72C834C12}" {
+                    }
+                    Color 0 0 0 0
+                    Size 14 0
+                   }
+                   ImageWidgetClass "{6A93ACAC462C4E2A}" {
+                    Name "DCO_ArsBarThumbL"
+                    Slot AlignableSlot "{B9E75A4231904B07}" {
+                    }
+                    Color 0.851 0.537 0.169 1
+                    Size 14 52
+                   }
+                  }
+                 }
                 }
                }
-              }
              }
             }
            }
@@ -11694,7 +12139,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
     OverlayWidgetClass "{0DC00000000A75CA}" {
      Name "DCO_ArsRightCol"
      Slot FrameWidgetSlot "{0DC00000000A75CB}" {
-      Anchor 0.78 0 1 1
+       Anchor 0.71 0 1 1
      }
      {
       ImageWidgetClass "{0DC00000000A75CC}" {
@@ -11730,11 +12175,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           TextWidgetClass "{0DC00000000A75D4}" {
            Name "DCO_ArsRightTitle"
            Slot LayoutSlot "{0DC00000000A75D5}" {
+            HorizontalAlign 3
             Padding 8 8 8 3
            }
            Text "AMMO + ITEMS"
            Color 0.851 0.537 0.169 1
            "Font Size" 21
+           "Min Font Size" 10
           }
           ImageWidgetClass "{0DC00000000A75D6}" {
            Slot LayoutSlot "{0DC00000000A75D7}" {
@@ -11753,13 +12200,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             TextWidgetClass "{0DC00000000A7742}" {
              Name "DCO_ArsCtxBackTxt"
              Slot ButtonWidgetSlot "{0DC00000000A7743}" {
-              HorizontalAlign 0
+              HorizontalAlign 3
               VerticalAlign 1
               Padding 2 1 2 1
              }
              Text "< ALL ITEMS"
              Color 0.851 0.537 0.169 1
              "Font Size" 19
+             "Min Font Size" 10
             }
            }
           }
@@ -11792,49 +12240,60 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
                   VerticalAlign 3
                  }
                 }
-              }
+               }
               }
              }
             }
-            OverlayWidgetClass "{ED1B2F5A91DB4A6C}" {
-             Name "DCO_ArsBarR"
-             Slot LayoutSlot "{FB3A249B08F8495D}" {
-              VerticalAlign 3
-              Padding 4 0 2 0
-             }
-             {
-              ImageWidgetClass "{BD7E27FE0EB64D36}" {
-               Name "DCO_ArsBarTrackR"
-               Slot OverlayWidgetSlot "{2A234B84E9C64398}" {
-                HorizontalAlign 3
-                VerticalAlign 3
-               }
-               Color 0.35 0.38 0.43 0.75
-               Size 8 1
+             SizeLayoutWidgetClass "{A1157A0000000012}" {
+              Name "DCO_ArsBarHostR"
+              Slot LayoutSlot "{FB3A249B08F8495D}" {
+               VerticalAlign 3
+               Padding 4 0 2 0
               }
-              VerticalLayoutWidgetClass "{ADC44690770F4F17}" {
-               Name "DCO_ArsBarStackR"
-               Slot OverlayWidgetSlot "{6F3C0AFB27B342AB}" {
-                HorizontalAlign 3
-                VerticalAlign 3
-               }
-               {
-                ImageWidgetClass "{8B6C0CE8743E4D03}" {
-                 Name "DCO_ArsBarSpacerR"
-                 Slot AlignableSlot "{43D2AF7C80A54E69}" {
-                 }
-                 Color 0 0 0 0
-                 Size 8 0
+              AllowWidthOverride 1
+              WidthOverride 22
+              {
+               OverlayWidgetClass "{ED1B2F5A91DB4A6C}" {
+                Name "DCO_ArsBarR"
+                Slot AlignableSlot "{A1157A0000000013}" {
+                 HorizontalAlign 3
+                 VerticalAlign 3
                 }
-                ImageWidgetClass "{4F9E7BC32F93464E}" {
-                 Name "DCO_ArsBarThumbR"
-                 Slot AlignableSlot "{5AE98D4C17F1428B}" {
+                {
+                 ImageWidgetClass "{BD7E27FE0EB64D36}" {
+                  Name "DCO_ArsBarTrackR"
+                  Slot OverlayWidgetSlot "{2A234B84E9C64398}" {
+                   HorizontalAlign 1
+                   VerticalAlign 3
+                  }
+                  Color 0.30 0.34 0.40 0.90
+                  Size 14 1
                  }
-                 Color 0.851 0.537 0.169 1
-                 Size 8 36
+                 VerticalLayoutWidgetClass "{ADC44690770F4F17}" {
+                  Name "DCO_ArsBarStackR"
+                  Slot OverlayWidgetSlot "{6F3C0AFB27B342AB}" {
+                   HorizontalAlign 1
+                   VerticalAlign 3
+                  }
+                  {
+                   ImageWidgetClass "{8B6C0CE8743E4D03}" {
+                    Name "DCO_ArsBarSpacerR"
+                    Slot AlignableSlot "{43D2AF7C80A54E69}" {
+                    }
+                    Color 0 0 0 0
+                    Size 14 0
+                   }
+                   ImageWidgetClass "{4F9E7BC32F93464E}" {
+                    Name "DCO_ArsBarThumbR"
+                    Slot AlignableSlot "{5AE98D4C17F1428B}" {
+                    }
+                    Color 0.851 0.537 0.169 1
+                    Size 14 52
+                   }
+                  }
+                 }
                 }
                }
-              }
              }
             }
            }
@@ -12002,7 +12461,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
     OverlayWidgetClass "{0DC00000000A76B4}" {
      Name "DCO_ArsLoadoutPanel"
      Slot FrameWidgetSlot "{0DC00000000A76B5}" {
-      Anchor 0.59 0.03 0.77 0.62
+       Anchor 0.48 0.08 0.705 0.72
      }
      {
       ImageWidgetClass "{0DC00000000A76B6}" {
@@ -12147,16 +12606,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          TextWidgetClass "{0DC00000000A76D6}" {
-           Name "DCO_ArsLoTxt0"
-           Slot ButtonWidgetSlot "{0DC00000000A76D7}" {
-            HorizontalAlign 0
+         TextWidgetClass "{0DC00000000A76D6}" {
+          Name "DCO_ArsLoTxt0"
+          Slot ButtonWidgetSlot "{0DC00000000A76D7}" {
+            HorizontalAlign 3
             VerticalAlign 1
             Padding 6 3 6 3
            }
            Text " "
            Color 0.80 0.84 0.88 1
-           "Font Size" 20
+          "Font Size" 20
+          "Min Font Size" 10
           }
          }
         }
@@ -12167,16 +12627,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          TextWidgetClass "{0DC00000000A76DA}" {
-           Name "DCO_ArsLoTxt1"
-           Slot ButtonWidgetSlot "{0DC00000000A76DB}" {
-            HorizontalAlign 0
+         TextWidgetClass "{0DC00000000A76DA}" {
+          Name "DCO_ArsLoTxt1"
+          Slot ButtonWidgetSlot "{0DC00000000A76DB}" {
+            HorizontalAlign 3
             VerticalAlign 1
             Padding 6 3 6 3
            }
            Text " "
            Color 0.80 0.84 0.88 1
-           "Font Size" 20
+          "Font Size" 20
+          "Min Font Size" 10
           }
          }
         }
@@ -12187,16 +12648,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          TextWidgetClass "{0DC00000000A76DE}" {
-           Name "DCO_ArsLoTxt2"
-           Slot ButtonWidgetSlot "{0DC00000000A76DF}" {
-            HorizontalAlign 0
+         TextWidgetClass "{0DC00000000A76DE}" {
+          Name "DCO_ArsLoTxt2"
+          Slot ButtonWidgetSlot "{0DC00000000A76DF}" {
+            HorizontalAlign 3
             VerticalAlign 1
             Padding 6 3 6 3
            }
            Text " "
            Color 0.80 0.84 0.88 1
-           "Font Size" 20
+          "Font Size" 20
+          "Min Font Size" 10
           }
          }
         }
@@ -12207,16 +12669,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          TextWidgetClass "{0DC00000000A76E2}" {
-           Name "DCO_ArsLoTxt3"
-           Slot ButtonWidgetSlot "{0DC00000000A76E3}" {
-            HorizontalAlign 0
+         TextWidgetClass "{0DC00000000A76E2}" {
+          Name "DCO_ArsLoTxt3"
+          Slot ButtonWidgetSlot "{0DC00000000A76E3}" {
+            HorizontalAlign 3
             VerticalAlign 1
             Padding 6 3 6 3
            }
            Text " "
            Color 0.80 0.84 0.88 1
-           "Font Size" 20
+          "Font Size" 20
+          "Min Font Size" 10
           }
          }
         }
@@ -12227,16 +12690,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          TextWidgetClass "{0DC00000000A76E6}" {
-           Name "DCO_ArsLoTxt4"
-           Slot ButtonWidgetSlot "{0DC00000000A76E7}" {
-            HorizontalAlign 0
+         TextWidgetClass "{0DC00000000A76E6}" {
+          Name "DCO_ArsLoTxt4"
+          Slot ButtonWidgetSlot "{0DC00000000A76E7}" {
+            HorizontalAlign 3
             VerticalAlign 1
             Padding 6 3 6 3
            }
            Text " "
            Color 0.80 0.84 0.88 1
-           "Font Size" 20
+          "Font Size" 20
+          "Min Font Size" 10
           }
          }
         }
@@ -12247,16 +12711,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          TextWidgetClass "{0DC00000000A76EA}" {
-           Name "DCO_ArsLoTxt5"
-           Slot ButtonWidgetSlot "{0DC00000000A76EB}" {
-            HorizontalAlign 0
+         TextWidgetClass "{0DC00000000A76EA}" {
+          Name "DCO_ArsLoTxt5"
+          Slot ButtonWidgetSlot "{0DC00000000A76EB}" {
+            HorizontalAlign 3
             VerticalAlign 1
             Padding 6 3 6 3
            }
            Text " "
            Color 0.80 0.84 0.88 1
-           "Font Size" 20
+          "Font Size" 20
+          "Min Font Size" 10
           }
          }
         }
@@ -12267,16 +12732,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          TextWidgetClass "{0DC00000000A76EE}" {
-           Name "DCO_ArsLoTxt6"
-           Slot ButtonWidgetSlot "{0DC00000000A76EF}" {
-            HorizontalAlign 0
+         TextWidgetClass "{0DC00000000A76EE}" {
+          Name "DCO_ArsLoTxt6"
+          Slot ButtonWidgetSlot "{0DC00000000A76EF}" {
+            HorizontalAlign 3
             VerticalAlign 1
             Padding 6 3 6 3
            }
            Text " "
            Color 0.80 0.84 0.88 1
-           "Font Size" 20
+          "Font Size" 20
+          "Min Font Size" 10
           }
          }
         }
@@ -12287,16 +12753,17 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          TextWidgetClass "{0DC00000000A76F2}" {
-           Name "DCO_ArsLoTxt7"
-           Slot ButtonWidgetSlot "{0DC00000000A76F3}" {
-            HorizontalAlign 0
+         TextWidgetClass "{0DC00000000A76F2}" {
+          Name "DCO_ArsLoTxt7"
+          Slot ButtonWidgetSlot "{0DC00000000A76F3}" {
+            HorizontalAlign 3
             VerticalAlign 1
             Padding 6 3 6 3
            }
            Text " "
            Color 0.80 0.84 0.88 1
-           "Font Size" 20
+          "Font Size" 20
+          "Min Font Size" 10
           }
          }
         }
@@ -12327,8 +12794,8 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             }
            }
           }
-          TextWidgetClass "{0DC00000000A76FA}" {
-           Name "DCO_ArsLoPage"
+         TextWidgetClass "{0DC00000000A76FA}" {
+          Name "DCO_ArsLoPage"
            Slot LayoutSlot "{0DC00000000A76FB}" {
             FillWeight 2
             Padding 4 2 4 2
@@ -12336,7 +12803,8 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
            }
            Text "1/1"
            Color 0.66 0.70 0.74 1
-           "Font Size" 19
+          "Font Size" 19
+          "Min Font Size" 10
           }
           ButtonWidgetClass "{0DC00000000A76FC}" {
            Name "DCO_ArsLoNext"
@@ -12367,7 +12835,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
     OverlayWidgetClass "{0DC00000000A7700}" {
      Name "DCO_ArsBottom"
      Slot FrameWidgetSlot "{0DC00000000A7701}" {
-      Anchor 0.22 0.945 0.78 1
+       Anchor 0.29 0.90 0.71 1
      }
      {
       ImageWidgetClass "{0DC00000000A7702}" {
@@ -12398,12 +12866,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          Name "DCO_ArsWeight"
          Slot LayoutSlot "{0DC00000000A7709}" {
           FillWeight 2
+          HorizontalAlign 3
           Padding 14 4 8 4
           VerticalAlign 1
          }
          Text "WEIGHT: -"
          Color 0.92 0.94 0.96 1
          "Font Size" 21
+         "Min Font Size" 10
         }
         ButtonWidgetClass "{0DC00000000A770A}" {
          Name "DCO_ArsLoadouts"
@@ -12413,15 +12883,32 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          ImageWidgetClass "{0DC00000000A770C}" {
-           Name "DCO_ArsBI_Loadouts"
+          HorizontalLayoutWidgetClass "{0DC00000000A7C00}" {
            Slot ButtonWidgetSlot "{0DC00000000A770D}" {
-            HorizontalAlign 1
-            VerticalAlign 1
-            Padding 4 3 4 3
+             HorizontalAlign 1
+             VerticalAlign 1
+             Padding 2 3 2 3
+            }
+           {
+            ImageWidgetClass "{0DC00000000A770C}" {
+             Name "DCO_ArsBI_Loadouts"
+             Slot LayoutSlot "{0DC00000000A7C01}" {
+              VerticalAlign 1
+              Padding 1 0 3 0
+             }
+             Color 0.80 0.84 0.88 1
+             Size 20 20
+            }
+            TextWidgetClass "{0DC00000000A7C02}" {
+             Slot LayoutSlot "{0DC00000000A7C03}" {
+              VerticalAlign 1
+             }
+             Text "LOADOUTS"
+             Color 0.80 0.84 0.88 1
+             "Font Size" 13
+             "Min Font Size" 8
+            }
            }
-           Color 0.80 0.84 0.88 1
-           Size 22 22
           }
          }
         }
@@ -12433,15 +12920,32 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          ImageWidgetClass "{0DC00000000A7710}" {
-           Name "DCO_ArsBI_Clear"
+          HorizontalLayoutWidgetClass "{0DC00000000A7C04}" {
            Slot ButtonWidgetSlot "{0DC00000000A7711}" {
-            HorizontalAlign 1
-            VerticalAlign 1
-            Padding 4 3 4 3
+             HorizontalAlign 1
+             VerticalAlign 1
+             Padding 2 3 2 3
+            }
+           {
+            ImageWidgetClass "{0DC00000000A7710}" {
+             Name "DCO_ArsBI_Clear"
+             Slot LayoutSlot "{0DC00000000A7C05}" {
+              VerticalAlign 1
+              Padding 1 0 3 0
+             }
+             Color 0.80 0.84 0.88 1
+             Size 20 20
+            }
+            TextWidgetClass "{0DC00000000A7C06}" {
+             Slot LayoutSlot "{0DC00000000A7C07}" {
+              VerticalAlign 1
+             }
+             Text "CLEAR SLOT"
+             Color 0.80 0.84 0.88 1
+             "Font Size" 13
+             "Min Font Size" 8
+            }
            }
-           Color 0.80 0.84 0.88 1
-           Size 22 22
           }
          }
         }
@@ -12453,15 +12957,32 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          ImageWidgetClass "{0DC00000000A7714}" {
-           Name "DCO_ArsBI_Reset"
+          HorizontalLayoutWidgetClass "{0DC00000000A7C08}" {
            Slot ButtonWidgetSlot "{0DC00000000A7715}" {
-            HorizontalAlign 1
-            VerticalAlign 1
-            Padding 4 3 4 3
+             HorizontalAlign 1
+             VerticalAlign 1
+             Padding 2 3 2 3
+            }
+           {
+            ImageWidgetClass "{0DC00000000A7714}" {
+             Name "DCO_ArsBI_Reset"
+             Slot LayoutSlot "{0DC00000000A7C09}" {
+              VerticalAlign 1
+              Padding 1 0 3 0
+             }
+             Color 0.85 0.2 0.2 1
+             Size 20 20
+            }
+            TextWidgetClass "{0DC00000000A7C0A}" {
+             Slot LayoutSlot "{0DC00000000A7C0B}" {
+              VerticalAlign 1
+             }
+             Text "RESET KIT"
+             Color 0.85 0.55 0.52 1
+             "Font Size" 13
+             "Min Font Size" 8
+            }
            }
-           Color 0.85 0.2 0.2 1
-           Size 22 22
           }
          }
         }
@@ -12473,15 +12994,32 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          style blank
          {
-          ImageWidgetClass "{0DC00000000A7718}" {
-           Name "DCO_ArsBI_Done"
+          HorizontalLayoutWidgetClass "{0DC00000000A7C0C}" {
            Slot ButtonWidgetSlot "{0DC00000000A7719}" {
-            HorizontalAlign 1
-            VerticalAlign 1
-            Padding 4 3 4 3
+             HorizontalAlign 1
+             VerticalAlign 1
+             Padding 2 3 2 3
+            }
+           {
+            ImageWidgetClass "{0DC00000000A7718}" {
+             Name "DCO_ArsBI_Done"
+             Slot LayoutSlot "{0DC00000000A7C0D}" {
+              VerticalAlign 1
+              Padding 1 0 3 0
+             }
+             Color 0.851 0.537 0.169 1
+             Size 20 20
+            }
+            TextWidgetClass "{0DC00000000A7C0E}" {
+             Slot LayoutSlot "{0DC00000000A7C0F}" {
+              VerticalAlign 1
+             }
+             Text "DONE"
+             Color 0.851 0.537 0.169 1
+             "Font Size" 13
+             "Min Font Size" 8
+            }
            }
-           Color 0.851 0.537 0.169 1
-           Size 22 22
           }
          }
         }
@@ -12549,7 +13087,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
     OverlayWidgetClass "{0DC00000000A7750}" {
      Name "DCO_ArsHintBox"
      Slot FrameWidgetSlot "{0DC00000000A7751}" {
-      Anchor 0.52 0.55 0.78 0.935
+       Anchor 0.45 0.52 0.705 0.90
      }
      {
       ImageWidgetClass "{0DC00000000A7752}" {
@@ -12570,11 +13108,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC00000000A7756}" {
          Name "DCO_ArsHintTitle"
          Slot LayoutSlot "{0DC00000000A7757}" {
+          HorizontalAlign 3
           Padding 10 6 10 2
          }
          Text "HOW THE ARSENAL WORKS"
          Color 0.851 0.537 0.169 1
          "Font Size" 21
+         "Min Font Size" 12
         }
         ImageWidgetClass "{0DC00000000A7758}" {
          Slot LayoutSlot "{0DC00000000A7759}" {
@@ -12585,59 +13125,80 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         }
         TextWidgetClass "{0DC00000000A775A}" {
          Slot LayoutSlot "{0DC00000000A775B}" {
+          HorizontalAlign 3
           Padding 10 2 10 1
          }
          Text "LEFT: gear by category - click to equip (swaps that slot)."
          Color 0.80 0.84 0.88 1
          "Font Size" 19
+         "Min Font Size" 10
+         Wrap 1
         }
         TextWidgetClass "{0DC00000000A775C}" {
          Slot LayoutSlot "{0DC00000000A775D}" {
+          HorizontalAlign 3
           Padding 10 2 10 1
          }
          Text "RIGHT: ammo + items - click to add. The crate icon = EVERYTHING CARRIED (click +1, trash removes)."
          Color 0.80 0.84 0.88 1
          "Font Size" 19
+         "Min Font Size" 10
+         Wrap 1
         }
         TextWidgetClass "{0DC00000000A775E}" {
          Slot LayoutSlot "{0DC00000000A775F}" {
+          HorizontalAlign 3
           Padding 10 2 10 1
          }
          Text "Pick a WEAPON category on the left: the right side becomes ONLY what that weapon accepts."
          Color 0.80 0.84 0.88 1
          "Font Size" 19
+         "Min Font Size" 10
+         Wrap 1
         }
         TextWidgetClass "{0DC00000000A7760}" {
          Slot LayoutSlot "{0DC00000000A7761}" {
+          HorizontalAlign 3
           Padding 10 2 10 1
          }
          Text "Pick UNIFORM/VEST/BACKPACK: the right side becomes items to put INSIDE the equipped one."
          Color 0.80 0.84 0.88 1
          "Font Size" 19
+         "Min Font Size" 10
+         Wrap 1
         }
         TextWidgetClass "{0DC00000000A7762}" {
          Slot LayoutSlot "{0DC00000000A7763}" {
+          HorizontalAlign 3
           Padding 10 2 10 1
          }
          Text "A right-side tab (or < ALL ITEMS) returns to the full AMMO + ITEMS pool."
          Color 0.80 0.84 0.88 1
          "Font Size" 19
+         "Min Font Size" 10
+         Wrap 1
         }
         TextWidgetClass "{0DC00000000A7764}" {
          Slot LayoutSlot "{0DC00000000A7765}" {
+          HorizontalAlign 3
           Padding 10 2 10 1
          }
          Text "CLEAR CAT empties the active category. RESET restores the kit from when editing began."
          Color 0.80 0.84 0.88 1
          "Font Size" 19
+         "Min Font Size" 10
+         Wrap 1
         }
         TextWidgetClass "{0DC00000000A7766}" {
          Slot LayoutSlot "{0DC00000000A7767}" {
+          HorizontalAlign 3
           Padding 10 2 10 6
          }
          Text "LOADOUTS saves and loads named kits. Red rows = content missing on this server."
          Color 0.80 0.84 0.88 1
          "Font Size" 19
+         "Min Font Size" 10
+         Wrap 1
         }
        }
       }
@@ -12646,7 +13207,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
     OverlayWidgetClass "{0DC00000000A7B10}" {
      Name "DCO_ArsHeader"
      Slot FrameWidgetSlot "{0DC00000000A7B11}" {
-      Anchor 0.3 0 0.7 0.042
+      Anchor 0.29 0 0.71 0.07
      }
      {
       ImageWidgetClass "{0DC00000000A7B12}" {
@@ -12666,16 +13227,37 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        Color 0.851 0.537 0.169 1
        Size 2 2
       }
-      TextWidgetClass "{0DC00000000A7B16}" {
-       Name "DCO_ArsTarget"
+      VerticalLayoutWidgetClass "{0DC00000000A7B16}" {
+       Name "DCO_ArsHeaderText"
        Slot OverlayWidgetSlot "{0DC00000000A7B17}" {
-        HorizontalAlign 1
+        HorizontalAlign 3
         VerticalAlign 1
-        Padding 8 4 8 4
+        Padding 10 5 10 5
        }
-       Text " "
-       Color 0.851 0.537 0.169 1
-       "Font Size" 24
+       {
+        TextWidgetClass "{0DC00000000A7B18}" {
+         Name "DCO_ArsMode"
+         Slot LayoutSlot "{0DC00000000A7B19}" {
+          HorizontalAlign 3
+         }
+         Text "ARSENAL ACCESS"
+         "Horizontal Alignment" Center
+         Color 0.80 0.84 0.88 1
+         "Font Size" 14
+         "Min Font Size" 10
+        }
+        TextWidgetClass "{0DC00000000A7B1A}" {
+         Name "DCO_ArsTarget"
+         Slot LayoutSlot "{0DC00000000A7B1B}" {
+          HorizontalAlign 3
+         }
+         Text " "
+         "Horizontal Alignment" Center
+         Color 0.851 0.537 0.169 1
+         "Font Size" 24
+         "Min Font Size" 12
+        }
+       }
       }
      }
     }
@@ -12696,13 +13278,15 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       TextWidgetClass "{0DC00000000A7B24}" {
        Name "DCO_ArsHoverTxt"
        Slot OverlayWidgetSlot "{0DC00000000A7B25}" {
-        HorizontalAlign 1
+        HorizontalAlign 3
         VerticalAlign 1
         Padding 8 3 8 3
        }
        Text " "
+       "Horizontal Alignment" Center
        Color 0.851 0.537 0.169 1
        "Font Size" 20
+       "Min Font Size" 8
       }
      }
     }
@@ -12744,7 +13328,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
     VerticalLayoutWidgetClass "{0DC0000000001004}" {
      Name "DCO_MenuContent"
      Slot OverlayWidgetSlot "{0DC0000000001005}" {
-      HorizontalAlign 0
+      HorizontalAlign 3
      VerticalAlign 0
      }
      {
@@ -12755,9 +13339,9 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         HorizontalAlign 3
        }
        AllowWidthOverride 1
-       WidthOverride 264
+       WidthOverride 400
        AllowHeightOverride 1
-       HeightOverride 34
+       HeightOverride 52
        {
         OverlayWidgetClass "{DC0F100000000003}" {
          Name "DCO_MenuHeader"
@@ -12795,13 +13379,26 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           TextWidgetClass "{DC0F10000000000B}" {
            Name "DCO_MenuTitle"
            Slot OverlayWidgetSlot "{DC0F10000000000C}" {
-            HorizontalAlign 0
-            VerticalAlign 1
-            Padding 13 0 34 0
+            HorizontalAlign 3
+            VerticalAlign 0
+            Padding 13 5 34 0
            }
            Text "ACTIONS"
            Color 0.851 0.537 0.169 1
            "Font Size" 18
+           "Min Font Size" 11
+          }
+          TextWidgetClass "{DC0F10000000000D}" {
+           Name "DCO_MenuSubtitle"
+           Slot OverlayWidgetSlot "{DC0F10000000000E}" {
+            HorizontalAlign 3
+            VerticalAlign 2
+            Padding 13 0 18 5
+           }
+           Text "Choose an option"
+           Color 0.66 0.70 0.74 1
+           "Font Size" 13
+           "Min Font Size" 10
           }
          }
         }
@@ -12818,11 +13415,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001008}" {
          Name "DCO_Menu_0_Label"
          Slot LayoutSlot "{0DC0000000001009}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -12837,11 +13436,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC000000000100C}" {
          Name "DCO_Menu_1_Label"
          Slot LayoutSlot "{0DC000000000100D}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -12856,11 +13457,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001010}" {
          Name "DCO_Menu_2_Label"
          Slot LayoutSlot "{0DC0000000001011}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -12875,11 +13478,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001014}" {
          Name "DCO_Menu_3_Label"
          Slot LayoutSlot "{0DC0000000001015}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -12894,11 +13499,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001018}" {
          Name "DCO_Menu_4_Label"
          Slot LayoutSlot "{0DC0000000001019}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -12913,11 +13520,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC000000000101C}" {
          Name "DCO_Menu_5_Label"
          Slot LayoutSlot "{0DC000000000101D}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -12932,11 +13541,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001020}" {
          Name "DCO_Menu_6_Label"
          Slot LayoutSlot "{0DC0000000001021}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -12951,11 +13562,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001024}" {
          Name "DCO_Menu_7_Label"
          Slot LayoutSlot "{0DC0000000001025}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -12970,11 +13583,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001028}" {
          Name "DCO_Menu_8_Label"
          Slot LayoutSlot "{0DC0000000001029}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -12989,11 +13604,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC000000000102C}" {
          Name "DCO_Menu_9_Label"
          Slot LayoutSlot "{0DC000000000102D}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -13008,11 +13625,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001030}" {
          Name "DCO_Menu_10_Label"
          Slot LayoutSlot "{0DC0000000001031}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -13027,11 +13646,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001034}" {
          Name "DCO_Menu_11_Label"
          Slot LayoutSlot "{0DC0000000001035}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -13046,11 +13667,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001038}" {
          Name "DCO_Menu_12_Label"
          Slot LayoutSlot "{0DC0000000001039}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -13065,11 +13688,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC000000000103C}" {
          Name "DCO_Menu_13_Label"
          Slot LayoutSlot "{0DC000000000103D}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -13084,11 +13709,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001040}" {
          Name "DCO_Menu_14_Label"
          Slot LayoutSlot "{0DC0000000001041}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -13103,11 +13730,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001044}" {
          Name "DCO_Menu_15_Label"
          Slot LayoutSlot "{0DC0000000001045}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -13122,11 +13751,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC0000000001048}" {
          Name "DCO_Menu_16_Label"
          Slot LayoutSlot "{0DC0000000001049}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -13141,11 +13772,13 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         TextWidgetClass "{0DC000000000104C}" {
          Name "DCO_Menu_17_Label"
          Slot LayoutSlot "{0DC000000000104D}" {
+          HorizontalAlign 3
           Padding 16 6 22 6
          }
          Text ""
          Color 0.86 0.89 0.91 1
          "Font Size" 19
+         "Min Font Size" 10
         }
        }
       }
@@ -13157,6 +13790,29 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        }
        Color 0.851 0.537 0.169 0.55
        Size 0 1
+      }
+      SizeLayoutWidgetClass "{DC0F100000000011}" {
+       Name "DCO_MenuFooterHost"
+       Slot LayoutSlot "{DC0F100000000012}" {
+        Padding 2 1 2 2
+        HorizontalAlign 3
+       }
+       AllowHeightOverride 1
+       HeightOverride 28
+       {
+        TextWidgetClass "{DC0F100000000013}" {
+         Name "DCO_MenuFooter"
+         Slot AlignableSlot "{DC0F100000000014}" {
+          HorizontalAlign 3
+          VerticalAlign 1
+          Padding 12 0 12 0
+         }
+         Text "0 OPTIONS  ·  CLICK TO APPLY  ·  ESC TO CLOSE"
+         Color 0.58 0.63 0.68 1
+         "Font Size" 12
+         "Min Font Size" 9
+        }
+       }
       }
      }
     }

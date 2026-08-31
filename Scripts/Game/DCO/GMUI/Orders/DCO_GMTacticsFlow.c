@@ -39,7 +39,6 @@ class DCO_GMTacticsFlow
 		s_Inst = this;
 		m_wRoot = shellRoot;
 		TrySubscribe();
-		Print(string.Format("[DCO-GM] tactics flow ready (subscribed=%1)", m_bSubscribed), LogLevel.NORMAL);
 	}
 
 	void Shutdown()
@@ -129,7 +128,6 @@ class DCO_GMTacticsFlow
 		}
 
 		bool ok = m_Placing.SetSelectedPrefab(prefab, false, true, recipients, null);
-		Print(string.Format("[DCO-GM] tactics flow: placement armed (prefab=%1 placing=%2)", prefab, m_Placing.IsPlacing()), LogLevel.NORMAL);
 		if (!ok)
 		{
 			Print("[DCO-GM] tactics flow: SetSelectedPrefab REFUSED (unregistered prefab or budget) - placement aborted", LogLevel.WARNING);
@@ -139,10 +137,9 @@ class DCO_GMTacticsFlow
 
 		vector t[4];
 		bool previewAlive = m_Preview && m_Preview.GetPreviewTransform(t);
-		Print(string.Format("[DCO-GM] tactics flow: preview check (previewComp=%1 alive=%2)", m_Preview != null, previewAlive), LogLevel.NORMAL);
 		if (!previewAlive)
 		{
-			Print("[DCO-GM] tactics flow: NO preview entity for the armed prefab (SPIKE 1 FAILED) - cancelling placement", LogLevel.WARNING);
+			Print("[DCO-GM] tactics flow: no preview entity for the armed prefab; placement cancelled", LogLevel.WARNING);
 			m_Placing.SetSelectedPrefab(ResourceName.Empty);
 			CancelPending();
 			return false;
@@ -226,7 +223,6 @@ class DCO_GMTacticsFlow
 				grps = m_PendingGroups;
 			}
 			DCO_GMTacticsPanel.Get().OpenForZone(entity, grp, grps);
-			Print("[DCO-GM] tactics flow: zone placed - options panel opened", LogLevel.NORMAL);
 			if (m_fPendingExpireMs >= 0)
 				CancelPending();	// the grace context was for exactly this confirm - consume it.
 			return;
@@ -235,7 +231,6 @@ class DCO_GMTacticsFlow
 		if (pendingClear && DCO_IntentWaypoint.Cast(owner))
 		{
 			DCO_GMTacticsPanel.Get().OpenForClearOrder(entity);
-			Print("[DCO-GM] tactics flow: clear-building waypoint placed on the group", LogLevel.NORMAL);
 			CancelPending();
 			return;
 		}

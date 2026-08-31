@@ -56,11 +56,23 @@ class DCO_OptVisibilityHandler : ScriptedWidgetEventHandler
 	}
 }
 
+class DCO_GMOptionsPanelStaticData
+{
+	ref array<float> m_SwatchHues = {32, 0, 120, 190, 225, 280};
+	ref array<string> m_VisibilityLabels = {"OVERLAYS", "ORDERS", "NOTIFY", "CHAT", "GIZMO", "NAMETAGS",
+		"TOPBAR", "BOTBAR", "EDIT", "CREATE", "TACTICS", "INFO"};
+}
+
 class DCO_GMOptionsPanel
 {
-	static const ref array<float> SWATCH_HUES = {32, 0, 120, 190, 225, 280};
-	static const ref array<string> VIS_LABELS = {"OVERLAYS", "ORDERS", "NOTIFY", "CHAT", "GIZMO", "NAMETAGS",
-		"TOPBAR", "BOTBAR", "EDIT", "CREATE", "TACTICS", "INFO"};
+	protected static ref DCO_GMOptionsPanelStaticData s_StaticData;
+
+	protected static DCO_GMOptionsPanelStaticData StaticData()
+	{
+		if (!s_StaticData)
+			s_StaticData = new DCO_GMOptionsPanelStaticData();
+		return s_StaticData;
+	}
 
 	protected Widget m_wRoot;
 	protected Widget m_wPanel;
@@ -130,7 +142,7 @@ class DCO_GMOptionsPanel
 			0, 360, DCO_GMTheme.Get().m_AccentHue, "");
 		m_HueSlider.GetOnChange().Insert(OnAccentHueChanged);
 
-		for (int i = 0; i < SWATCH_HUES.Count(); i++)
+		for (int i = 0; i < StaticData().m_SwatchHues.Count(); i++)
 		{
 			ButtonWidget sw = ButtonWidget.Cast(root.FindAnyWidget("DCO_OptSwatch" + i.ToString()));
 			if (sw)
@@ -155,12 +167,6 @@ class DCO_GMOptionsPanel
 		DCO_GMTheme.Get().ApplyDisplayFont(root);
 		RefreshVisibility();
 		RefreshFontMode();
-
-		Print(string.Format("[DCO-GM] options panel bound (open/panel/close=%1/%2/%3 swatches=%4 visibility switches=%5 master/chip=%6/%7 fonts=%8)",
-			m_btnOpen != null, m_wPanel != null, m_btnClose != null, m_SwatchHandlers.Count(),
-			m_VisibilityHandlers.Count(), m_btnMaster != null, m_btnReopen != null,
-			m_btnFontCompact != null && m_btnFontCommand != null),
-			LogLevel.NORMAL);
 	}
 
 	protected void OnOpacityChanged(float value)
@@ -178,9 +184,9 @@ class DCO_GMOptionsPanel
 	// Preset swatch clicked: jump the accent to that hue and sync the hue slider.
 	bool OnSwatch(int index)
 	{
-		if (index < 0 || index >= SWATCH_HUES.Count())
+		if (index < 0 || index >= StaticData().m_SwatchHues.Count())
 			return false;
-		float hue = SWATCH_HUES[index];
+		float hue = StaticData().m_SwatchHues[index];
 		if (m_HueSlider)
 			m_HueSlider.SetValue(hue);
 		DCO_GMTheme.Get().SetAccentHue(hue, m_wRoot);
@@ -208,7 +214,7 @@ class DCO_GMOptionsPanel
 			string state = " OFF";
 			if (enabled)
 				state = " ON";
-			label.SetText(VIS_LABELS[i] + state);
+			label.SetText(StaticData().m_VisibilityLabels[i] + state);
 			Color stateColor = theme.m_DisabledColor;
 			if (enabled)
 				stateColor = theme.m_AccentColor;

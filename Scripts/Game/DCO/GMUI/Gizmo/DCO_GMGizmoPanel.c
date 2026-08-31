@@ -89,8 +89,6 @@ class DCO_GMGizmoPanel
 		m_bVisible = false;
 		m_LastText = string.Empty;
 
-		Print(string.Format("[DCO-GM] gizmo readout bound (panel=%1 text=%2)",
-			m_wPanel != null, m_wReadout != null), LogLevel.NORMAL);
 	}
 
 	// Push the live transform.

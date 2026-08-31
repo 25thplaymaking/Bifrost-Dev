@@ -1,77 +1,126 @@
-HorizontalLayoutWidgetClass "{0DC00000000A7A00}" {
+SizeLayoutWidgetClass "{0DC00000000A7A00}" {
  Name "DCO_ArsDynRow"
  Slot LayoutSlot "{0DC00000000A7A01}" {
-  Padding 6 0 6 0
+  Padding 8 2 8 2
+  HorizontalAlign 3
  }
+ AllowHeightOverride 1
+ HeightOverride 88
  {
-  ButtonWidgetClass "{0DC00000000A7A02}" {
-   Name "DCO_ArsDynBtn"
-   Slot LayoutSlot "{0DC00000000A7A03}" {
-    FillWeight 1
+  HorizontalLayoutWidgetClass "{0DC00000000A7A20}" {
+   Name "DCO_ArsDynRowContent"
+   Slot AlignableSlot "{0DC00000000A7A21}" {
+    HorizontalAlign 3
+    VerticalAlign 3
    }
-   style blank
    {
-    HorizontalLayoutWidgetClass "{0DC00000000A7A04}" {
-     Slot ButtonWidgetSlot "{0DC00000000A7A05}" {
-      HorizontalAlign 0
-      VerticalAlign 1
-      Padding 2 1 2 1
+    ButtonWidgetClass "{0DC00000000A7A02}" {
+     Name "DCO_ArsDynBtn"
+     Slot LayoutSlot "{0DC00000000A7A03}" {
+      FillWeight 1
+      SizeMode Fill
      }
+     style blank
      {
-      SizeLayoutWidgetClass "{0DC00000000A7A06}" {
-       Slot LayoutSlot "{0DC00000000A7A07}" {
-        Padding 0 1 6 1
+      OverlayWidgetClass "{0DC00000000A7A10}" {
+       Slot ButtonWidgetSlot "{0DC00000000A7A11}" {
+        HorizontalAlign 3
+        VerticalAlign 3
        }
-       AllowWidthOverride 1
-       WidthOverride 56
-       AllowHeightOverride 1
-       HeightOverride 40
        {
-        ItemPreviewWidgetClass "{0DC00000000A7A08}" {
-         Name "DCO_ArsDynImg"
-         Slot AlignableSlot "{0DC00000000A7A09}" {
+        ImageWidgetClass "{0DC00000000A7A12}" {
+         Name "DCO_ArsDynBg"
+         Slot OverlayWidgetSlot "{0DC00000000A7A13}" {
           HorizontalAlign 3
           VerticalAlign 3
          }
-         Filter Bilinear
-         Format LDR
-         "Use clear color" 1
-         "Clear Color" 0 0 0 0
+         Color 0.052 0.061 0.074 0.94
+        }
+        ImageWidgetClass "{0DC00000000A7A14}" {
+         Slot OverlayWidgetSlot "{0DC00000000A7A15}" {
+          HorizontalAlign 0
+          VerticalAlign 3
+         }
+         Color 0.851 0.537 0.169 0.80
+         Size 3 2
+        }
+        ImageWidgetClass "{0DC00000000A7A22}" {
+         Slot OverlayWidgetSlot "{0DC00000000A7A23}" {
+          HorizontalAlign 3
+          VerticalAlign 2
+         }
+         Color 0.851 0.537 0.169 0.20
+         Size 2 1
+        }
+        HorizontalLayoutWidgetClass "{0DC00000000A7A04}" {
+         Slot OverlayWidgetSlot "{0DC00000000A7A05}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 8 4 8 4
+         }
+         {
+          SizeLayoutWidgetClass "{0DC00000000A7A06}" {
+           Slot LayoutSlot "{0DC00000000A7A07}" {
+            Padding 0 0 12 0
+            VerticalAlign 1
+           }
+           AllowWidthOverride 1
+           WidthOverride 112
+           AllowHeightOverride 1
+           HeightOverride 78
+           {
+            ItemPreviewWidgetClass "{0DC00000000A7A08}" {
+             Name "DCO_ArsDynImg"
+             Slot AlignableSlot "{0DC00000000A7A09}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             Filter Bilinear
+             Format LDR
+             "Use clear color" 1
+             "Clear Color" 0 0 0 0
+            }
+           }
+          }
+          TextWidgetClass "{0DC00000000A7A0A}" {
+           Name "DCO_ArsDynTxt"
+           Slot LayoutSlot "{0DC00000000A7A0B}" {
+            FillWeight 1
+            HorizontalAlign 3
+            Padding 2 0 8 0
+            VerticalAlign 1
+           }
+           Text " "
+           Color 0.88 0.91 0.94 1
+           "Font Size" 17
+           "Min Font Size" 12
+           Wrap 1
+          }
+         }
         }
        }
       }
-      TextWidgetClass "{0DC00000000A7A0A}" {
-       Name "DCO_ArsDynTxt"
-       Slot LayoutSlot "{0DC00000000A7A0B}" {
-        FillWeight 1
-        Padding 2 0 2 0
-        VerticalAlign 1
-       }
-       Text " "
-       Color 0.80 0.84 0.88 1
-       "Font Size" 12
-      }
      }
     }
-   }
-  }
-  ButtonWidgetClass "{0DC00000000A7A0C}" {
-   Name "DCO_ArsDynBag"
-   Slot LayoutSlot "{0DC00000000A7A0D}" {
-    Padding 2 0 4 0
-    VerticalAlign 1
-   }
-   style blank
-   {
-    ImageWidgetClass "{0DC00000000A7A0E}" {
-     Name "DCO_ArsDynBagIco"
-     Slot ButtonWidgetSlot "{0DC00000000A7A0F}" {
-      HorizontalAlign 1
+    ButtonWidgetClass "{0DC00000000A7A0C}" {
+     Name "DCO_ArsDynBag"
+     Slot LayoutSlot "{0DC00000000A7A0D}" {
+      Padding 6 0 2 0
       VerticalAlign 1
-      Padding 4 2 4 2
      }
-     Color 0.851 0.537 0.169 1
-     Size 20 20
+     style blank
+     {
+      ImageWidgetClass "{0DC00000000A7A0E}" {
+       Name "DCO_ArsDynBagIco"
+       Slot ButtonWidgetSlot "{0DC00000000A7A0F}" {
+        HorizontalAlign 1
+        VerticalAlign 1
+        Padding 5 5 5 5
+       }
+       Color 0.851 0.537 0.169 1
+       Size 30 30
+      }
+     }
     }
    }
   }

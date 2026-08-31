@@ -1,0 +1,53 @@
+MetaFileClass {
+ Name "{94318D5C549F8476}Assets/Stage/Set/Locker_Module_05_Gunwall.xob"
+ Configurations {
+  FBXResourceClass PC {
+   MaterialAssigns {
+    MaterialAssignClass "{69D6464420DE5A29}" {
+     SourceMaterial "Locker_Module_05_Gunwall"
+     AssignedMaterial "{8EDB07CE6DF660BC}Assets/Stage/Set/Data/Locker_Module_05_Gunwall.emat"
+    }
+   }
+   MeshParams {
+    MeshParam SM_Module05_Gunwall {
+    }
+    MeshParam SM_Module05_GunwallPiece_01 {
+    }
+    MeshParam "SM_Module05_GunwallPiece_01.001" {
+    }
+    MeshParam "SM_Module05_GunwallPiece_01.002" {
+    }
+    MeshParam SM_Module05_GunwallPiece_02 {
+    }
+    MeshParam "SM_Module05_GunwallPiece_02.001" {
+    }
+    MeshParam "SM_Module05_GunwallPiece_02.002" {
+    }
+    MeshParam "SM_Module05_GunwallPiece_02.003" {
+    }
+   }
+   Common TXOCommonClass "{69D6464420D88E67}" : "{0877E7C4BB2B2C9A}Configs/System/ResourceTypes/PC/MeshObjectCommon.conf" {
+   }
+  }
+  FBXResourceClass XBOX_ONE : PC {
+   Common TXOCommonClass "{69D6464420D88FF7}" : "{9D5B6207F7628CE2}Configs/System/ResourceTypes/XBOX_ONE/MeshObjectCommon.conf" {
+   }
+  }
+  FBXResourceClass XBOX_SERIES : PC {
+   Common TXOCommonClass "{69D6464420D88FC9}" : "{DD9F02115C764647}Configs/System/ResourceTypes/XBOX_SERIES/MeshObjectCommon.conf" {
+   }
+  }
+  FBXResourceClass PS4 : PC {
+   Common TXOCommonClass "{69D6464420D88FBC}" : "{53EC476BC921D99A}Configs/System/ResourceTypes/PS4/MeshObjectCommon.conf" {
+   }
+  }
+  FBXResourceClass PS5 : PC {
+   Common TXOCommonClass "{69D6464420D88FA3}" : "{F62AA8E7B8EA9D26}Configs/System/ResourceTypes/PS5/MeshObjectCommon.conf" {
+   }
+  }
+  FBXResourceClass HEADLESS : PC {
+   Common TXOCommonClass "{69D6464420D88F96}" : "{3A5B3356978039E8}Configs/System/ResourceTypes/HEADLESS/MeshObjectCommon.conf" {
+   }
+  }
+ }
+}

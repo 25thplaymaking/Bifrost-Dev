@@ -7,13 +7,25 @@ class DCO_GMAttachLink
 	ref map<IEntity, int> m_SavedLayers = new map<IEntity, int>();	// per-body original interaction masks.
 }
 
+class DCO_GMAttachState
+{
+	ref array<ref DCO_GMAttachLink> m_Links = {};
+	ref array<ref Shape> m_HoverShapes = {};
+}
+
 class DCO_GMAttach
 {
 	protected static bool s_bArmed;	// ATTACH pressed: the next world click picks the parent.
-	protected static ref array<ref DCO_GMAttachLink> s_Links = {};
+	protected static ref DCO_GMAttachState s_State;
 	protected static bool s_bTicking;
-	protected static ref array<ref Shape> s_HoverShapes = {};	// wireframe box on the target under the cursor while armed.
 	static const int HOVER_COLOR = 0xFF3FB6E6;	// player cyan - shared with nametags / overlays.
+
+	protected static DCO_GMAttachState State()
+	{
+		if (!s_State)
+			s_State = new DCO_GMAttachState();
+		return s_State;
+	}
 
 	static bool IsArmed()          { return s_bArmed; }
 	static void SetArmed(bool on)  { s_bArmed = on; if (!on) ClearHighlight(); }
@@ -34,6 +46,8 @@ class DCO_GMAttach
 		int gmPlayerId = -1;
 		if (pc)
 			gmPlayerId = pc.GetPlayerId();
+		if (Replication.IsServer() && !DCO_GMRights.Allow(gmPlayerId, "GM attach"))
+			return;
 		if (!Replication.IsServer())
 		{
 			RplComponent childRpl = RplComponent.Cast(child.FindComponent(RplComponent));
@@ -52,6 +66,8 @@ class DCO_GMAttach
 
 	static void ApplyRelayed(RplId childId, RplId parentId, bool attach, int gmPlayerId)
 	{
+		if (!Replication.IsServer())
+			return;
 		RplComponent childRpl = RplComponent.Cast(Replication.FindItem(childId));
 		if (!childRpl || !childRpl.GetEntity())
 			return;
@@ -67,6 +83,8 @@ class DCO_GMAttach
 
 	protected static void AttachOnAuthority(IEntity child, IEntity parent, int gmPlayerId)
 	{
+		if (!Replication.IsServer() || !child || !parent)
+			return;
 		if (FindLink(child))
 			DetachOnAuthority(child, gmPlayerId);
 
@@ -89,10 +107,9 @@ class DCO_GMAttach
 		parent.AddChild(child, -1, EAddChildFlags.AUTO_TRANSFORM);
 		child.SetLocalTransform(link.m_Local);
 
-		s_Links.Insert(link);
+		State().m_Links.Insert(link);
 		EnsureTick();
 		PopUp("ATTACHED");
-		Print("[DCO-ATTACH] attached selected object to the target under the cursor", LogLevel.NORMAL);
 	}
 
 	static void DetachSelected(IEntity child)
@@ -115,10 +132,12 @@ class DCO_GMAttach
 
 	protected static void DetachOnAuthority(IEntity child, int gmPlayerId)
 	{
+		if (!Replication.IsServer() || !child)
+			return;
 		int idx = -1;
-		for (int i = 0; i < s_Links.Count(); i++)
+		for (int i = 0; i < State().m_Links.Count(); i++)
 		{
-			if (s_Links[i] && s_Links[i].m_Child == child && (gmPlayerId < 0 || s_Links[i].m_GMPlayerId == gmPlayerId))
+			if (State().m_Links[i] && State().m_Links[i].m_Child == child && (gmPlayerId < 0 || State().m_Links[i].m_GMPlayerId == gmPlayerId))
 			{
 				idx = i;
 				break;
@@ -129,12 +148,11 @@ class DCO_GMAttach
 			Print("[DCO-ATTACH] selected object is not attached", LogLevel.NORMAL);
 			return;
 		}
-		DCO_GMAttachLink link = s_Links[idx];
-		s_Links.Remove(idx);
+		DCO_GMAttachLink link = State().m_Links[idx];
+		State().m_Links.Remove(idx);
 		StopTickIfIdle();
 		ReverseLink(link);
 		PopUp("DETACHED");
-		Print("[DCO-ATTACH] detached selected object", LogLevel.NORMAL);
 	}
 
 	// Reverse EVERY open bond.
@@ -156,22 +174,23 @@ class DCO_GMAttach
 
 	static void DetachAllOnAuthority(int gmPlayerId)
 	{
-		if (s_Links.IsEmpty())
+		if (!Replication.IsServer())
+			return;
+		if (State().m_Links.IsEmpty())
 			return;
 		array<ref DCO_GMAttachLink> copy = {};
-		for (int i = s_Links.Count() - 1; i >= 0; i--)
+		for (int i = State().m_Links.Count() - 1; i >= 0; i--)
 		{
-			DCO_GMAttachLink link = s_Links[i];
+			DCO_GMAttachLink link = State().m_Links[i];
 			if (link && (gmPlayerId < 0 || link.m_GMPlayerId == gmPlayerId))
 			{
 				copy.Insert(link);
-				s_Links.Remove(i);
+				State().m_Links.Remove(i);
 			}
 		}
 		StopTickIfIdle();
 		foreach (DCO_GMAttachLink l : copy)
 			ReverseLink(l);
-		Print(string.Format("[DCO-ATTACH] detached all (%1 bond(s)) on teardown", copy.Count()), LogLevel.NORMAL);
 	}
 
 	// Unparent one bond in place, restore its saved layers + live simulation, and re-enable garbage collection.
@@ -200,7 +219,7 @@ class DCO_GMAttach
 
 	protected static DCO_GMAttachLink FindLink(IEntity child)
 	{
-		foreach (DCO_GMAttachLink l : s_Links)
+		foreach (DCO_GMAttachLink l : State().m_Links)
 		{
 			if (l && l.m_Child == child)
 				return l;
@@ -250,14 +269,14 @@ class DCO_GMAttach
 
 	protected static void Tick()
 	{
-		for (int i = s_Links.Count() - 1; i >= 0; i--)
+		for (int i = State().m_Links.Count() - 1; i >= 0; i--)
 		{
-			DCO_GMAttachLink l = s_Links[i];
+			DCO_GMAttachLink l = State().m_Links[i];
 			if (!l || !l.m_Child || !l.m_Parent || !DCO_GMRights.IsGameMaster(l.m_GMPlayerId))
 			{
 				if (l && l.m_Child)
 					ReverseLink(l);
-				s_Links.Remove(i);
+				State().m_Links.Remove(i);
 			}
 		}
 		StopTickIfIdle();
@@ -276,7 +295,7 @@ class DCO_GMAttach
 
 	protected static void StopTickIfIdle()
 	{
-		if (s_bTicking && s_Links.IsEmpty() && GetGame() && GetGame().GetCallqueue())
+		if (s_bTicking && State().m_Links.IsEmpty() && GetGame() && GetGame().GetCallqueue())
 		{
 			GetGame().GetCallqueue().Remove(Tick);
 			s_bTicking = false;
@@ -300,7 +319,7 @@ class DCO_GMAttach
 
 	static void UpdateHoverHighlight(IEntity child, vector ro, vector rd)
 	{
-		s_HoverShapes.Clear();
+		State().m_HoverShapes.Clear();
 		IEntity hover = RayPickEntity(child, ro, rd);
 		if (!hover)
 			return;
@@ -327,11 +346,11 @@ class DCO_GMAttach
 	{
 		Shape s = Shape.Create(ShapeType.LINE, HOVER_COLOR, fl, c[a], c[b]);
 		if (s)
-			s_HoverShapes.Insert(s);
+			State().m_HoverShapes.Insert(s);
 	}
 
 	static void ClearHighlight()
 	{
-		s_HoverShapes.Clear();
+		State().m_HoverShapes.Clear();
 	}
 }

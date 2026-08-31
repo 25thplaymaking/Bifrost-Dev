@@ -1,0 +1,83 @@
+SizeLayoutWidgetClass "{DCA3000000000001}" {
+ Name "DCO_ArsSlotCard"
+ Slot LayoutSlot "{DCA3000000000002}" { Padding 5 4 5 4 VerticalAlign 3 }
+ AllowWidthOverride 1
+ WidthOverride 236
+ AllowHeightOverride 1
+ HeightOverride 140
+ {
+  ButtonWidgetClass "{DCA3000000000003}" {
+   Name "DCO_ArsSlotButton"
+   Slot AlignableSlot "{DCA3000000000004}" { HorizontalAlign 3 VerticalAlign 3 }
+   style blank
+   {
+    OverlayWidgetClass "{DCA3000000000005}" {
+     Slot ButtonWidgetSlot "{DCA3000000000006}" { HorizontalAlign 3 VerticalAlign 3 }
+     {
+      ImageWidgetClass "{DCA3000000000007}" {
+       Name "DCO_ArsSlotBg"
+       Slot OverlayWidgetSlot "{DCA3000000000008}" { HorizontalAlign 3 VerticalAlign 3 }
+       Color 0.035 0.041 0.049 0.96
+      }
+      ImageWidgetClass "{DCA3000000000009}" {
+       Slot OverlayWidgetSlot "{DCA300000000000A}" { HorizontalAlign 0 VerticalAlign 3 }
+       Color 0.851 0.537 0.169 0.78
+       Size 3 2
+      }
+      HorizontalLayoutWidgetClass "{DCA300000000000B}" {
+       Slot OverlayWidgetSlot "{DCA300000000000C}" { HorizontalAlign 3 VerticalAlign 3 Padding 8 6 10 6 }
+       {
+        SizeLayoutWidgetClass "{DCA300000000000D}" {
+         Slot LayoutSlot "{DCA300000000000E}" { VerticalAlign 1 Padding 0 0 10 0 }
+         AllowWidthOverride 1
+         WidthOverride 104
+         AllowHeightOverride 1
+         HeightOverride 124
+         {
+          ItemPreviewWidgetClass "{DCA300000000000F}" {
+           Name "DCO_ArsSlotImg"
+           Slot AlignableSlot "{DCA3000000000010}" { HorizontalAlign 3 VerticalAlign 3 }
+           Filter Bilinear
+           Format LDR
+           "Use clear color" 1
+           "Clear Color" 0 0 0 0
+          }
+         }
+        }
+        VerticalLayoutWidgetClass "{DCA3000000000011}" {
+         Slot LayoutSlot "{DCA3000000000012}" { FillWeight 1 VerticalAlign 1 Padding 2 12 0 0 }
+         {
+          TextWidgetClass "{DCA3000000000013}" {
+           Name "DCO_ArsSlotLabel"
+           Slot LayoutSlot "{DCA3000000000014}" { HorizontalAlign 3 Padding 0 0 0 5 }
+           Text "SLOT"
+           Color 0.851 0.537 0.169 1
+           "Font Size" 14
+           "Min Font Size" 10
+          }
+          TextWidgetClass "{DCA3000000000015}" {
+           Name "DCO_ArsSlotName"
+           Slot LayoutSlot "{DCA3000000000016}" { FillWeight 1 HorizontalAlign 3 }
+           Text "EMPTY"
+           Color 0.88 0.91 0.94 1
+           "Font Size" 18
+           "Min Font Size" 11
+           Wrap 1
+          }
+          TextWidgetClass "{DCA3000000000017}" {
+           Slot LayoutSlot "{DCA3000000000018}" { HorizontalAlign 3 }
+           Text "SELECT TO EDIT  >"
+           Color 0.60 0.64 0.69 1
+           "Font Size" 11
+           "Min Font Size" 9
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

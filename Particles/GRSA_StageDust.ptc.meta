@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{83D4D0AFC6BC38F3}Particles/GRSA_StageDust.ptc"
+ Configurations {
+  PTCResourceClass PC {
+  }
+  PTCResourceClass XBOX_ONE : PC {
+  }
+  PTCResourceClass XBOX_SERIES : PC {
+  }
+  PTCResourceClass PS4 : PC {
+  }
+  PTCResourceClass PS5 : PC {
+  }
+  PTCResourceClass HEADLESS : PC {
+  }
+ }
+}

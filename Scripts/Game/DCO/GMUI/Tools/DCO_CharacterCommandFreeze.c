@@ -1,8 +1,7 @@
 class DCO_CharacterCommandFreeze : ScriptedCommand
 {
-	void DCO_CharacterCommandFreeze(BaseAnimPhysComponent pAnimPhysComponent, IEntity owner)
+	void DCO_CharacterCommandFreeze(BaseAnimPhysComponent pAnimPhysComponent)
 	{
-		m_Owner = owner;
 		CharacterAnimationComponent anim = CharacterAnimationComponent.Cast(pAnimPhysComponent);
 		if (anim)
 		{
@@ -43,15 +42,9 @@ class DCO_CharacterCommandFreeze : ScriptedCommand
 		PrePhys_SetTranslation(vector.Zero);
 	}
 
-	// Complete release from inside the command update; no transform is corrected after physics.
+	// Complete release from inside the command update.
 	override bool PostPhysUpdate(float pDt)
 	{
-		if (!m_bLoggedTick)
-		{
-			m_bLoggedTick = true;
-			Print("[DCO-GM] freeze command TICKING (root movement held)", LogLevel.NORMAL);
-		}
-
 		if (m_bFinish)
 		{
 			SetFlagFinished(true);
@@ -61,14 +54,12 @@ class DCO_CharacterCommandFreeze : ScriptedCommand
 		return true;
 	}
 
-	protected IEntity		m_Owner;
 	protected TAnimGraphVariable	m_vMovementSpeed = -1;
 	protected TAnimGraphVariable	m_vMovementDirection = -1;
 	protected bool			m_bFinish;
-	protected bool		m_bLoggedTick;
 }
 
-// Keeping the freeze INSTALLED — the half that SetCurrentCommand alone does NOT buy you.
+// Keeps the scripted freeze installed while it owns the current frame.
 modded class SCR_CharacterCommandHandlerComponent
 {
 	override bool SubhandlerStatesBegin(CharacterInputContext pInputCtx, float pDt, int pCurrentCommandID)
@@ -77,9 +68,8 @@ modded class SCR_CharacterCommandHandlerComponent
 		{
 			DCO_CharacterCommandFreeze frz = DCO_CharacterCommandFreeze.Cast(m_CharacterAnimComp.GetCommandScripted());
 			if (frz && frz.ShouldClaimFrame())
-				return true;	// the freeze owns this frame — do not let default selection evict it.
+				return true;	// Default command selection must not evict an active freeze.
 		}
-		// FALLTHROUGH IS `false`, NEVER `super` — see the class header.
 		return false;
 	}
 }

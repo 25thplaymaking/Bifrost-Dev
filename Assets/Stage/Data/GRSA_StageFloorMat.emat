@@ -1,0 +1,7 @@
+MatPBRBasic {
+ Color 0.03 0.03 0.033 1
+ CastShadow 1
+ ReceiveShadow 1
+ RoughnessScale 0.82
+ MetalnessScale 0
+}

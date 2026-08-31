@@ -239,7 +239,6 @@ class DCO_FpsMonitorServer
 			m_bPolling = true;
 			GetGame().GetCallqueue().CallLater(PollCycle, POLL_MS, true);
 			PollCycle();	// first cycle immediately - the GM shouldn't wait 8 s for the first numbers.
-			Print("[DCO-GM] FPS monitor: polling started (a GM subscribed)", LogLevel.NORMAL);
 		}
 	}
 
@@ -270,7 +269,6 @@ class DCO_FpsMonitorServer
 		{
 			GetGame().GetCallqueue().Remove(PollCycle);
 			m_bPolling = false;
-			Print("[DCO-GM] FPS monitor: polling stopped (no subscribers)", LogLevel.NORMAL);
 			return;
 		}
 

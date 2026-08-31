@@ -56,9 +56,6 @@ class DCO_GMPreciseBar
 		// Seed from the live state rather than assuming OFF, so a rebuilt GM UI matches whatever the gizmo holds.
 		OnPreciseChanged(DCO_GMGizmo.IsPreciseModeActive());
 
-		Print(string.Format("[DCO-GM] precise toolbar bound (group=%1 move=%2 rotate=%3 sim=%4 space=%5 snap=%6 surf=%7)",
-			m_wTools != null, m_btnMove != null, m_btnRotate != null, m_btnSim != null,
-			m_btnSpace != null, m_btnSnap != null, m_btnSurf != null), LogLevel.NORMAL);
 	}
 
 	protected ButtonWidget Bind(string name)

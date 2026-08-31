@@ -30,7 +30,6 @@ class DCO_GMGizmo
 	static void SetPreciseMode(bool on)
 	{
 		s_bPreciseMode = on;
-		Print(string.Format("[DCO-GM] precise mode=%1", on), LogLevel.NORMAL);
 		if (s_Inst)
 		{
 			if (on)
@@ -40,7 +39,7 @@ class DCO_GMGizmo
 			else
 			{
 				s_Inst.AbortDrag();	// dropping out of precise mode ends any active handle drag cleanly.
-				s_Inst.ReleasePin("precise off");
+				s_Inst.ReleasePin();
 			}
 		}
 		GetOnPreciseChanged().Invoke(on);
@@ -101,8 +100,6 @@ class DCO_GMGizmo
 	protected vector m_StartMat[4];	// target's world transform at grab.
 	protected float  m_GrabAngle;
 	protected bool   m_bGrabAngleOk;
-	protected bool   m_bWasRenderingTarget;
-	protected int    m_iLastNoTargetDiagAt;
 
 	static const float SCREEN_K = 0.14;
 	static const float VERT_MOTION_EPS = 0.3;
@@ -134,7 +131,7 @@ class DCO_GMGizmo
 			m_Render.GetOnRender().Remove(OnRender);
 		m_Render = null;
 		m_Target = null;
-		ReleasePin("gizmo stopped");
+		ReleasePin();
 		m_Hover = -1;
 		m_bDragging = false;
 		m_GrabHandle = -1;
@@ -146,6 +143,7 @@ class DCO_GMGizmo
 
 	SCR_EditableEntityComponent GetTarget() { return m_Target; }
 	bool IsDragging() { return m_bDragging; }
+	void CancelInteraction() { AbortDrag(); }
 
 	void SetPanel(DCO_GMGizmoPanel panel)
 	{
@@ -242,7 +240,7 @@ class DCO_GMGizmo
 	protected void ResolveTarget()
 	{
 		if (m_Pin && (!m_Pin.GetOwner() || m_Pin.IsDestroyed()))
-			ReleasePin("target gone");
+			ReleasePin();
 
 		if (m_Pin)
 		{
@@ -271,16 +269,14 @@ class DCO_GMGizmo
 			return;
 		m_Pin = e;
 		m_Target = e;
-		Print("[DCO-GM] precise pin SET " + e.GetDisplayName(), LogLevel.NORMAL);
 	}
 
 	// Drop the precise lock.
-	protected void ReleasePin(string reason)
+	protected void ReleasePin()
 	{
 		if (!m_Pin)
 			return;
 		m_Pin = null;
-		Print("[DCO-GM] precise pin RELEASED (" + reason + ")", LogLevel.NORMAL);
 	}
 
 	// Pin whatever the live selection is manipulating, used on precise-ENTER.
@@ -358,6 +354,8 @@ class DCO_GMGizmo
 	// LMB down: if the cursor is over a handle of the current target, begin a drag.
 	void OnLmbDown(float value, EActionTrigger reason)
 	{
+		if (DCO_GMUIController.IsNativePropertiesOpen())
+			return;
 		if (!s_bPreciseMode)
 			return;	// precise mode off -> gizmo is inert, engine drag owns the LMB.
 		if (!m_Target)
@@ -411,6 +409,11 @@ class DCO_GMGizmo
 	// LMB up: end the drag.
 	void OnLmbUp(float value, EActionTrigger reason)
 	{
+		if (DCO_GMUIController.IsNativePropertiesOpen())
+		{
+			AbortDrag();
+			return;
+		}
 		if (!m_bDragging)
 			return;
 		if (m_DragOwner && m_bHasDragTransform)
@@ -517,6 +520,8 @@ class DCO_GMGizmo
 
 	protected void OnRender(DCO_GMRenderManager r)
 	{
+		if (DCO_GMUIController.IsNativePropertiesOpen())
+			return;
 		if (!s_bPreciseMode)
 		{
 			PanelHide();	// arrows hidden -> the readout goes with them, leaving engine place/drag untouched.
@@ -527,13 +532,6 @@ class DCO_GMGizmo
 		if (!m_Target)
 		{
 			PanelHide();
-			int now = System.GetTickCount();
-			if (m_bWasRenderingTarget || now - m_iLastNoTargetDiagAt >= 5000)
-			{
-				Print("[DCO-GM] precise renderer waiting: select exactly one movable entity", LogLevel.NORMAL);
-				m_iLastNoTargetDiagAt = now;
-			}
-			m_bWasRenderingTarget = false;
 			return;
 		}
 		IEntity owner = m_Target.GetOwner();
@@ -542,10 +540,6 @@ class DCO_GMGizmo
 			PanelHide();
 			return;
 		}
-		if (!m_bWasRenderingTarget)
-			Print("[DCO-GM] precise renderer drawing target: " + m_Target.GetDisplayName(), LogLevel.NORMAL);
-		m_bWasRenderingTarget = true;
-
 		if (DCO_GMAttach.IsArmed())
 		{
 			PanelHide();

@@ -1,0 +1,300 @@
+OverlayWidgetClass "{AB21030000000001}" {
+ Name "GRSA_ScreenSoldier"
+ components {
+  GRSA_SoldierScreen "{AB21030000000002}" {
+  }
+ }
+ {
+  RenderTargetWidgetClass "{AB21030000000050}" {
+   Name "SoldierStageWorld"
+   Slot OverlayWidgetSlot "{AB21030000000051}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   "Inherit Color" 1
+   Format "LDR"
+   "Use clear color" 0
+   "Clear Color" 0 0 0 0
+  }
+  ItemPreviewWidgetClass "{AB21030000000006}" {
+   Name "SoldierStage"
+   Slot OverlayWidgetSlot "{AB21030000000007}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   "Use Engine Scale" 0
+   xscale 1
+   yscale 1
+   Filter Bilinear
+   Format LDR
+   "Use clear color" 0
+   "Clear Color" 0 0 0 0
+   "Blend mode" Blend
+  }
+  HorizontalLayoutWidgetClass "{AB21030000000008}" {
+   Name "SoldierColumns"
+   Slot OverlayWidgetSlot "{AB21030000000009}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   {
+    SizeLayoutWidgetClass "{AB2103000000000A}" {
+     Name "LeftRail"
+     Slot LayoutSlot "{AB2103000000000B}" {
+      VerticalAlign 3
+     }
+     "Is Visible" 0
+     AllowWidthOverride 1
+     WidthOverride 400
+     {
+      OverlayWidgetClass "{AB2103000000000C}" {
+       Name "LeftRailOverlay"
+       Slot LayoutSlot "{AB2103000000000D}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        ImageWidgetClass "{AB2103000000000E}" {
+         Name "LeftRailBg"
+         Slot OverlayWidgetSlot "{AB2103000000000F}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0.003 0.0033 0.0037 0.72
+        }
+        VerticalLayoutWidgetClass "{AB21030000000010}" {
+         Name "LeftColumn"
+         Slot OverlayWidgetSlot "{AB21030000000011}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 16 16 16 16
+         }
+         {
+          TextWidgetClass "{AB21030000000012}" {
+           Name "WeaponsHeader"
+           Slot LayoutSlot "{AB21030000000013}" {
+            HorizontalAlign 3
+            Padding 8 0 0 10
+           }
+            Color 0.72 0.76 0.81 1
+            Text "WEAPONS"
+            "Font Size" 16
+            "Min Font Size" 11
+           FontProperties FontProperties "{AB21030000000014}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          ScrollLayoutWidgetClass "{AB21030000000015}" {
+           Name "WeaponCardScroll"
+           Slot LayoutSlot "{AB21030000000016}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+            SizeMode Fill
+            FillWeight 1
+           }
+           components {
+            SCR_GamepadScrollComponent "{AB21030000000017}" {
+            }
+            GRSA_SmoothScrollComponent "{AB21030000000018}" {
+            }
+           }
+           style Small
+           {
+            VerticalLayoutWidgetClass "{AB21030000000019}" {
+             Name "WeaponCardList"
+             Slot AlignableSlot "{AB2103000000001A}" {
+              HorizontalAlign 3
+              VerticalAlign 0
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+    SizeLayoutWidgetClass "{AB2103000000001B}" {
+     Name "CenterSpacer"
+     Slot LayoutSlot "{AB2103000000001C}" {
+      SizeMode Fill
+      FillWeight 1
+     }
+    }
+    SizeLayoutWidgetClass "{AB2103000000001D}" {
+     Name "RightRail"
+     Slot LayoutSlot "{AB2103000000001E}" {
+      VerticalAlign 3
+     }
+     AllowWidthOverride 1
+     WidthOverride 400
+     {
+      OverlayWidgetClass "{AB2103000000001F}" {
+       Name "RightRailOverlay"
+       Slot LayoutSlot "{AB21030000000020}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        ImageWidgetClass "{AB21030000000021}" {
+         Name "RightRailBg"
+         Slot OverlayWidgetSlot "{AB21030000000022}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+         Color 0.003 0.0033 0.0037 0.72
+        }
+        VerticalLayoutWidgetClass "{AB21030000000023}" {
+         Name "RightColumn"
+         Slot OverlayWidgetSlot "{AB21030000000024}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 16 16 16 16
+         }
+         {
+          TextWidgetClass "{AB21030000000025}" {
+           Name "GearHeader"
+           Slot LayoutSlot "{AB21030000000026}" {
+            HorizontalAlign 3
+            Padding 8 0 0 10
+           }
+            Color 0.72 0.76 0.81 1
+            Text "GEAR"
+            "Font Size" 16
+            "Min Font Size" 11
+           FontProperties FontProperties "{AB21030000000027}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          ScrollLayoutWidgetClass "{AB21030000000028}" {
+           Name "GearCardScroll"
+           Slot LayoutSlot "{AB21030000000029}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+            SizeMode Fill
+            FillWeight 1
+           }
+           components {
+            SCR_GamepadScrollComponent "{AB2103000000002A}" {
+            }
+            GRSA_SmoothScrollComponent "{AB2103000000002B}" {
+            }
+           }
+           style Small
+           {
+            VerticalLayoutWidgetClass "{AB2103000000002C}" {
+             Name "GearCardList"
+             Slot AlignableSlot "{AB2103000000002D}" {
+              HorizontalAlign 3
+              VerticalAlign 0
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+  SizeLayoutWidgetClass "{AB2103000000002E}" {
+   Name "ItemListPanel"
+   Slot OverlayWidgetSlot "{AB2103000000002F}" {
+    HorizontalAlign 0
+    VerticalAlign 3
+   }
+   "Is Visible" 0
+   AllowWidthOverride 1
+   WidthOverride 400
+   {
+    OverlayWidgetClass "{AB21030000000030}" {
+     Name "ItemListOverlay"
+     Slot LayoutSlot "{AB21030000000031}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      ImageWidgetClass "{AB21030000000032}" {
+       Name "ItemListBg"
+       Slot OverlayWidgetSlot "{AB21030000000033}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.003 0.0033 0.0037 0.92
+      }
+      VerticalLayoutWidgetClass "{AB21030000000034}" {
+       Name "ItemListColumn"
+       Slot OverlayWidgetSlot "{AB21030000000035}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding 16 16 16 16
+       }
+       {
+        TextWidgetClass "{AB21030000000036}" {
+         Name "ItemListTitle"
+         Slot LayoutSlot "{AB21030000000037}" {
+          HorizontalAlign 3
+          Padding 8 0 0 8
+         }
+         Color 0.88 0.91 0.94 1
+         Text ""
+         "Font Size" 16
+         "Min Font Size" 13
+         FontProperties FontProperties "{AB21030000000038}" {
+          Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+         }
+        }
+        SizeLayoutWidgetClass "{AB21030000000039}" {
+         Name "SoldierSearchSize"
+         Slot LayoutSlot "{AB2103000000003A}" {
+          HorizontalAlign 3
+          Padding 0 0 0 8
+         }
+         AllowHeightOverride 1
+         HeightOverride 44
+         {
+          ButtonWidgetClass "{AB2103000000003B}" : "{0022F0B45ADBC5AC}UI/layouts/WidgetLibrary/EditBox/WLib_EditBox.layout" {
+           Name "SoldierSearchBox"
+           Slot LayoutSlot "{AB2103000000003C}" {
+            HorizontalAlign 3
+            VerticalAlign 1
+           }
+          }
+         }
+        }
+        ScrollLayoutWidgetClass "{AB2103000000003D}" {
+         Name "SoldierItemScroll"
+         Slot LayoutSlot "{AB2103000000003E}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          SizeMode Fill
+          FillWeight 1
+         }
+         components {
+          SCR_GamepadScrollComponent "{AB2103000000003F}" {
+          }
+          GRSA_SmoothScrollComponent "{AB21030000000040}" {
+          }
+         }
+         style Small
+         {
+          VerticalLayoutWidgetClass "{AB21030000000041}" {
+           Name "SoldierItemList"
+           Slot AlignableSlot "{AB21030000000042}" {
+            HorizontalAlign 3
+            VerticalAlign 0
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,11 @@
+MetaFileClass {
+ Name "{1BE5479343C2F85A}UI/layouts/DCO_ArsenalScreen.layout"
+ Configurations {
+  LayoutResourceClass PC {}
+  LayoutResourceClass XBOX_ONE : PC {}
+  LayoutResourceClass XBOX_SERIES : PC {}
+  LayoutResourceClass PS4 : PC {}
+  LayoutResourceClass PS5 : PC {}
+  LayoutResourceClass HEADLESS : PC {}
+ }
+}

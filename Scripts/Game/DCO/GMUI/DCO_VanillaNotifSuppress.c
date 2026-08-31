@@ -1,12 +1,19 @@
 modded class SCR_NotificationsLogComponent
 {
 	protected static bool s_bDCO_Suppress;
-	protected static ref array<SCR_NotificationsLogComponent> s_aDCO_Live = {};
+	protected static ref array<SCR_NotificationsLogComponent> s_aDCO_Live;
+
+	protected static array<SCR_NotificationsLogComponent> DCO_Live()
+	{
+		if (!s_aDCO_Live)
+			s_aDCO_Live = {};
+		return s_aDCO_Live;
+	}
 
 	static void DCO_SetSuppressed(bool suppress)
 	{
 		s_bDCO_Suppress = suppress;
-		foreach (SCR_NotificationsLogComponent component : s_aDCO_Live)
+		foreach (SCR_NotificationsLogComponent component : DCO_Live())
 		{
 			if (!component)
 				continue;
@@ -42,14 +49,14 @@ modded class SCR_NotificationsLogComponent
 	override void HandlerAttachedScripted(Widget w)
 	{
 		super.HandlerAttachedScripted(w);
-		if (s_aDCO_Live.Find(this) == -1)
-			s_aDCO_Live.Insert(this);
+		if (DCO_Live().Find(this) == -1)
+			DCO_Live().Insert(this);
 		DCO_ApplySuppression();
 	}
 
 	override void HandlerDeattached(Widget w)
 	{
-		s_aDCO_Live.RemoveItem(this);
+		DCO_Live().RemoveItem(this);
 		super.HandlerDeattached(w);
 	}
 }
@@ -58,14 +65,21 @@ modded class SCR_NotificationsLogComponent
 modded class SCR_NotificationsLogDisplay
 {
 	protected static bool s_bDCO_Suppress;
-	protected static ref array<SCR_NotificationsLogDisplay> s_aDCO_Live = {};
+	protected static ref array<SCR_NotificationsLogDisplay> s_aDCO_Live;
+
+	protected static array<SCR_NotificationsLogDisplay> DCO_Live()
+	{
+		if (!s_aDCO_Live)
+			s_aDCO_Live = {};
+		return s_aDCO_Live;
+	}
 
 	static void DCO_SetSuppressed(bool suppress)
 	{
 		if (s_bDCO_Suppress == suppress)
 			return;
 		s_bDCO_Suppress = suppress;
-		foreach (SCR_NotificationsLogDisplay d : s_aDCO_Live)
+		foreach (SCR_NotificationsLogDisplay d : DCO_Live())
 		{
 			if (!d)
 				continue;
@@ -79,15 +93,15 @@ modded class SCR_NotificationsLogDisplay
 	override void DisplayStartDraw(IEntity owner)
 	{
 		super.DisplayStartDraw(owner);
-		if (s_aDCO_Live.Find(this) == -1)
-			s_aDCO_Live.Insert(this);
+		if (DCO_Live().Find(this) == -1)
+			DCO_Live().Insert(this);
 		if (s_bDCO_Suppress)
 			Show(false);
 	}
 
 	override void DisplayStopDraw(IEntity owner)
 	{
-		s_aDCO_Live.RemoveItem(this);
+		DCO_Live().RemoveItem(this);
 		super.DisplayStopDraw(owner);
 	}
 

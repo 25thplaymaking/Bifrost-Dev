@@ -1,9 +1,21 @@
 // Hover feedback for the GM shell.
+class DCO_GMHoverState
+{
+	ref array<Widget> m_Buttons = {};
+	ref array<Widget> m_Labels = {};
+	ref array<bool> m_IsBg = {};
+}
+
 class DCO_GMHover
 {
-	protected static ref array<Widget> s_Buttons = {};	// registered hover roots.
-	protected static ref array<Widget> s_Labels  = {};
-	protected static ref array<bool>   s_IsBg    = {};	// true = that widget is a background plate, not text.
+	protected static ref DCO_GMHoverState s_State;
+
+	protected static DCO_GMHoverState State()
+	{
+		if (!s_State)
+			s_State = new DCO_GMHoverState();
+		return s_State;
+	}
 
 	protected static Widget s_Current;	// label currently tinted, or null.
 	protected static int    s_PrevColor;	// its colour before we touched it.
@@ -35,9 +47,9 @@ class DCO_GMHover
 		if (!target)
 			return;
 
-		s_Buttons.Insert(btn);
-		s_Labels.Insert(target);
-		s_IsBg.Insert(isBg);
+		State().m_Buttons.Insert(btn);
+		State().m_Labels.Insert(target);
+		State().m_IsBg.Insert(isBg);
 	}
 
 	static void WirePool(Widget root, string buttonFmt, string targetFmt, int from, int count)
@@ -48,7 +60,7 @@ class DCO_GMHover
 
 	static int Count()
 	{
-		return s_Buttons.Count();
+		return State().m_Buttons.Count();
 	}
 
 	static void Start()
@@ -61,9 +73,9 @@ class DCO_GMHover
 	{
 		GetGame().GetCallqueue().Remove(Tick);
 		Restore();
-		s_Buttons.Clear();
-		s_Labels.Clear();
-		s_IsBg.Clear();
+		State().m_Buttons.Clear();
+		State().m_Labels.Clear();
+		State().m_IsBg.Clear();
 	}
 
 	protected static void Restore()
@@ -76,7 +88,7 @@ class DCO_GMHover
 
 	protected static void Tick()
 	{
-		if (s_Buttons.IsEmpty())
+		if (State().m_Buttons.IsEmpty())
 			return;
 
 		Widget hit = WidgetManager.GetWidgetUnderCursor();
@@ -87,11 +99,11 @@ class DCO_GMHover
 		int hops = 0;
 		while (hit && hops < MAX_CLIMB)
 		{
-			int idx = s_Buttons.Find(hit);
+			int idx = State().m_Buttons.Find(hit);
 			if (idx != -1)
 			{
-				label  = s_Labels[idx];
-				bgMode = s_IsBg[idx];
+				label  = State().m_Labels[idx];
+				bgMode = State().m_IsBg[idx];
 				break;
 			}
 			hit = hit.GetParent();

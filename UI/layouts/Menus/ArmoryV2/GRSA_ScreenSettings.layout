@@ -1,0 +1,122 @@
+OverlayWidgetClass "{AB21060000000001}" {
+ Name "GRSA_ScreenSettings"
+ components {
+  GRSA_SettingsScreen "{AB21060000000002}" {
+  }
+ }
+ {
+  SizeLayoutWidgetClass "{AB21060000000006}" {
+   Name "SettingsPanelSize"
+   Slot OverlayWidgetSlot "{AB21060000000007}" {
+    HorizontalAlign 1
+    VerticalAlign 3
+   }
+   AllowWidthOverride 1
+   WidthOverride 680
+   {
+    OverlayWidgetClass "{AB21060000000008}" {
+     Name "SettingsPanel"
+     Slot LayoutSlot "{AB21060000000009}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      ImageWidgetClass "{AB2106000000000A}" {
+       Name "SettingsBg"
+       Slot OverlayWidgetSlot "{AB2106000000000B}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.003 0.0033 0.0037 0.72
+      }
+      VerticalLayoutWidgetClass "{AB2106000000000C}" {
+       Name "SettingsList"
+       Slot OverlayWidgetSlot "{AB2106000000000D}" {
+        HorizontalAlign 3
+        VerticalAlign 0
+        Padding 32 32 32 32
+       }
+       {
+        ButtonWidgetClass "{AB2106000000000E}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+         Name "SettingApplyOnClose"
+         Slot LayoutSlot "{AB2106000000000F}" {
+          HorizontalAlign 3
+          Padding 0 8 0 0
+         }
+         components {
+          SCR_SpinBoxComponent "{5472C6CBC0640458}" {
+           m_sLabel "APPLY CHANGES ON CLOSE"
+          }
+         }
+        }
+        ButtonWidgetClass "{AB21060000000013}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+         Name "SettingOrbitSensitivity"
+         Slot LayoutSlot "{AB21060000000014}" {
+          HorizontalAlign 3
+          Padding 0 8 0 0
+         }
+         components {
+          SCR_SpinBoxComponent "{AB21060000000015}" {
+            m_sLabel "ROTATION SENSITIVITY"
+          }
+         }
+        }
+        ButtonWidgetClass "{AB21060000000016}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+         Name "SettingStudioLighting"
+         Slot LayoutSlot "{AB21060000000017}" {
+          HorizontalAlign 3
+          Padding 0 8 0 0
+         }
+         components {
+          SCR_SpinBoxComponent "{AB21060000000018}" {
+           m_sLabel "STUDIO LIGHTING"
+          }
+         }
+        }
+        ButtonWidgetClass "{AB21060000000019}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+         Name "SettingStudioBrightness"
+         Slot LayoutSlot "{AB2106000000001A}" {
+          HorizontalAlign 3
+          Padding 0 8 0 0
+         }
+         components {
+          SCR_SpinBoxComponent "{AB2106000000001B}" {
+           m_sLabel "STUDIO BRIGHTNESS"
+          }
+         }
+        }
+        ButtonWidgetClass "{AB2106000000001C}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+         Name "SettingStudioRearFill"
+         Slot LayoutSlot "{AB2106000000001D}" {
+          HorizontalAlign 3
+          Padding 0 8 0 0
+         }
+         components {
+          SCR_SpinBoxComponent "{AB2106000000001E}" {
+           m_sLabel "REAR FILL LIGHT"
+          }
+         }
+        }
+        TextWidgetClass "{AB21060000000010}" {
+         Name "ApplyHelpText"
+         Slot LayoutSlot "{AB21060000000011}" {
+          HorizontalAlign 3
+          Padding 0 24 0 0
+         }
+         Color 0.55 0.56 0.58 1
+         Text "Lighting changes appear immediately. Select WEAR to put the chosen equipment on your character. Drag to rotate and use the mouse wheel to zoom."
+         "Font Size" 14
+         "Min Font Size" 12
+         Wrap 1
+         FontProperties FontProperties "{AB21060000000012}" {
+          Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

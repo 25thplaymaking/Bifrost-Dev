@@ -10,9 +10,9 @@ class DCO_App6Icons
 		if (type == EEditableEntityType.CHARACTER)
 		{
 			string roleTok = RoleTokenFromLabels(labels, name);
-			ResourceName r = DCO_App6Roles.Get(affil + "_" + roleTok);
+			ResourceName r = DCO_App6Roles.Get(roleTok);
 			if (r.IsEmpty())
-				r = DCO_App6Roles.Get(affil + "_RIFLE");	// fallback to the generic rifleman pictogram.
+				r = DCO_App6Roles.Get("RIFLE");	// fallback to the native generic rifleman glyph.
 			return r;
 		}
 

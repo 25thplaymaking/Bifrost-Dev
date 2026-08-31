@@ -43,7 +43,7 @@ class DCO_FxExplosionSizeEditorAttribute : DCO_FxExplosionAttributeBase
 
 	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
 	{
-		foreach (string name : DCO_FxExplosionComponent.SIZE_NAMES)
+		foreach (string name : DCO_FxExplosionComponent.DCO_GetSizeNames())
 			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(name));
 		return outEntries.Count();
 	}
@@ -167,7 +167,7 @@ class DCO_FxExplosionFiringEditorAttribute : DCO_FxExplosionLiveEditorAttribute
 			return;
 		DCO_FxExplosionComponent fx = GetEmitter(item);
 		if (fx && fx.DCO_IsFiring() != var.GetBool())
-			fx.DCO_SetFiring(var.GetBool());	// edge-only: a Yes -> Yes rewrite would cancel and restart the in-progress barrage.
+			fx.DCO_CommitFiringAfterAttributes(var.GetBool());
 	}
 }
 
@@ -198,7 +198,7 @@ class DCO_FxDeliveryAttributeBase : DCO_FxExplosionAttributeBase
 		array<int> allowed = {};
 		DCO_FxExplosionComponent.DCO_FamilyDeliveries(DCO_Family(), allowed);
 		foreach (int ordinal : allowed)
-			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(DCO_FxExplosionComponent.DELIVERY_NAMES[ordinal]));
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(DCO_FxExplosionComponent.DCO_GetDeliveryName(ordinal)));
 		return outEntries.Count();
 	}
 }
@@ -312,7 +312,7 @@ class DCO_FxTargetTypeEditorAttribute : DCO_FxExplosionAttributeBase
 
 	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
 	{
-		foreach (string name : DCO_FxExplosionComponent.TARGET_TYPE_NAMES)
+		foreach (string name : DCO_FxExplosionComponent.DCO_GetTargetTypeNames())
 			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(name));
 		return outEntries.Count();
 	}

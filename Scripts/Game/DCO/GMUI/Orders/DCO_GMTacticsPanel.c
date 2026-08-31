@@ -101,13 +101,12 @@ class DCO_GMTacticsPanel
 		m_btnSpring   = ButtonWidget.Cast(shellRoot.FindAnyWidget("DCO_TacticsSpring"));
 		m_btnRearm    = ButtonWidget.Cast(shellRoot.FindAnyWidget("DCO_TacticsRearm"));
 
-		int buttons = 0;
-		buttons += BindBtn("DCO_TacticsClose", BTN_CLOSE);
-		buttons += BindBtn("DCO_TacticsSpring", BTN_SPRING);
-		buttons += BindBtn("DCO_TacticsRearm", BTN_REARM);
-		buttons += BindBtn("DCO_TacPair_Minus", BTN_PAIR_MINUS);
-		buttons += BindBtn("DCO_TacPair_Plus", BTN_PAIR_PLUS);
-		buttons += BindBtn("DCO_TacSend_Pill", BTN_SEND);
+		BindBtn("DCO_TacticsClose", BTN_CLOSE);
+		BindBtn("DCO_TacticsSpring", BTN_SPRING);
+		BindBtn("DCO_TacticsRearm", BTN_REARM);
+		BindBtn("DCO_TacPair_Minus", BTN_PAIR_MINUS);
+		BindBtn("DCO_TacPair_Plus", BTN_PAIR_PLUS);
+		BindBtn("DCO_TacSend_Pill", BTN_SEND);
 
 		m_RadiusSlider.Init(shellRoot, "DCO_TacRadius_Track", "DCO_TacRadius_Fill", "DCO_TacRadius_Value", 5, 500, 50, " m");
 		m_RadiusSlider.GetOnChange().Insert(OnRadiusChanged);
@@ -117,23 +116,18 @@ class DCO_GMTacticsPanel
 		if (m_wPanel)
 			m_wPanel.SetVisible(false);
 		m_bOpen = false;
-
-		Print(string.Format("[DCO-GM] tactics panel bound (panel=%1 title=%2 rows R/Rg/P/S=%3/%4/%5/%6 buttons=%7/6)",
-			m_wPanel != null, m_wTitle != null, m_wRadiusRow != null, m_wRangeRow != null, m_wPairRow != null,
-			m_wSendRow != null, buttons), LogLevel.NORMAL);
 	}
 
-	protected int BindBtn(string name, int id)
+	protected void BindBtn(string name, int id)
 	{
 		if (!m_wRoot)
-			return 0;
+			return;
 		ButtonWidget b = ButtonWidget.Cast(m_wRoot.FindAnyWidget(name));
 		if (!b)
-			return 0;
+			return;
 		DCO_TacBtnHandler h = new DCO_TacBtnHandler(this, id);
 		b.AddHandler(h);
 		m_Handlers.Insert(h);
-		return 1;
 	}
 
 	bool IsOpen()
@@ -250,7 +244,6 @@ class DCO_GMTacticsPanel
 			IEntity zoneEnt = m_Zone.GetOwner();
 			if (zoneEnt)
 			{
-				int sent = 0;
 				foreach (SCR_EditableEntityComponent g : m_Groups)
 				{
 					if (!g)
@@ -259,9 +252,7 @@ class DCO_GMTacticsPanel
 					if (!groupEnt)
 						continue;
 					DCO_GMToolsServer.Route(DCO_GMToolsServer.TOOL_SENDGROUP, groupEnt, zoneEnt.GetOrigin());
-					sent++;
 				}
-				Print(string.Format("[DCO-GM] tactics panel: send-group committed on close (%1 group(s))", sent), LogLevel.NORMAL);
 			}
 		}
 		SetOpen(false);

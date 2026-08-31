@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{3B8D42E90A176C54}UI/layouts/Menus/Armory/GRSA_KitEmptySlot.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass PS5 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

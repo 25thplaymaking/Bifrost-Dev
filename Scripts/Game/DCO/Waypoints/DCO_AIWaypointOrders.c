@@ -13,6 +13,12 @@ modded class SCR_AIWaypoint
 	[RplProp()]
 	protected int m_iDCOApproach = EDCO_WaypointApproach.NATIVE;
 
+	// AIWaypoint's engine-owned completion radius is not available as a script
+	// RplProp. Mirror it so remote GMs and JIP clients drive the native white
+	// completion circle and the server's arrival test from the same value.
+	[RplProp(onRplName: "DCO_OnCompletionRadiusReplicated")]
+	protected float m_fDCOCompletionRadius = -1;
+
 	int DCO_GetApproach()
 	{
 		return m_iDCOApproach;
@@ -29,6 +35,44 @@ modded class SCR_AIWaypoint
 			Replication.BumpMe();
 
 		GetOnWaypointPropertiesChanged().Invoke();
+	}
+
+	float DCO_GetCompletionRadius()
+	{
+		if (m_fDCOCompletionRadius >= 1)
+			return m_fDCOCompletionRadius;
+		return GetCompletionRadius();
+	}
+
+	void DCO_SetCompletionRadius(float radius)
+	{
+		radius = Math.Clamp(radius, 1, 500);
+		if (m_fDCOCompletionRadius == radius && GetCompletionRadius() == radius)
+			return;
+
+		m_fDCOCompletionRadius = radius;
+		SetCompletionRadius(radius);
+		if (Replication.IsServer())
+			Replication.BumpMe();
+
+		GetOnWaypointPropertiesChanged().Invoke();
+		DCO_RefreshCompletionCircle();
+	}
+
+	protected void DCO_OnCompletionRadiusReplicated()
+	{
+		if (m_fDCOCompletionRadius < 1)
+			return;
+		SetCompletionRadius(m_fDCOCompletionRadius);
+		GetOnWaypointPropertiesChanged().Invoke();
+		DCO_RefreshCompletionCircle();
+	}
+
+	protected void DCO_RefreshCompletionCircle()
+	{
+		SCR_WaypointAreaMeshComponent circle = SCR_WaypointAreaMeshComponent.Cast(FindComponent(SCR_WaypointAreaMeshComponent));
+		if (circle)
+			circle.GenerateAreaMesh();
 	}
 }
 
@@ -53,7 +97,7 @@ class DCO_AIWaypointRadiusEditorAttribute : DCO_ServerValueListEditorAttribute
 		if (!waypoint)
 			return null;
 
-		return SCR_BaseEditorAttributeVar.CreateFloat(waypoint.GetCompletionRadius());
+		return SCR_BaseEditorAttributeVar.CreateFloat(waypoint.DCO_GetCompletionRadius());
 	}
 
 	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
@@ -65,10 +109,7 @@ class DCO_AIWaypointRadiusEditorAttribute : DCO_ServerValueListEditorAttribute
 		if (!waypoint)
 			return;
 
-		waypoint.SetCompletionRadius(Math.Clamp(var.GetFloat(), 1, 500));
-		if (Replication.IsServer())
-			Replication.BumpMe();
-		waypoint.GetOnWaypointPropertiesChanged().Invoke();
+		waypoint.DCO_SetCompletionRadius(var.GetFloat());
 	}
 }
 

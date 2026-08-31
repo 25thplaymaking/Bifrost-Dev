@@ -10,6 +10,7 @@ class DCO_GMUnitActions
 	static const int ACT_CREATE_LAYER = 6;
 	static const int ACT_ARSENAL = 7;	// Open the existing Bifrost Arsenal for a character.
 	static const int ACT_RESTOCK = 8;
+	static const int ACT_MARK_TELEPORT = 9;
 
 	protected SCR_EditableEntityComponent m_FollowTarget;
 
@@ -26,13 +27,18 @@ class DCO_GMUnitActions
 			case ACT_ARSENAL:
 			{
 				if (e.GetOwner() && !e.IsDestroyed())
-					DCO_GMArsenalPanel.Get().OpenFor(e);
+					DCO_GRSArmoryBridge.OpenForGameMaster(e.GetOwner());
 				break;
 			}
 			case ACT_RESTOCK:
 			{
 				if (e.GetOwner() && !e.IsDestroyed())
 					DCO_ArsenalServer.Route(DCO_ArsenalServer.VERB_RESTOCK, e.GetOwner(), "");
+				break;
+			}
+			case ACT_MARK_TELEPORT:
+			{
+				DCO_GMTools.Get().MarkForTeleport(e);
 				break;
 			}
 		}

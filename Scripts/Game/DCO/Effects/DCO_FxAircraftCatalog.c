@@ -76,7 +76,6 @@ class DCO_FxAircraftCatalog
 				InsertSorted(prefab, name);
 			}
 		}
-		Print(string.Format("[DCO-FX] aircraft catalog: %1 helicopter(s) discovered", s_aPrefabs.Count()), LogLevel.NORMAL);
 	}
 
 	static int Count()

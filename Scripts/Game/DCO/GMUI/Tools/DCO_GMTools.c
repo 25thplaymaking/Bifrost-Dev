@@ -1,11 +1,4 @@
 
-class DCO_GMTrigger
-{
-	vector m_Pos;
-	float  m_Radius;
-	bool   m_Fired;
-}
-
 class DCO_GMFlyby
 {
 	IEntity m_Entity;
@@ -25,10 +18,6 @@ class DCO_GMTools
 
 	protected ref array<IEntity> m_HiddenTerrain = {};	// currently-hidden entities, for restore.
 	protected ref array<IEntity> m_QueryBuf = {};	// QueryEntitiesBySphere collect buffer.
-	protected ref array<ref Shape> m_Tracers = {};
-	protected ref array<ref DCO_GMTrigger> m_Triggers = {};	// placed trigger zones.
-	protected int m_TriggerCharCount;	// scratch for the trigger character-count query.
-	protected bool m_TriggerTickOn;	// true while the trigger evaluation tick is running.
 	protected int m_FpsFrames;	// frame counter for the 1-second FPS measurement.
 	protected ref array<IEntity> m_HiddenUnits = {};
 	protected IEntity m_TeleportMark;
@@ -39,7 +28,7 @@ class DCO_GMTools
 	protected ref map<IEntity, bool> m_AIOnConfirmed = new map<IEntity, bool>();
 	protected ref map<IEntity, int> m_SavedLayers = new map<IEntity, int>();	// original physics interaction masks.
 
-	// Live mannequin-freeze commands, keyed by the character they are pinning.
+	// Full-body freeze commands keyed by their character.
 	protected ref map<IEntity, ref DCO_CharacterCommandFreeze> m_FreezeCmds = new map<IEntity, ref DCO_CharacterCommandFreeze>();
 
 	protected ref map<IEntity, bool> m_MannequinFrozen = new map<IEntity, bool>();
@@ -92,7 +81,6 @@ class DCO_GMTools
 	protected bool m_FlybyTickOn;	// true while the flyby mover tick is running.
 
 	static const float HIDE_RADIUS = 35.0;
-	static const float TRIGGER_RADIUS = 20.0;
 
 	void HideTerrainAt(vector pos)
 	{
@@ -170,11 +158,6 @@ class DCO_GMTools
 		fx.DCO_SetFiring(!fx.DCO_IsFiring());
 	}
 
-	protected void ClearTracers()
-	{
-		m_Tracers.Clear();	// dropping the ref Shapes removes them from the render.
-	}
-
 	void PlaceMarkerAt(vector pos)
 	{
 		SCR_MapMarkerManagerComponent mgr = SCR_MapMarkerManagerComponent.GetInstance();
@@ -196,69 +179,36 @@ class DCO_GMTools
 		Print(string.Format("[DCO-GM] placed map marker at world (%1, %2)", wx, wy), LogLevel.NORMAL);
 	}
 
-	// TRIGGERS: place a trigger zone at the cursor.
 	void PlaceTriggerAt(vector pos)
 	{
-		DCO_GMTrigger t = new DCO_GMTrigger();
-		t.m_Pos = pos;
-		t.m_Radius = TRIGGER_RADIUS;
-		t.m_Fired = false;
-		m_Triggers.Insert(t);
-		if (!m_TriggerTickOn)
+		if (Replication.IsServer())
 		{
-			m_TriggerTickOn = true;
-			GetGame().GetCallqueue().CallLater(TriggerTick, 500, true);	// 2 Hz evaluation.
-		}
-		Print(string.Format("[DCO-GM] trigger placed at %1 (r=%2 m); %3 active", pos, TRIGGER_RADIUS, m_Triggers.Count()), LogLevel.NORMAL);
-	}
-
-	protected void TriggerTick()
-	{
-		BaseWorld world = GetGame().GetWorld();
-		if (!world)
-			return;
-		int live = 0;
-		foreach (DCO_GMTrigger t : m_Triggers)
-		{
-			if (!t || t.m_Fired)
-				continue;
-			live++;
-			m_TriggerCharCount = 0;
-			world.QueryEntitiesBySphere(t.m_Pos, t.m_Radius, CountChars);
-			if (m_TriggerCharCount > 0)
+			SCR_PlayerController localController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+			if (!localController || !DCO_GMRights.Allow(localController.GetPlayerId(), "trigger placement"))
 			{
-				t.m_Fired = true;
-				FireTrigger(t);
+				OnTriggerPlacementResult(false, "Trigger placement refused: Game Master rights required.");
+				return;
 			}
+			string result;
+			bool success = DCO_TriggerPlacementServer.Apply(pos, result);
+			OnTriggerPlacementResult(success, result);
+			return;
 		}
-		if (live == 0)	// nothing left to evaluate -> stop the tick.
+		SCR_PlayerController controller = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		if (!controller)
 		{
-			GetGame().GetCallqueue().Remove(TriggerTick);
-			m_TriggerTickOn = false;
+			OnTriggerPlacementResult(false, "Trigger placement failed: no local player controller.");
+			return;
 		}
+		controller.DCO_SendTriggerPlacement(pos);
 	}
 
-	protected bool CountChars(IEntity e)
+	void OnTriggerPlacementResult(bool success, string result)
 	{
-		if (e && ChimeraCharacter.Cast(e))
-			m_TriggerCharCount++;
-		return true;
-	}
-
-	protected void FireTrigger(DCO_GMTrigger t)
-	{
-		PlaceMarkerAt(t.m_Pos);	// mark it on the map so the GM sees which trigger tripped.
-		vector p[2];
-		p[0] = t.m_Pos + Vector(0, 0.5, 0);
-		p[1] = t.m_Pos + Vector(0, 12.0, 0);	// a vertical beam pulse.
-		Shape pulse = Shape.CreateLines(0xFF40E020, ShapeFlags.NOZBUFFER, p, 2);	// green.
-		if (pulse)
-		{
-			m_Tracers.Insert(pulse);
-			GetGame().GetCallqueue().Remove(ClearTracers);
-			GetGame().GetCallqueue().CallLater(ClearTracers, 3000, false);
-		}
-		Print(string.Format("[DCO-GM] TRIGGER FIRED at %1 (character entered)", t.m_Pos), LogLevel.NORMAL);
+		LogLevel level = LogLevel.WARNING;
+		if (success)
+			level = LogLevel.NORMAL;
+		Print("[DCO-TRIGGER] " + result, level);
 	}
 
 	void ToggleInvuln(SCR_EditableEntityComponent e)
@@ -394,7 +344,7 @@ class DCO_GMTools
 			if (frozenAnim)
 				frozenAnim.PhysicsEnableGravity(false);
 
-			InstallFreezeCommand(owner);	// layer 3 - the one that actually holds the BODY still.
+			InstallFreezeCommand(owner);
 			Print("[DCO-GM] ai toggled: OFF (MAX LOD + brain off + body pinned by freeze command)", LogLevel.NORMAL);
 			return;
 		}
@@ -423,7 +373,7 @@ class DCO_GMTools
 
 		CharacterAnimationComponent anim = CharacterAnimationComponent.Cast(owner.FindComponent(CharacterAnimationComponent));
 		if (!anim)
-			return;	// not a character - the brain+LOD half above is the whole freeze for a non-character agent.
+			return;	// Non-character agents only need their AI and LOD state changed.
 
 		// Stops movement without client-only simulation controls.
 		CharacterControllerComponent mcc = CharacterControllerComponent.Cast(owner.FindComponent(CharacterControllerComponent));
@@ -436,7 +386,7 @@ class DCO_GMTools
 			ph.SetAngularVelocity(vector.Zero);
 		}
 
-		DCO_CharacterCommandFreeze cmd = new DCO_CharacterCommandFreeze(anim, owner);
+		DCO_CharacterCommandFreeze cmd = new DCO_CharacterCommandFreeze(anim);
 		anim.SetCurrentCommand(cmd);
 		m_FreezeCmds.Insert(owner, cmd);
 	}
@@ -484,7 +434,7 @@ class DCO_GMTools
 
 		handler.CancelItemUse();	// drops a frozen-open map / gadget.
 
-		// Guarantee a LIVE full-body command.
+		// Restore a usable full-body command after releasing the freeze.
 		if (!handler.GetCommandVehicle())
 			handler.StartCommand_Move();
 	}
@@ -494,7 +444,7 @@ class DCO_GMTools
 		m_RetiringFreeze.Clear();
 	}
 
-	// Bump an entity's re-freeze sequence: any RefreezeAfterStance already queued for THIS entity is now stale.
+	// Supersede queued re-freezes for this entity.
 	protected int BumpRefreezeSeq(IEntity owner)
 	{
 		int seq = 0;
@@ -504,7 +454,7 @@ class DCO_GMTools
 		return seq;
 	}
 
-	// The same per-entity supersede for the stance-retry tick.
+	// Supersede queued stance retries for this entity.
 	protected int BumpStanceSeq(IEntity owner)
 	{
 		int seq = 0;
@@ -527,7 +477,6 @@ class DCO_GMTools
 		if (!ctrl || ctrl.IsAIActivated())
 			return;
 		InstallFreezeCommand(owner);
-		Print("[DCO-GM] freeze re-applied after stance transition", LogLevel.NORMAL);
 	}
 
 	// Tell a frozen unit's pin to follow the body to its new transform.

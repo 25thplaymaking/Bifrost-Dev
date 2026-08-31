@@ -35,7 +35,6 @@ class DCO_GMCommandOrders
 				m_Commands.Insert(a);
 		}
 		m_bBuilt = true;
-		Print(string.Format("[DCO-GM] command import: %1 native commands available", m_Commands.Count()), LogLevel.NORMAL);
 	}
 
 	protected int CategoryOf(SCR_BaseCommandAction cmd)
@@ -45,6 +44,22 @@ class DCO_GMCommandOrders
 		if (SCR_TaskBaseCommandAction.Cast(cmd))
 			return CAT_OBJECTIVES;
 		return CAT_SPAWN;
+	}
+
+	protected string DisplayNameOf(SCR_BaseCommandAction cmd)
+	{
+		SCR_UIInfo info = cmd.GetInfo();
+		LocalizedString authoredName;
+		if (info)
+			authoredName = info.GetName();
+
+		string label = DCO_GMDisplayName.Resolve(authoredName, cmd.GetCommandPrefab(), "Command");
+		string waypointPrefix = "E AIWaypoint ";
+		if (label.IndexOf(waypointPrefix) == 0)
+			label = label.Substring(waypointPrefix.Length(), label.Length() - waypointPrefix.Length());
+		if (label == "Artillery Support")
+			return "Artillery fire";
+		return label;
 	}
 
 	void BuildCategoryOptions(int catId, out notnull array<string> labels, out notnull array<int> ids)
@@ -59,11 +74,7 @@ class DCO_GMCommandOrders
 				continue;
 			if (CategoryOf(cmd) != catId)
 				continue;
-			string label = "Command";
-			SCR_UIInfo info = cmd.GetInfo();
-			if (info && !info.GetName().IsEmpty())
-				label = info.GetName();
-			labels.Insert(label);
+			labels.Insert(DisplayNameOf(cmd));
 			ids.Insert(CMD_ID_BASE + i);
 		}
 	}

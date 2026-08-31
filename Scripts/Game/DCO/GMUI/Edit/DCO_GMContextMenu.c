@@ -34,8 +34,10 @@ class DCO_GMContextMenu
 {
 	static const int SLOTS = 18;
 	static const float EDGE_GAP = 8;
-	static const float FALLBACK_WIDTH = 260;
+	static const float FALLBACK_WIDTH = 404;
 	static const float FALLBACK_ROW_HEIGHT = 36;
+	static const int MAX_TITLE_CHARS = 34;
+	static const int MAX_LABEL_CHARS = 54;
 
 	protected Widget m_wRoot;
 	protected Widget m_wMenu;
@@ -45,7 +47,10 @@ class DCO_GMContextMenu
 	protected ref array<TextWidget> m_Labels = {};
 	protected ref array<int> m_ActionIds = {};
 	protected TextWidget m_wTitle;
+	protected TextWidget m_wSubtitle;
+	protected TextWidget m_wFooter;
 	protected int m_iVisibleItems;
+	protected int m_iSelectedId = -1;
 	protected float m_fAnchorX;
 	protected float m_fAnchorY;
 	protected float m_fAnchorW;
@@ -69,6 +74,8 @@ class DCO_GMContextMenu
 		}
 		m_Handler = new DCO_ContextMenuHandler(this);
 		m_wTitle = TextWidget.Cast(m_wMenu.FindAnyWidget("DCO_MenuTitle"));
+		m_wSubtitle = TextWidget.Cast(m_wMenu.FindAnyWidget("DCO_MenuSubtitle"));
+		m_wFooter = TextWidget.Cast(m_wMenu.FindAnyWidget("DCO_MenuFooter"));
 		for (int i = 0; i < SLOTS; i++)
 		{
 			ButtonWidget b = ButtonWidget.Cast(m_wMenu.FindAnyWidget(string.Format("DCO_Menu_%1", i)));
@@ -91,7 +98,17 @@ class DCO_GMContextMenu
 
 	void Show(notnull array<string> labels, notnull array<int> ids, int x, int y, ScriptInvoker onAction, SCR_EditableEntityComponent e)
 	{
-		ShowInternal(labels, ids, x, y, 0, 0, false, null, "ACTIONS", onAction, e);
+		ShowInternal(labels, ids, x, y, 0, 0, false, null, "ACTIONS", "Choose an action", -1, onAction, e);
+	}
+
+	void ShowTitled(notnull array<string> labels, notnull array<int> ids, int x, int y, string title, ScriptInvoker onAction, SCR_EditableEntityComponent e)
+	{
+		ShowInternal(labels, ids, x, y, 0, 0, false, null, title, "Choose an option", -1, onAction, e);
+	}
+
+	void ShowTitledDetailed(notnull array<string> labels, notnull array<int> ids, int x, int y, string title, string subtitle, int selectedId, ScriptInvoker onAction, SCR_EditableEntityComponent e)
+	{
+		ShowInternal(labels, ids, x, y, 0, 0, false, null, title, subtitle, selectedId, onAction, e);
 	}
 
 	// Open a dropdown beside a source panel.
@@ -102,11 +119,11 @@ class DCO_GMContextMenu
 		float x, y, w, h;
 		anchor.GetScreenPos(x, y);
 		anchor.GetScreenSize(w, h);
-		ShowInternal(labels, ids, x, y, w, h, true, avoidPanel, title, onAction, e);
+		ShowInternal(labels, ids, x, y, w, h, true, avoidPanel, title, "Choose an option", -1, onAction, e);
 	}
 
 	// Populate first, then measure and place.
-	protected void ShowInternal(notnull array<string> labels, notnull array<int> ids, float x, float y, float anchorW, float anchorH, bool adjacent, Widget avoidPanel, string title, ScriptInvoker onAction, SCR_EditableEntityComponent e)
+	protected void ShowInternal(notnull array<string> labels, notnull array<int> ids, float x, float y, float anchorW, float anchorH, bool adjacent, Widget avoidPanel, string title, string subtitle, int selectedId, ScriptInvoker onAction, SCR_EditableEntityComponent e)
 	{
 		if (!m_wMenu)
 			return;
@@ -114,10 +131,15 @@ class DCO_GMContextMenu
 		m_Entity = e;
 		m_ActionIds.Clear();
 		m_iVisibleItems = Math.Min(labels.Count(), SLOTS);
+		m_iSelectedId = selectedId;
 		m_bAdjacent = adjacent;
 		m_wAvoidPanel = avoidPanel;
 		if (m_wTitle)
-			m_wTitle.SetText(title);
+			m_wTitle.SetText(BoundText(title, MAX_TITLE_CHARS));
+		if (m_wSubtitle)
+			m_wSubtitle.SetText(BoundText(subtitle, MAX_LABEL_CHARS));
+		if (m_wFooter)
+			m_wFooter.SetText(string.Format("%1 OPTIONS  ·  CLICK TO APPLY  ·  ESC TO CLOSE", m_iVisibleItems));
 
 		int n = labels.Count();
 		if (n > SLOTS)
@@ -130,8 +152,14 @@ class DCO_GMContextMenu
 			{
 				if (lbl)
 				{
-					lbl.SetText(labels[i]);
-					lbl.SetColor(ColorForId(ids[i]));	// Bifrost GM colour-coding of the order rows.
+					string rowLabel = string.Format("%1  ·  %2", i + 1, labels[i]);
+					if (ids[i] == m_iSelectedId)
+						rowLabel = rowLabel + "  ·  SELECTED";
+					lbl.SetText(BoundText(rowLabel, MAX_LABEL_CHARS));
+					if (ids[i] == m_iSelectedId)
+						lbl.SetColor(DCO_GMTheme.Get().m_AccentColor);
+					else
+						lbl.SetColor(ColorForId(ids[i]));
 				}
 				if (b)
 					b.SetVisible(true);
@@ -165,6 +193,13 @@ class DCO_GMContextMenu
 		GetGame().GetCallqueue().CallLater(PositionMenu, 0, false);
 	}
 
+	protected string BoundText(string value, int maxChars)
+	{
+		if (maxChars < 4 || value.Length() <= maxChars)
+			return value;
+		return value.Substring(0, maxChars - 3) + "...";
+	}
+
 	protected void PositionMenu()
 	{
 		if (!m_wMenu || !m_wMenu.IsVisible())
@@ -181,7 +216,7 @@ class DCO_GMContextMenu
 		if (menuW <= 0)
 			menuW = FALLBACK_WIDTH;
 		if (menuH <= 0)
-			menuH = 34 + m_iVisibleItems * FALLBACK_ROW_HEIGHT;
+			menuH = 92 + m_iVisibleItems * FALLBACK_ROW_HEIGHT;
 
 		float safeL, safeT, safeR, safeB;
 		GetSafeViewport(safeL, safeT, safeR, safeB);
@@ -334,9 +369,15 @@ class DCO_GMContextMenu
 			if (w != m_Btns[i] || !m_Labels[i])
 				continue;
 			if (hovered)
+			{
 				m_Labels[i].SetOpacity(1.0);
+				m_Btns[i].SetOpacity(1.0);
+			}
 			else
+			{
 				m_Labels[i].SetOpacity(0.88);
+				m_Btns[i].SetOpacity(0.92);
+			}
 			return;
 		}
 	}

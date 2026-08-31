@@ -37,19 +37,18 @@ class DCO_EditTreeButtonHandler : ScriptedWidgetEventHandler
 
 	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
 	{
-		if (button == 1 && m_Owner)	// right mouse button -> tree context menu.
+		return button == 1;
+	}
+
+	// Capture the row before the editor builds its world context menu.
+	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
+	{
+		if (button == 1 && m_Owner)
 			return m_Owner.OnRowRightClick(w, x, y);
 		return false;
 	}
-
-	// Consume the right mouse button DOWN over a tree row so the editor doesn't also open its world context menu.
-	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
-	{
-		return button == 1;
-	}
 }
 
-// Force overview cards have two deliberate actions: open the faction roster, or hide/show that faction in the roster.
 class DCO_ForceButtonHandler : ScriptedWidgetEventHandler
 {
 	protected DCO_GMEditTreeComponent m_Owner;
@@ -68,6 +67,19 @@ class DCO_ForceButtonHandler : ScriptedWidgetEventHandler
 		if (!m_Owner)
 			return false;
 		return m_Owner.OnForceButton(m_Index, m_bVisibility);
+	}
+
+	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
+	{
+		if (button == 1 && m_Owner && !m_bVisibility)
+			return m_Owner.OnForceWatchMenu(m_Index, x, y);
+		return false;
+	}
+
+	// Keep the editor world context menu from opening beneath the force-card picker.
+	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
+	{
+		return button == 1 && !m_bVisibility;
 	}
 }
 
@@ -92,6 +104,11 @@ class DCO_GMEditTreeComponent
 {
 	static const int ROWS = 28;
 	static const int PLAYER_ROWS = 5;
+	static const int FORCE_SLOTS = 4;
+	static const int FORCE_PICK_PAGE_SIZE = 16;
+	static const int FORCE_PICK_PREV = 30000;
+	static const int FORCE_PICK_NEXT = 30001;
+	static const int FORCE_PICK_SELECT_BASE = 30100;
 	static const ResourceName FOLD_DOWN  = "{A3EE9DF5A7573679}img/icons/fold-down.edds";
 	static const ResourceName FOLD_RIGHT = "{12D85C56D7B4F8AA}img/icons/fold-right.edds";	// collapsed.
 
@@ -135,6 +152,9 @@ class DCO_GMEditTreeComponent
 	protected ref array<ButtonWidget> m_ForceSelectBtns = {};
 	protected ref array<ButtonWidget> m_ForceHideBtns = {};
 	protected ref array<SCR_EditableEntityComponent> m_ForceEntities = {};
+	protected ref array<SCR_EditableEntityComponent> m_AvailableForces = {};
+	protected ref array<FactionKey> m_WatchedForceKeys = {};
+	protected ref array<FactionKey> m_ForcePickKeys = {};
 	protected ref array<ref DCO_ForceButtonHandler> m_ForceHandlers = {};
 	protected ref set<SCR_EditableEntityComponent> m_HiddenForces = new set<SCR_EditableEntityComponent>();
 	protected SCR_EditableEntityComponent m_SelectedForce;
@@ -142,8 +162,8 @@ class DCO_GMEditTreeComponent
 	protected ButtonWidget m_btnForcePrev;
 	protected ButtonWidget m_btnForceNext;
 	protected TextWidget m_wForcePageText;
-	protected int m_ForcePage;
-	protected int m_ForcePageCount = 1;
+	protected int m_ForcePickSlot = -1;
+	protected int m_ForcePickPage;
 	protected int m_ForceOverviewTick;
 
 	protected ref array<ButtonWidget> m_PlayerBtns = {};
@@ -205,7 +225,11 @@ class DCO_GMEditTreeComponent
 		m_btnForcePrev = BindButton("DCO_ForcePrev");
 		m_btnForceNext = BindButton("DCO_ForceNext");
 		m_wForcePageText = TextWidget.Cast(m_wTree.FindAnyWidget("DCO_ForcePage"));
-		for (int i = 0; i < 4; i++)
+		if (m_btnForcePrev)
+			m_btnForcePrev.SetVisible(false);
+		if (m_btnForceNext)
+			m_btnForceNext.SetVisible(false);
+		for (int i = 0; i < FORCE_SLOTS; i++)
 		{
 			m_ForceRows.Insert(m_wTree.FindAnyWidget(string.Format("DCO_ForceRow_%1", i)));
 			m_ForceLabels.Insert(TextWidget.Cast(m_wTree.FindAnyWidget(string.Format("DCO_ForceLabel_%1", i))));
@@ -262,7 +286,7 @@ class DCO_GMEditTreeComponent
 		m_PlayersMgr = SCR_PlayersManagerEditorComponent.Cast(SCR_PlayersManagerEditorComponent.GetInstance(SCR_PlayersManagerEditorComponent, true));
 		m_LayersMgr = SCR_LayersEditorComponent.Cast(SCR_LayersEditorComponent.GetInstance(SCR_LayersEditorComponent, true));
 		if (m_LayersMgr)
-			m_LayersMgr.SetEditingLayersEnabled(true);	// the peel never enabled layer editing - THIS is why entering layers did nothing.
+			m_LayersMgr.SetEditingLayersEnabled(true);	// Layer navigation requires editing to be enabled while the panel is active.
 
 		m_bBound = true;
 
@@ -279,14 +303,6 @@ class DCO_GMEditTreeComponent
 		GetGame().GetCallqueue().CallLater(Rebuild, 1000, true);
 		GetGame().GetCallqueue().CallLater(PollSearch, 400, true);
 		Rebuild();
-
-		int bound = 0;
-		foreach (ButtonWidget b : m_RowBtns)
-		{
-			if (b)
-				bound++;
-		}
-		Print(string.Format("[DCO-GM] EDIT tree bound (rows=%1/%2)", bound, ROWS), LogLevel.NORMAL);
 	}
 
 	void Shutdown()
@@ -432,21 +448,24 @@ class DCO_GMEditTreeComponent
 				continue;
 			InsertSortedFaction(factions, candidate);
 		}
-		m_ForcePageCount = Math.Max(1, (factions.Count() + m_ForceRows.Count() - 1) / m_ForceRows.Count());
-		m_ForcePage = Math.Clamp(m_ForcePage, 0, m_ForcePageCount - 1);
+		m_AvailableForces.Clear();
+		foreach (SCR_EditableEntityComponent availableForce : factions)
+			m_AvailableForces.Insert(availableForce);
+		ReconcileWatchedForces(factions);
 		if (m_wForcePageText)
-			m_wForcePageText.SetText(string.Format("%1/%2", m_ForcePage + 1, m_ForcePageCount));
+			m_wForcePageText.SetText(string.Format("%1/%2", m_WatchedForceKeys.Count(), factions.Count()));
 		if (m_btnForcePrev)
-			m_btnForcePrev.SetVisible(m_ForcePageCount > 1);
+			m_btnForcePrev.SetVisible(false);
 		if (m_btnForceNext)
-			m_btnForceNext.SetVisible(m_ForcePageCount > 1);
+			m_btnForceNext.SetVisible(false);
 
 		m_ForceEntities.Clear();
 		int slot;
-		int firstFaction = m_ForcePage * m_ForceRows.Count();
-		for (int factionIndex = firstFaction; factionIndex < factions.Count() && slot < m_ForceRows.Count(); factionIndex++)
+		for (slot = 0; slot < m_WatchedForceKeys.Count() && slot < m_ForceRows.Count(); slot++)
 		{
-			SCR_EditableEntityComponent faction = factions[factionIndex];
+			SCR_EditableEntityComponent faction = FindForceByKey(factions, m_WatchedForceKeys[slot]);
+			if (!faction)
+				continue;
 			string forceCacheKey = ForceKey(faction);
 			int total;
 			int ready;
@@ -488,7 +507,7 @@ class DCO_GMEditTreeComponent
 			if (m_ForceRows[slot])
 				m_ForceRows[slot].SetVisible(true);
 			if (m_ForceLabels[slot])
-				m_ForceLabels[slot].SetText(EntityLabel(faction));
+				m_ForceLabels[slot].SetText(BoundDisplay(EntityLabel(faction), 34));
 			if (m_ForceHealth[slot])
 				m_ForceHealth[slot].SetText(string.Format("%1%%", health));
 			if (m_ForceReady[slot])
@@ -550,13 +569,52 @@ class DCO_GMEditTreeComponent
 					m_ForceBackgrounds[slot].SetOpacity(0.78);
 				}
 			}
-			slot++;
 		}
 		for (int i = slot; i < m_ForceRows.Count(); i++)
 		{
 			if (m_ForceRows[i])
 				m_ForceRows[i].SetVisible(false);
 		}
+	}
+
+	// Watched slots are intentionally client-local: they filter replicated editor entities and never mutate gameplay state.
+	protected void ReconcileWatchedForces(notnull array<SCR_EditableEntityComponent> factions)
+	{
+		set<FactionKey> retained = new set<FactionKey>();
+		for (int i = m_WatchedForceKeys.Count() - 1; i >= 0; i--)
+		{
+			FactionKey key = m_WatchedForceKeys[i];
+			if (key.IsEmpty() || !FindForceByKey(factions, key) || retained.Contains(key))
+			{
+				m_WatchedForceKeys.RemoveOrdered(i);
+				continue;
+			}
+			retained.Insert(key);
+		}
+
+		foreach (SCR_EditableEntityComponent faction : factions)
+		{
+			if (m_WatchedForceKeys.Count() >= FORCE_SLOTS)
+				break;
+			FactionKey key = ForceKey(faction);
+			if (key.IsEmpty() || retained.Contains(key))
+				continue;
+			m_WatchedForceKeys.Insert(key);
+			retained.Insert(key);
+		}
+
+		if (m_SelectedForce && !factions.Contains(m_SelectedForce))
+			m_SelectedForce = null;
+	}
+
+	protected SCR_EditableEntityComponent FindForceByKey(notnull array<SCR_EditableEntityComponent> factions, FactionKey key)
+	{
+		foreach (SCR_EditableEntityComponent faction : factions)
+		{
+			if (faction && ForceKey(faction) == key)
+				return faction;
+		}
+		return null;
 	}
 
 	protected string ForceKey(SCR_EditableEntityComponent factionEntity)
@@ -639,7 +697,103 @@ class DCO_GMEditTreeComponent
 		return true;
 	}
 
-// Builds a complete inventory view by collecting every item from the character's managed storage hierarchy.
+	bool OnForceWatchMenu(int index, int x, int y)
+	{
+		if (!m_Menu || index < 0 || index >= m_ForceEntities.Count() || m_AvailableForces.IsEmpty())
+			return false;
+		SCR_EditableEntityComponent anchorForce = m_ForceEntities[index];
+		if (!anchorForce)
+			return false;
+
+		DCO_GMContextMenuBridge.ClaimRightClick();
+		m_MenuX = x;
+		m_MenuY = y;
+		m_ForcePickSlot = index;
+		m_ForcePickPage = 0;
+		m_ForcePickKeys.Clear();
+		foreach (SCR_EditableEntityComponent faction : m_AvailableForces)
+			m_ForcePickKeys.Insert(ForceKey(faction));
+		ShowForceWatchPage(anchorForce);
+		return true;
+	}
+
+	protected void ShowForceWatchPage(SCR_EditableEntityComponent anchorForce)
+	{
+		if (!m_Menu || m_ForcePickSlot < 0 || m_ForcePickSlot >= m_WatchedForceKeys.Count() || m_ForcePickKeys.IsEmpty())
+			return;
+
+		int pageCount = Math.Max(1, (m_ForcePickKeys.Count() + FORCE_PICK_PAGE_SIZE - 1) / FORCE_PICK_PAGE_SIZE);
+		m_ForcePickPage = Math.Clamp(m_ForcePickPage, 0, pageCount - 1);
+		array<string> labels = {};
+		array<int> ids = {};
+		if (m_ForcePickPage > 0)
+		{
+			labels.Insert("< PREVIOUS");
+			ids.Insert(FORCE_PICK_PREV);
+		}
+
+		int first = m_ForcePickPage * FORCE_PICK_PAGE_SIZE;
+		int last = Math.Min(first + FORCE_PICK_PAGE_SIZE, m_ForcePickKeys.Count());
+		int selectedId = -1;
+		for (int i = first; i < last; i++)
+		{
+			FactionKey key = m_ForcePickKeys[i];
+			string label = DCO_FactionCatalog.NameFor(key);
+			int watchedSlot = m_WatchedForceKeys.Find(key);
+			if (watchedSlot >= 0)
+				label = label + string.Format("  ·  SLOT %1", watchedSlot + 1);
+			labels.Insert(label);
+			ids.Insert(FORCE_PICK_SELECT_BASE + i);
+			if (key == m_WatchedForceKeys[m_ForcePickSlot])
+				selectedId = FORCE_PICK_SELECT_BASE + i;
+		}
+
+		if (m_ForcePickPage < pageCount - 1)
+		{
+			labels.Insert("NEXT >");
+			ids.Insert(FORCE_PICK_NEXT);
+		}
+
+		string subtitle = string.Format("Choose the faction shown on command card %1  ·  PAGE %2/%3", m_ForcePickSlot + 1, m_ForcePickPage + 1, pageCount);
+		m_Menu.ShowTitledDetailed(labels, ids, m_MenuX, m_MenuY, string.Format("FORCE WATCH  ·  SLOT %1", m_ForcePickSlot + 1), subtitle, selectedId, m_MenuCb, anchorForce);
+	}
+
+	protected bool HandleForceWatchAction(int actionId, SCR_EditableEntityComponent anchorForce)
+	{
+		if (actionId == FORCE_PICK_PREV)
+		{
+			m_ForcePickPage--;
+			ShowForceWatchPage(anchorForce);
+			return true;
+		}
+		if (actionId == FORCE_PICK_NEXT)
+		{
+			m_ForcePickPage++;
+			ShowForceWatchPage(anchorForce);
+			return true;
+		}
+		if (actionId < FORCE_PICK_SELECT_BASE)
+			return false;
+
+		int selectedIndex = actionId - FORCE_PICK_SELECT_BASE;
+		if (selectedIndex < 0 || selectedIndex >= m_ForcePickKeys.Count() || m_ForcePickSlot < 0 || m_ForcePickSlot >= m_WatchedForceKeys.Count())
+			return true;
+		FactionKey selectedKey = m_ForcePickKeys[selectedIndex];
+		if (!FindForceByKey(m_AvailableForces, selectedKey))
+			return true;
+
+		FactionKey displacedKey = m_WatchedForceKeys[m_ForcePickSlot];
+		int otherSlot = m_WatchedForceKeys.Find(selectedKey);
+		if (otherSlot >= 0 && otherSlot != m_ForcePickSlot)
+			m_WatchedForceKeys[otherSlot] = displacedKey;
+		m_WatchedForceKeys[m_ForcePickSlot] = selectedKey;
+		m_SelectedForce = null;
+		m_Page = 0;
+		Rebuild();
+		return true;
+	}
+
+	// Builds a complete inventory view by collecting every item from the character's managed storage hierarchy.
 	protected int CountCharacterRounds(notnull IEntity owner)
 	{
 		InventoryStorageManagerComponent inventory = InventoryStorageManagerComponent.Cast(owner.FindComponent(InventoryStorageManagerComponent));
@@ -733,6 +887,13 @@ class DCO_GMEditTreeComponent
 		return "Entity";
 	}
 
+	protected string BoundDisplay(string value, int maxChars)
+	{
+		if (maxChars < 4 || value.Length() <= maxChars)
+			return value;
+		return value.Substring(0, maxChars - 3) + "...";
+	}
+
 	protected ResourceName EntityIcon(SCR_EditableEntityComponent e)
 	{
 		SCR_EditableEntityUIInfo eui = SCR_EditableEntityUIInfo.Cast(e.GetInfo());
@@ -814,7 +975,7 @@ class DCO_GMEditTreeComponent
 				case CAT_LOC:  crumb = "EDIT · LOCATIONS"; break;
 				case CAT_AREA: crumb = "EDIT · AREAS";     break;
 			}
-			head.SetText(crumb);
+			head.SetText(BoundDisplay(crumb, 34));
 		}
 		if (m_wForceOverview)
 			m_wForceOverview.SetVisible(m_FilterCat == CAT_UNIT);
@@ -914,8 +1075,8 @@ class DCO_GMEditTreeComponent
 			if (lbl)
 			{
 				lbl.SetDesiredFontSize(18);
-				lbl.SetMinFontSize(15);
-				lbl.SetText(prefix + row.m_Label);
+				lbl.SetMinFontSize(9);
+				lbl.SetText(BoundDisplay(prefix + row.m_Label, 48));
 				if (isDead)
 				{
 					lbl.SetColor(Color.FromRGBA(145, 150, 154, 255));
@@ -986,7 +1147,9 @@ class DCO_GMEditTreeComponent
 				emptyRow.SetVisible(true);
 			if (!m_RowLabels.IsEmpty() && m_RowLabels[0])
 			{
-				m_RowLabels[0].SetExactFontSize(14);
+				// Let longer empty-state copy shrink within the narrow Force Command panel.
+				m_RowLabels[0].SetDesiredFontSize(14);
+				m_RowLabels[0].SetMinFontSize(9);
 				if (!m_Search.IsEmpty())
 					m_RowLabels[0].SetText("NO DEPLOYED ENTITIES MATCH THE SEARCH");
 				else if (m_SelectedForce)
@@ -1009,18 +1172,8 @@ class DCO_GMEditTreeComponent
 
 	bool OnButton(Widget w)
 	{
-		if (w == m_btnForcePrev)
-		{
-			m_ForcePage--;
-			Rebuild();
+		if (w == m_btnForcePrev || w == m_btnForceNext)
 			return true;
-		}
-		if (w == m_btnForceNext)
-		{
-			m_ForcePage++;
-			Rebuild();
-			return true;
-		}
 		if (w == m_btnPrev)
 		{
 			m_Page--;
@@ -1095,8 +1248,7 @@ class DCO_GMEditTreeComponent
 			m_LastSelected.SetEntityState(EEditableEntityState.SELECTED, false);
 		e.SetEntityState(EEditableEntityState.SELECTED, true);
 		m_LastSelected = e;
-		DCO_GMGizmo.NotifyDeliberatePick(e);	// the tree is the DELIBERATE surface: it may re-pin the precise lock.
-		Print("[DCO-GM] EDIT tree selected: " + EntityLabel(e), LogLevel.NORMAL);
+		DCO_GMGizmo.NotifyDeliberatePick(e);	// Direct tree selection may re-pin the precise gizmo.
 	}
 
 	protected int RowIndexOf(Widget w)
@@ -1173,7 +1325,7 @@ class DCO_GMEditTreeComponent
 				{
 					if (isDead)
 						rowColor = Color.FromRGBA(145, 150, 154, 255);
-					lbl.SetText(name);
+					lbl.SetText(BoundDisplay(name, 34));
 					lbl.SetColor(rowColor);
 				}
 				if (fpsHost)
@@ -1221,7 +1373,7 @@ class DCO_GMEditTreeComponent
 			}
 		}
 		if (players.Count() > PLAYER_ROWS)
-			Print(string.Format("[DCO-GM] %1 players but %2 player rows - extras not listed", players.Count(), PLAYER_ROWS), LogLevel.NORMAL);
+			Print(string.Format("[DCO-GM] %1 players but %2 player rows - extras not listed", players.Count(), PLAYER_ROWS), LogLevel.WARNING);
 	}
 
 	protected int PlayerRowIndexOf(Widget w)
@@ -1372,6 +1524,12 @@ class DCO_GMEditTreeComponent
 			ids.Insert(DCO_GMUnitActions.ACT_FOLLOW);
 		}
 
+		if (type == EEditableEntityType.CHARACTER || type == EEditableEntityType.VEHICLE)
+		{
+			labels.Insert("Mark for Teleport");
+			ids.Insert(DCO_GMUnitActions.ACT_MARK_TELEPORT);
+		}
+
 		// Take Control - only units/vehicles, and only when actually possessable.
 		if ((cat == CAT_UNIT || cat == CAT_VEH) && m_Actions.CanPerform(DCO_GMUnitActions.ACT_CONTROL, e))
 		{
@@ -1415,6 +1573,8 @@ class DCO_GMEditTreeComponent
 	void OnContextAction(int actionId, SCR_EditableEntityComponent e)
 	{
 		if (!e)
+			return;
+		if (HandleForceWatchAction(actionId, e))
 			return;
 		if (DCO_GMGroupOrders.IsSubmenu(actionId))
 		{

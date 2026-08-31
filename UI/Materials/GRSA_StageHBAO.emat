@@ -1,0 +1,8 @@
+HBAOEffect {
+ RadiusMeters 0.899
+ Intensity 4.1
+ NumDirections 3
+ NumSamples 3
+ HalfResolution 1
+ EnableInterleaving 0
+}

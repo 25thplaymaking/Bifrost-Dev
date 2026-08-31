@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 1.0.28 - 2026-08-30
+
+- Added the GRS Arsenal studio with Soldier, Gunsmith, Kits, and Settings screens; permissive all-faction catalogs; configurable scenario restrictions; themed accents; camera controls; studio lighting; and text-safe layouts.
+- Added server-authoritative draft, kit, attachment, and loadout application with target, policy, proximity, stream, and payload validation for remote clients.
+- Added a paged weapon and attachment carousel, readable attachment labels, conditional callout lines, rail-position controls, Gunsmith leave confirmation, and safer stage placement for weapons and the character.
+- Added replicated Arsenal Access placement on multiple world objects, including a movable interaction marker and join-in-progress state.
+- Added Player-tab `Mark for Teleport`, reusing the existing Game Master teleport destination flow and server-authoritative transform route.
+- Fixed waypoint `Completion Radius` so the server arrival check, replicated value, join-in-progress state, and white order circle all use the same distance.
+- Fixed the lower Game Master edit-panel controls clipping into the bottom rail by making the entity list consume only the remaining vertical space.
+- Expanded trigger setup, unit linking, synchronization, and finalization while preserving authority-owned state for dedicated servers and join-in-progress clients.
+- Removed obsolete Arsenal posing remnants, reduced routine diagnostics, simplified comments and UI language, and verified lazy initialization for cached static state.
+- Kept Workbench MCP handlers in the external Enfusion MCP source tree so they remain easy to restore while release packages exclude them.
+
 ## 1.0.26 - 2026-08-27
 
 - Added a rightmost custom-faction folder with authored faction artwork, stable faction-key ordering, and pagination for larger mod sets.

@@ -183,6 +183,8 @@ class DCO_GMCreatePanelComponent
 	protected SCR_ContentBrowserEditorComponent m_Browser;
 	protected bool m_bShown;
 	protected bool m_bSearchFocused;
+	protected bool m_bAnimationFxTargeting;
+	protected bool m_bArsenalAccessTargeting;
 
 	void Init(Widget shellRoot)
 	{
@@ -205,15 +207,6 @@ class DCO_GMCreatePanelComponent
 		m_bCatalogSubscribed = true;
 
 		GetGame().GetCallqueue().CallLater(PollSearch, 400, true);
-
-		int boundRows = 0;
-		foreach (ButtonWidget rb : m_RowBtns)
-		{
-			if (rb)
-				boundRows++;
-		}
-		Print(string.Format("[DCO-GM] CREATE panel bound (rows=%1/%2 cat=%3 fac=%4 search=%5 hover=%6)",
-			boundRows, m_RowBtns.Count(), m_CatBtns.Count(), m_FacBtns.Count(), m_wSearch != null, m_wHover != null), LogLevel.NORMAL);
 	}
 
 	void Shutdown()
@@ -234,6 +227,8 @@ class DCO_GMCreatePanelComponent
 			m_bBrowserSubscribed = false;
 		}
 		m_Browser = null;
+		m_bAnimationFxTargeting = false;
+		m_bArsenalAccessTargeting = false;
 		GetGame().GetInputManager().RemoveActionListener(UIConstants.MENU_ACTION_BACK, EActionTrigger.PRESSED, OnSearchCancel);
 		ReleaseSearchFocus();
 		HideHover();
@@ -394,7 +389,11 @@ class DCO_GMCreatePanelComponent
 		if (show && !m_bCatalogReady)
 			BuildCatalog();
 		if (show)
+		{
+			SyncAnimationFxTargeting();
+			SyncArsenalAccessTargeting();
 			Refresh();
+		}
 	}
 
 	// Repeats the last placement through the native placement path.
@@ -557,7 +556,7 @@ class DCO_GMCreatePanelComponent
 				m_FacSlotKeys[i] = canonicalKey;
 				if (label)
 				{
-					label.SetText(m_Catalog.GetFactionTabLabel(canonicalKey));
+					label.SetText(BoundDisplay(m_Catalog.GetFactionTabLabel(canonicalKey), 12));
 					label.SetColor(m_Catalog.GetFactionColor(canonicalKey));
 					label.SetVisible(true);
 				}
@@ -630,7 +629,7 @@ class DCO_GMCreatePanelComponent
 				if (m_CustomFacHosts[i])
 					m_CustomFacHosts[i].SetVisible(true);
 				if (label)
-					label.SetText(string.Format("MORE FACTIONS  ·  %1/%2", m_CustomFactionPage + 1, pageCount));
+					label.SetText(BoundDisplay(string.Format("MORE FACTIONS  ·  %1/%2", m_CustomFactionPage + 1, pageCount), 34));
 				if (icon)
 					icon.SetVisible(false);
 				if (button)
@@ -654,7 +653,7 @@ class DCO_GMCreatePanelComponent
 				m_CustomFacHosts[i].SetVisible(true);
 			if (label)
 			{
-				label.SetText(string.Format("%1  ·  %2", DCO_FactionCatalog.NameFor(key), key));
+				label.SetText(BoundDisplay(string.Format("%1  ·  %2", DCO_FactionCatalog.NameFor(key), key), 48));
 				label.SetColor(m_Catalog.GetFactionColor(key));
 				label.SetVisible(true);
 			}
@@ -713,7 +712,7 @@ class DCO_GMCreatePanelComponent
 			fk.ToUpper();
 			crumb = crumb + " · " + fk;
 		}
-		head.SetText(crumb);
+		head.SetText(BoundDisplay(crumb, 34));
 	}
 
 	void RevealByName(string name)
@@ -907,12 +906,15 @@ class DCO_GMCreatePanelComponent
 			DCO_CatalogRow row = m_QueryRows[idx];
 			ImageWidget ico = m_RowIcons[r];
 			ImageWidget fold = m_RowFold[r];
+			bool animationFxActive = m_bAnimationFxTargeting && DCO_PlacementCatalog.IsAnimationFxResource(row.m_Prefab);
+			bool arsenalAccessActive = m_bArsenalAccessTargeting && DCO_PlacementCatalog.IsArsenalAccessResource(row.m_Prefab);
+			bool targetingActive = animationFxActive || arsenalAccessActive;
 			if (btn) btn.SetVisible(true);
 			if (row.m_bHeader)
 			{
 				if (lbl)
 				{
-					lbl.SetText(FolderLabel(row));
+					lbl.SetText(BoundDisplay(FolderLabel(row), 48));
 					lbl.SetColor(theme.m_AccentColor);
 				}
 				if (bud) bud.SetText("");
@@ -962,10 +964,21 @@ class DCO_GMCreatePanelComponent
 			{
 				if (lbl)
 				{
-					lbl.SetText(Indent(row.m_Depth) + row.m_Label);	// items line up under their folder.
-					lbl.SetColor(theme.m_TextColor);
+					lbl.SetText(BoundDisplay(Indent(row.m_Depth) + row.m_Label, 48));	// items line up under their folder.
+					if (targetingActive)
+						lbl.SetColor(theme.m_AccentColor);
+					else
+						lbl.SetColor(theme.m_TextColor);
 				}
-				if (bud) bud.SetText(row.m_BudgetText);
+				if (bud)
+				{
+					if (animationFxActive)
+						bud.SetText("SELECT AI");
+					else if (arsenalAccessActive)
+						bud.SetText("TARGET");
+					else
+						bud.SetText(row.m_BudgetText);
+				}
 				if (ico)
 				{
 					ResourceName app6 = row.m_App6Icon;
@@ -979,7 +992,10 @@ class DCO_GMCreatePanelComponent
 							ico.LoadImageTexture(0, useIcon);
 							m_RowLoadedIcons[r] = useIcon;
 						}
-						ico.SetColor(Color.FromRGBA(255, 255, 255, 255));
+						if (targetingActive)
+							ico.SetColor(theme.m_AccentColor);
+						else
+							ico.SetColor(Color.FromRGBA(255, 255, 255, 255));
 						ico.SetVisible(true);
 					}
 					else
@@ -989,7 +1005,14 @@ class DCO_GMCreatePanelComponent
 					}
 				}
 				if (fold)
-					fold.SetOpacity(0.0);
+				{
+					fold.SetRotation(0);
+					fold.SetColor(theme.m_AccentColor);
+					if (targetingActive)
+						fold.SetOpacity(1.0);
+					else
+						fold.SetOpacity(0.0);
+				}
 			}
 		}
 
@@ -1005,7 +1028,7 @@ class DCO_GMCreatePanelComponent
 				m_RowLabels[0].SetColor(theme.m_MutedColor);
 			}
 			if (!m_RowBudgets.IsEmpty() && m_RowBudgets[0])
-				m_RowBudgets[0].SetText("CLEAR SEARCH OR CHOOSE ALL");
+				m_RowBudgets[0].SetText("");
 			if (!m_RowIcons.IsEmpty() && m_RowIcons[0])
 				m_RowIcons[0].SetVisible(false);
 			if (!m_RowFold.IsEmpty() && m_RowFold[0])
@@ -1094,6 +1117,24 @@ class DCO_GMCreatePanelComponent
 			Repaint();
 			return;
 		}
+		if (DCO_PlacementCatalog.IsAnimationFxResource(row.m_Prefab))
+		{
+			m_Catalog.CancelPlacement();
+			DCO_ArsenalAccessPlacement.Get().Cancel();
+			DCO_AIAnimationFxTool.Get().BeginTargeting();
+			ShowPlacementStatus("SELECT AI", row.m_Label, "");
+			return;
+		}
+		if (DCO_PlacementCatalog.IsArsenalAccessResource(row.m_Prefab))
+		{
+			m_Catalog.CancelPlacement();
+			DCO_AIAnimationFxTool.Get().Cancel();
+			DCO_ArsenalAccessPlacement.Get().BeginTargeting();
+			ShowPlacementStatus("SELECT OBJECT", row.m_Label, "");
+			return;
+		}
+		DCO_AIAnimationFxTool.Get().Cancel();
+		DCO_ArsenalAccessPlacement.Get().Cancel();
 		if (m_Catalog.Place(row.m_Prefab))
 		{
 			m_LastPlacedPrefab = row.m_Prefab;
@@ -1108,9 +1149,9 @@ class DCO_GMCreatePanelComponent
 		if (!m_wBudgetLine)
 			return;
 		if (budgetText.IsEmpty())
-			m_wBudgetLine.SetText(verb + ": " + label);
+			m_wBudgetLine.SetText(BoundDisplay(verb + ": " + label, 56));
 		else
-			m_wBudgetLine.SetText(string.Format("%1: %2  (cost %3)", verb, label, budgetText));
+			m_wBudgetLine.SetText(BoundDisplay(string.Format("%1: %2  (cost %3)", verb, label, budgetText), 56));
 		m_wBudgetLine.SetOpacity(0.25);
 		AnimateWidget.Opacity(m_wBudgetLine, 1.0, 8.0, true);
 	}
@@ -1166,7 +1207,7 @@ class DCO_GMCreatePanelComponent
 		if (!m_wHoverImg.LoadImageTexture(0, img))
 			return;
 		if (m_wHoverName)
-			m_wHoverName.SetText(row.m_Label);
+			m_wHoverName.SetText(BoundDisplay(row.m_Label, 34));
 
 		WorkspaceWidget ws = GetGame().GetWorkspace();
 		ButtonWidget btn = m_RowBtns[r];
@@ -1176,10 +1217,15 @@ class DCO_GMCreatePanelComponent
 		btn.GetScreenPos(sx, sy);
 		float px = ws.DPIUnscale(sx) - HOVER_W - 10;
 		float py = ws.DPIUnscale(sy) - HOVER_H * 0.35;
-		if (px < 0)
-			px = 0;
-		if (py < 0)
-			py = 0;
+		float rootX, rootY, rootW, rootH;
+		m_wRoot.GetScreenPos(rootX, rootY);
+		m_wRoot.GetScreenSize(rootW, rootH);
+		rootX = ws.DPIUnscale(rootX);
+		rootY = ws.DPIUnscale(rootY);
+		rootW = ws.DPIUnscale(rootW);
+		rootH = ws.DPIUnscale(rootH);
+		px = Math.Clamp(px, rootX, Math.Max(rootX, rootX + rootW - HOVER_W));
+		py = Math.Clamp(py, rootY, Math.Max(rootY, rootY + rootH - HOVER_H));
 		FrameSlot.SetAnchor(m_wHover, 0, 0);
 		FrameSlot.SetAlignment(m_wHover, 0, 0);
 		FrameSlot.SetSize(m_wHover, HOVER_W, HOVER_H);
@@ -1197,6 +1243,13 @@ class DCO_GMCreatePanelComponent
 	{
 		m_Faction = key;
 		HighlightFaction();
+	}
+
+	protected string BoundDisplay(string value, int maxChars)
+	{
+		if (maxChars < 4 || value.Length() <= maxChars)
+			return value;
+		return value.Substring(0, maxChars - 3) + "...";
 	}
 
 	// Selected category glyph -> accent tint; others grey.
@@ -1271,13 +1324,57 @@ class DCO_GMCreatePanelComponent
 	{
 		if (!m_bShown || !m_wSearch)
 			return;
+		bool targetingChanged = SyncAnimationFxTargeting();
+		targetingChanged = SyncArsenalAccessTargeting() || targetingChanged;
 		EnsureBrowserSubscription();
 		string cur = m_wSearch.GetText();
 		if (cur == m_LastSearch)
+		{
+			if (targetingChanged)
+				Repaint();
 			return;
+		}
 		m_LastSearch = cur;
 		m_Search = cur;
 		Refresh();
+	}
+
+	// Keeps the catalog row aligned with the targeting tool even when targeting
+	// ends through world selection, Escape, or a modal handoff.
+	protected bool SyncAnimationFxTargeting()
+	{
+		bool targeting = DCO_AIAnimationFxTool.Get().IsTargeting();
+		if (targeting == m_bAnimationFxTargeting)
+			return false;
+		m_bAnimationFxTargeting = targeting;
+		if (!targeting && m_wBudgetLine)
+			m_wBudgetLine.SetText("READY  ·  SELECT ASSET");
+		return true;
+	}
+
+	void RefreshAnimationFxIndicator()
+	{
+		if (SyncAnimationFxTargeting())
+			Repaint();
+	}
+
+	// Arsenal Access uses the same persistent row treatment as Animations FX,
+	// with object-specific copy so the GM can see what the next world click does.
+	protected bool SyncArsenalAccessTargeting()
+	{
+		bool targeting = DCO_ArsenalAccessPlacement.Get().IsTargeting();
+		if (targeting == m_bArsenalAccessTargeting)
+			return false;
+		m_bArsenalAccessTargeting = targeting;
+		if (!targeting && m_wBudgetLine)
+			m_wBudgetLine.SetText("READY  ·  SELECT ASSET");
+		return true;
+	}
+
+	void RefreshArsenalAccessIndicator()
+	{
+		if (SyncArsenalAccessTargeting())
+			Repaint();
 	}
 
 	// EditBox final-change is Enter on keyboard.

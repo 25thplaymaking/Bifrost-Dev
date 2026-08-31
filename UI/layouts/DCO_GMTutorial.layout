@@ -71,13 +71,15 @@ FrameWidgetClass "{0DC00000000B0000}" {
            }
            {
             TextWidgetClass "{0DC00000000B0014}" {
-             Name "DCO_TutHeadTitle"
-             Slot LayoutSlot "{0DC00000000B0015}" {
-              Padding 14 12 10 2
-             }
+            Name "DCO_TutHeadTitle"
+            Slot LayoutSlot "{0DC00000000B0015}" {
+             HorizontalAlign 3
+             Padding 14 12 10 2
+            }
              Text "BIFROST QUICK TUTORIAL"
              Color 0.851 0.537 0.169 1
-             "Font Size" 14
+            "Font Size" 14
+            "Min Font Size" 10
             }
             ImageWidgetClass "{0DC00000000B0016}" {
              Slot LayoutSlot "{0DC00000000B0017}" {
@@ -120,6 +122,7 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Text "CAMERA / SELECTION"
                  Color 0.80 0.84 0.88 1
                  "Font Size" 13
+                 "Min Font Size" 9
                 }
                }
               }
@@ -159,6 +162,7 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Text "GIZMO / PRECISE"
                  Color 0.80 0.84 0.88 1
                  "Font Size" 13
+                 "Min Font Size" 9
                 }
                }
               }
@@ -198,6 +202,7 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Text "ORDERS / TACTICS"
                  Color 0.80 0.84 0.88 1
                  "Font Size" 13
+                 "Min Font Size" 9
                 }
                }
               }
@@ -237,6 +242,7 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Text "ARSENAL"
                  Color 0.80 0.84 0.88 1
                  "Font Size" 13
+                 "Min Font Size" 9
                 }
                }
               }
@@ -276,6 +282,7 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Text "FX / TRIGGERS"
                  Color 0.80 0.84 0.88 1
                  "Font Size" 13
+                 "Min Font Size" 9
                 }
                }
               }
@@ -315,6 +322,7 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Text "HUD / LAYOUT"
                  Color 0.80 0.84 0.88 1
                  "Font Size" 13
+                 "Min Font Size" 9
                 }
                }
               }
@@ -327,13 +335,16 @@ FrameWidgetClass "{0DC00000000B0000}" {
              Color 0 0 0 0
             }
             TextWidgetClass "{0DC00000000B004A}" {
-             Name "DCO_TutFoot"
-             Slot LayoutSlot "{0DC00000000B004B}" {
-              Padding 14 4 10 12
-             }
+            Name "DCO_TutFoot"
+            Slot LayoutSlot "{0DC00000000B004B}" {
+             HorizontalAlign 3
+             Padding 14 4 10 12
+            }
              Text "ESC or the INFO button closes this."
              Color 0.55 0.59 0.63 1
-             "Font Size" 11
+            "Font Size" 11
+            "Min Font Size" 8
+            Wrap 1
             }
            }
           }
@@ -349,11 +360,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
           TextWidgetClass "{0DC00000000B004E}" {
            Name "DCO_TutSecTitle"
            Slot LayoutSlot "{0DC00000000B004F}" {
+            HorizontalAlign 3
             Padding 4 0 4 2
            }
            Text "CAMERA / SELECTION"
            Color 0.851 0.537 0.169 1
            "Font Size" 13
+           "Min Font Size" 9
           }
           ImageWidgetClass "{0DC00000000B0050}" {
            Slot LayoutSlot "{0DC00000000B0051}" {
@@ -397,12 +410,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B005A}" {
                    Name "DCO_TutRow0_Key"
                    Slot AlignableSlot "{0DC00000000B005B}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -410,11 +424,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow0_Txt"
                  Slot LayoutSlot "{0DC00000000B005D}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -437,12 +454,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B0062}" {
                    Name "DCO_TutRow1_Key"
                    Slot AlignableSlot "{0DC00000000B0063}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -450,11 +468,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow1_Txt"
                  Slot LayoutSlot "{0DC00000000B0065}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -477,12 +498,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B006A}" {
                    Name "DCO_TutRow2_Key"
                    Slot AlignableSlot "{0DC00000000B006B}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -490,11 +512,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow2_Txt"
                  Slot LayoutSlot "{0DC00000000B006D}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -517,12 +542,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B0072}" {
                    Name "DCO_TutRow3_Key"
                    Slot AlignableSlot "{0DC00000000B0073}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -530,11 +556,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow3_Txt"
                  Slot LayoutSlot "{0DC00000000B0075}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -557,12 +586,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B007A}" {
                    Name "DCO_TutRow4_Key"
                    Slot AlignableSlot "{0DC00000000B007B}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -570,11 +600,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow4_Txt"
                  Slot LayoutSlot "{0DC00000000B007D}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -597,12 +630,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B0082}" {
                    Name "DCO_TutRow5_Key"
                    Slot AlignableSlot "{0DC00000000B0083}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -610,11 +644,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow5_Txt"
                  Slot LayoutSlot "{0DC00000000B0085}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -637,12 +674,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B008A}" {
                    Name "DCO_TutRow6_Key"
                    Slot AlignableSlot "{0DC00000000B008B}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -650,11 +688,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow6_Txt"
                  Slot LayoutSlot "{0DC00000000B008D}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -677,12 +718,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B0092}" {
                    Name "DCO_TutRow7_Key"
                    Slot AlignableSlot "{0DC00000000B0093}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -690,11 +732,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow7_Txt"
                  Slot LayoutSlot "{0DC00000000B0095}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -717,12 +762,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B009A}" {
                    Name "DCO_TutRow8_Key"
                    Slot AlignableSlot "{0DC00000000B009B}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -730,11 +776,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow8_Txt"
                  Slot LayoutSlot "{0DC00000000B009D}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -757,12 +806,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B00A2}" {
                    Name "DCO_TutRow9_Key"
                    Slot AlignableSlot "{0DC00000000B00A3}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -770,11 +820,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow9_Txt"
                  Slot LayoutSlot "{0DC00000000B00A5}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -797,12 +850,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B00AA}" {
                    Name "DCO_TutRow10_Key"
                    Slot AlignableSlot "{0DC00000000B00AB}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -810,11 +864,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow10_Txt"
                  Slot LayoutSlot "{0DC00000000B00AD}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -837,12 +894,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B00B2}" {
                    Name "DCO_TutRow11_Key"
                    Slot AlignableSlot "{0DC00000000B00B3}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -850,11 +908,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow11_Txt"
                  Slot LayoutSlot "{0DC00000000B00B5}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -877,12 +938,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B00BA}" {
                    Name "DCO_TutRow12_Key"
                    Slot AlignableSlot "{0DC00000000B00BB}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -890,11 +952,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow12_Txt"
                  Slot LayoutSlot "{0DC00000000B00BD}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -917,12 +982,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B00C2}" {
                    Name "DCO_TutRow13_Key"
                    Slot AlignableSlot "{0DC00000000B00C3}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -930,11 +996,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow13_Txt"
                  Slot LayoutSlot "{0DC00000000B00C5}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -957,12 +1026,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B00CA}" {
                    Name "DCO_TutRow14_Key"
                    Slot AlignableSlot "{0DC00000000B00CB}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -970,11 +1040,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow14_Txt"
                  Slot LayoutSlot "{0DC00000000B00CD}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -997,12 +1070,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B00D2}" {
                    Name "DCO_TutRow15_Key"
                    Slot AlignableSlot "{0DC00000000B00D3}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -1010,11 +1084,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow15_Txt"
                  Slot LayoutSlot "{0DC00000000B00D5}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -1037,12 +1114,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B00DA}" {
                    Name "DCO_TutRow16_Key"
                    Slot AlignableSlot "{0DC00000000B00DB}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -1050,11 +1128,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow16_Txt"
                  Slot LayoutSlot "{0DC00000000B00DD}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }
@@ -1077,12 +1158,13 @@ FrameWidgetClass "{0DC00000000B0000}" {
                   TextWidgetClass "{0DC00000000B00E2}" {
                    Name "DCO_TutRow17_Key"
                    Slot AlignableSlot "{0DC00000000B00E3}" {
-                    HorizontalAlign 0
+                    HorizontalAlign 3
                     VerticalAlign 1
                    }
                    Text " "
                    Color 0.851 0.537 0.169 1
                    "Font Size" 12
+                   "Min Font Size" 8
                   }
                  }
                 }
@@ -1090,11 +1172,14 @@ FrameWidgetClass "{0DC00000000B0000}" {
                  Name "DCO_TutRow17_Txt"
                  Slot LayoutSlot "{0DC00000000B00E5}" {
                   FillWeight 1
+                  HorizontalAlign 3
                   VerticalAlign 1
                  }
                  Text " "
                  Color 0.80 0.84 0.88 1
                  "Font Size" 12
+                 "Min Font Size" 9
+                 Wrap 1
                 }
                }
               }

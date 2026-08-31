@@ -11,14 +11,28 @@ class DCO_GameplayBtnHandler : ScriptedWidgetEventHandler
 	}
 }
 
+class DCO_GMGameplayPanelStaticData
+{
+	ref array<string> m_ClockNames = {"DCO_Clk_STOP", "DCO_Clk_1", "DCO_Clk_4", "DCO_Clk_12", "DCO_Clk_60"};
+	ref array<float> m_ClockMultipliers = {0, 1, 4, 12, 60};
+}
+
 class DCO_GMGameplayPanel
 {
 	protected static ref DCO_GMGameplayPanel s_Instance;
+	protected static ref DCO_GMGameplayPanelStaticData s_StaticData;
 	static DCO_GMGameplayPanel Get()
 	{
 		if (!s_Instance)
 			s_Instance = new DCO_GMGameplayPanel();
 		return s_Instance;
+	}
+
+	protected static DCO_GMGameplayPanelStaticData StaticData()
+	{
+		if (!s_StaticData)
+			s_StaticData = new DCO_GMGameplayPanelStaticData();
+		return s_StaticData;
 	}
 
 	protected Widget m_wRoot;	// the GM shell root - the gameplay controls live INSIDE the EDIT column.
@@ -31,10 +45,7 @@ class DCO_GMGameplayPanel
 	protected ButtonWidget m_scopeSelected, m_scopeAI;
 	protected ButtonWidget m_chkAI, m_chkPhysics;
 
-	// Clock speed pills, parallel to CLOCK_MULTS.
 	protected ref array<ButtonWidget> m_ClkBtns = {};
-	protected static const ref array<string> CLOCK_NAMES = {"DCO_Clk_STOP", "DCO_Clk_1", "DCO_Clk_4", "DCO_Clk_12", "DCO_Clk_60"};
-	protected static const ref array<float>  CLOCK_MULTS = {0, 1, 4, 12, 60};
 	protected int m_ClockIdx = 1;	// 1x real time.
 
 	// UI state.
@@ -68,7 +79,7 @@ class DCO_GMGameplayPanel
 		m_chkPhysics = Bind("DCO_Chk_Physics");
 
 		m_ClkBtns.Clear();
-		foreach (string cn : CLOCK_NAMES)
+		foreach (string cn : StaticData().m_ClockNames)
 			m_ClkBtns.Insert(Bind(cn));
 
 		RefreshChecks();
@@ -181,12 +192,12 @@ class DCO_GMGameplayPanel
 
 	protected void SetClock(int idx)
 	{
-		if (idx < 0 || idx >= CLOCK_MULTS.Count())
+		if (idx < 0 || idx >= StaticData().m_ClockMultipliers.Count())
 			return;
 		m_ClockIdx = idx;
 		SetClockValueLabel(idx);
 		RefreshChecks();
-		DCO_GMPauseServer.RouteClock(CLOCK_MULTS[idx]);
+		DCO_GMPauseServer.RouteClock(StaticData().m_ClockMultipliers[idx]);
 	}
 
 	protected void SetClockValueLabel(int idx)
@@ -196,7 +207,7 @@ class DCO_GMGameplayPanel
 		if (idx <= 0)
 			m_wClockValue.SetText("STOPPED");
 		else
-			m_wClockValue.SetText(CLOCK_MULTS[idx].ToString(1, 0) + "x");
+			m_wClockValue.SetText(StaticData().m_ClockMultipliers[idx].ToString(1, 0) + "x");
 	}
 
 	// Tint the active scope + clock pills + ticked aspects.
@@ -206,7 +217,7 @@ class DCO_GMGameplayPanel
 		TintLabel(m_scopeAI,       "DCO_Btn_ScopeAI_Label",       m_Scope == EDCO_PauseScope.ALL_AI);
 
 		for (int i = 0; i < m_ClkBtns.Count(); i++)
-			TintLabel(m_ClkBtns[i], CLOCK_NAMES[i] + "_Label", i == m_ClockIdx);
+			TintLabel(m_ClkBtns[i], StaticData().m_ClockNames[i] + "_Label", i == m_ClockIdx);
 
 		SetCheckLabel(m_chkAI,      "DCO_Chk_AI_Label",      "AI",             m_AspAI);
 		SetCheckLabel(m_chkPhysics, "DCO_Chk_Physics_Label", "PHYSICS",        m_AspPhysics);

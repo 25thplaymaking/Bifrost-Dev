@@ -59,7 +59,6 @@ class DCO_GMOverlayPanel
 		AddOverlay(DCO_GMOverlayState.OV_FPS,      "Player FPS");	// all-players FPS readout on the PLAYERS list.
 
 		BindRows();
-		Print("[DCO-GM] overlay panel bound (rows + per-overlay scope dropdowns)", LogLevel.NORMAL);
 	}
 
 	void Shutdown()

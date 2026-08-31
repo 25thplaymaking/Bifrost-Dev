@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{AC7DEE9615659D4F}UI/layouts/Menus/ArmoryV2/GRSA_AttachmentTile.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass PS5 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

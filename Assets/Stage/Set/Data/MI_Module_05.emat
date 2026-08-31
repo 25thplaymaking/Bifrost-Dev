@@ -1,0 +1,4 @@
+MatPBRBasic {
+ BCRMap "{658DF0BB7140A0B3}Assets/Stage/Set/Data/Textures/Bench_ForGaz_BCR.edds"
+ NMOMap "{5D554B29A837F22D}Assets/Stage/Set/Data/Textures/Bench_ForGaz_NMO.edds"
+}

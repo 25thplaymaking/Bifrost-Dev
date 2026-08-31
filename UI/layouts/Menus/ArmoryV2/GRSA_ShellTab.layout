@@ -1,0 +1,78 @@
+ButtonWidgetClass {
+ Name "Button"
+ Slot AlignableSlot "{AB21020000000001}" {
+  HorizontalAlign 3
+  VerticalAlign 3
+ }
+ Clipping False
+ components {
+  GRSA_ThemedButtonTextComponent "{AB21020000000002}" {
+   m_sSoundClicked ""
+   m_bCanBeToggled 1
+   m_BackgroundDefault 0.023 0.023 0.023 1
+   m_BackgroundHovered 0.109 0.109 0.109 1
+   m_BackgroundSelected 0.32 0.16 0.035 1
+   m_BackgroundSelectedHovered 0.851 0.537 0.169 1
+   m_BackgroundClicked 0.851 0.537 0.169 1
+   m_bShowBorderOnFocus 0
+   m_sText "Tab"
+  }
+ }
+ style blank
+ "no focus" 1
+ {
+  SizeLayoutWidgetClass "{AB21020000000003}" {
+   Name "SizeLayout"
+   Slot ButtonWidgetSlot "{AB21020000000004}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   {
+    OverlayWidgetClass "{AB21020000000005}" {
+     Name "Overlay"
+     Slot ButtonWidgetSlot "{AB21020000000006}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      ImageWidgetClass "{AB21020000000007}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{AB21020000000008}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+      }
+      ImageWidgetClass "{AB21020000000009}" {
+       Name "Border"
+       Slot OverlayWidgetSlot "{AB2102000000000A}" {
+        HorizontalAlign 3
+        VerticalAlign 2
+       }
+       "Is Visible" 0
+       Color 0.851 0.537 0.169 1
+       Size 3 3
+      }
+      HorizontalLayoutWidgetClass "{AB2102000000000B}" {
+       Name "HorizontalLayout0"
+       Slot OverlayWidgetSlot "{AB2102000000000C}" {
+        HorizontalAlign 3
+        Padding 20 10 20 10
+       }
+       {
+        TextWidgetClass "{AB2102000000000D}" : "{E64DA8292CD7DBDD}UI/layouts/WidgetLibrary/TextWidgets/Text_InteractiveSmall.layout" {
+         Name "Text"
+         Slot LayoutSlot "{AB2102000000000E}" {
+          VerticalAlign 1
+         }
+         "Font Size" 18
+         "Min Font Size" 14
+         Wrap 0
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}
