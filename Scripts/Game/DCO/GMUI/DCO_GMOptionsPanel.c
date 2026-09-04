@@ -83,7 +83,12 @@ class DCO_GMOptionsPanel
 	protected ButtonWidget m_btnReopen;
 	protected ButtonWidget m_btnFontCompact;
 	protected ButtonWidget m_btnFontCommand;
+	protected ButtonWidget m_btnNativeTools;
+	protected DCO_GMContextMenu m_Menu;
 	protected ref DCO_OptionsButtonHandler m_Handler;
+	protected ref ScriptInvoker m_NativeToolsCallback = new ScriptInvoker();
+	protected ref array<SCR_BaseEditorAction> m_NativeToolActions = {};
+	protected SCR_ToolbarActionsEditorComponent m_ToolbarActions;
 	protected ref DCO_GMSlider m_OpacitySlider;	// "Panel opacity" control.
 	protected ref DCO_GMSlider m_HueSlider;	// "Accent colour" hue control.
 	protected ref array<ref DCO_OptSwatchHandler> m_SwatchHandlers = {};
@@ -91,12 +96,14 @@ class DCO_GMOptionsPanel
 	protected bool m_bOpen;
 	protected bool m_bGeomInit;
 
-	void Init(Widget root)
+	void Init(Widget root, DCO_GMContextMenu menu = null)
 	{
 		if (!root)
 			return;
 		m_wRoot = root;
+		m_Menu = menu;
 		m_Handler = new DCO_OptionsButtonHandler(this);
+		m_NativeToolsCallback.Insert(OnNativeToolAction);
 
 		m_wPanel   = root.FindAnyWidget("DCO_OptionsPanel");
 		m_wContent = root.FindAnyWidget("DCO_OptionsVBox");
@@ -106,6 +113,7 @@ class DCO_GMOptionsPanel
 		m_btnReopen = ButtonWidget.Cast(root.FindAnyWidget(DCO_GMTheme.REOPEN_CHIP));
 		m_btnFontCompact = ButtonWidget.Cast(root.FindAnyWidget("DCO_OptFontCompact"));
 		m_btnFontCommand = ButtonWidget.Cast(root.FindAnyWidget("DCO_OptFontCommand"));
+		m_btnNativeTools = ButtonWidget.Cast(root.FindAnyWidget("DCO_OptNativeTools"));
 
 		if (m_btnOpen)
 			m_btnOpen.AddHandler(m_Handler);
@@ -117,6 +125,8 @@ class DCO_GMOptionsPanel
 			m_btnFontCompact.AddHandler(m_Handler);
 		if (m_btnFontCommand)
 			m_btnFontCommand.AddHandler(m_Handler);
+		if (m_btnNativeTools)
+			m_btnNativeTools.AddHandler(m_Handler);
 		if (m_btnReopen)
 		{
 			m_btnReopen.AddHandler(m_Handler);
@@ -289,7 +299,134 @@ class DCO_GMOptionsPanel
 			RefreshFontMode();
 			return true;
 		}
+		if (w == m_btnNativeTools)
+		{
+			OpenNativeTools();
+			return true;
+		}
 		return false;
+	}
+
+	protected void OpenNativeTools()
+	{
+		if (!m_Menu || !m_btnNativeTools || !ResolveToolbarActions())
+			return;
+
+		vector cursorWorldPosition;
+		GetCursorWorldPosition(cursorWorldPosition);
+		array<ref SCR_EditorActionData> evaluatedActions = {};
+		int flags;
+		m_ToolbarActions.GetAndEvaluateActions(cursorWorldPosition, evaluatedActions, flags);
+
+		m_NativeToolActions.Clear();
+		array<string> labels = {};
+		array<int> ids = {};
+		array<bool> enabled = {};
+		foreach (SCR_EditorActionData actionData : evaluatedActions)
+		{
+			if (!actionData)
+				continue;
+			SCR_BaseEditorAction action = actionData.GetAction();
+			if (!IsNativeToolExposed(action))
+				continue;
+
+			ids.Insert(m_NativeToolActions.Count());
+			m_NativeToolActions.Insert(action);
+			labels.Insert(ResolveNativeToolLabel(action));
+			enabled.Insert(actionData.GetCanBePerformed());
+		}
+
+		if (!labels.IsEmpty())
+			m_Menu.ShowAdjacentWithAvailability(labels, ids, enabled, m_btnNativeTools, m_wPanel, "EDITOR TOOLS", m_NativeToolsCallback, null);
+	}
+
+	protected bool ResolveToolbarActions()
+	{
+		m_ToolbarActions = SCR_ToolbarActionsEditorComponent.Cast(
+			SCR_ToolbarActionsEditorComponent.GetInstance(SCR_ToolbarActionsEditorComponent, false));
+		return m_ToolbarActions != null;
+	}
+
+	protected bool GetCursorWorldPosition(out vector cursorWorldPosition)
+	{
+		cursorWorldPosition = vector.Zero;
+		SCR_MenuLayoutEditorComponent menuLayout = SCR_MenuLayoutEditorComponent.Cast(
+			SCR_MenuLayoutEditorComponent.GetInstance(SCR_MenuLayoutEditorComponent, false));
+		return menuLayout && menuLayout.GetCursorWorldPos(cursorWorldPosition);
+	}
+
+	protected bool IsNativeToolExposed(SCR_BaseEditorAction action)
+	{
+		if (!action)
+			return false;
+
+		string actionType = action.Type().ToString();
+		if (actionType == "SCR_TakeScreenshotDebugToolbarAction"
+			|| actionType == "SCR_ToggleInterfaceToolbarAction"
+			|| actionType == "SCR_HintSequenceToolbarAction"
+			|| actionType == "SCR_PauseGameTimeToolbarAction")
+			return false;
+
+		EEditorActionGroup actionGroup = action.GetActionGroup();
+		return actionGroup == EEditorActionGroup.SAVING
+			|| actionGroup == EEditorActionGroup.SIMULATION
+			|| actionGroup == EEditorActionGroup.TOOLS
+			|| actionGroup == EEditorActionGroup.DYNAMIC;
+	}
+
+	protected string ResolveNativeToolLabel(SCR_BaseEditorAction action)
+	{
+		SCR_UIInfo info = action.GetInfo();
+		SCR_BaseToggleToolbarAction toggleAction = SCR_BaseToggleToolbarAction.Cast(action);
+		if (toggleAction && toggleAction.GetCurrentHighlight() && toggleAction.GetInfoToggled())
+			info = toggleAction.GetInfoToggled();
+		if (!info || info.GetName().IsEmpty())
+			return NativeToolFallback(action.Type().ToString());
+
+		string authoredName = info.GetName();
+		if (authoredName[0] != "#")
+			return authoredName;
+
+		string translatedName = WidgetManager.Translate(authoredName);
+		if (!translatedName.IsEmpty() && translatedName[0] != "#")
+		{
+			string unprefixedName = authoredName.Substring(1, authoredName.Length() - 1);
+			if (translatedName != unprefixedName)
+				return translatedName;
+		}
+		return NativeToolFallback(action.Type().ToString());
+	}
+
+	protected string NativeToolFallback(string actionType)
+	{
+		actionType.Replace("SCR_", "");
+		actionType.Replace("ToolbarAction", "");
+		actionType.Replace("Action", "");
+		actionType.Replace("_", " ");
+		return actionType;
+	}
+
+	protected void OnNativeToolAction(int actionId, SCR_EditableEntityComponent entity)
+	{
+		if (!m_NativeToolActions.IsIndexValid(actionId))
+			return;
+		SCR_BaseEditorAction selectedAction = m_NativeToolActions[actionId];
+		if (!selectedAction || !ResolveToolbarActions())
+			return;
+
+		vector cursorWorldPosition;
+		GetCursorWorldPosition(cursorWorldPosition);
+		array<ref SCR_EditorActionData> evaluatedActions = {};
+		int flags;
+		m_ToolbarActions.GetAndEvaluateActions(cursorWorldPosition, evaluatedActions, flags);
+		foreach (SCR_EditorActionData actionData : evaluatedActions)
+		{
+			if (!actionData || actionData.GetAction() != selectedAction || !actionData.GetCanBePerformed())
+				continue;
+			SetOpen(false);
+			m_ToolbarActions.ActionPerform(selectedAction, cursorWorldPosition, flags);
+			return;
+		}
 	}
 
 	bool CloseForBack()
@@ -325,7 +462,7 @@ class DCO_GMOptionsPanel
 			return;
 		FrameSlot.SetAnchor(m_wPanel, 0.5, 0.5);
 		FrameSlot.SetAlignment(m_wPanel, 0.5, 0.5);
-		FrameSlot.SetSize(m_wPanel, 420, 500);
+		FrameSlot.SetSize(m_wPanel, 420, 540);
 		FrameSlot.SetPos(m_wPanel, 0, 0);
 	}
 
@@ -350,6 +487,11 @@ class DCO_GMOptionsPanel
 		m_btnReopen = null;
 		m_btnFontCompact = null;
 		m_btnFontCommand = null;
+		m_btnNativeTools = null;
+		m_NativeToolsCallback.Remove(OnNativeToolAction);
+		m_NativeToolActions.Clear();
+		m_ToolbarActions = null;
+		m_Menu = null;
 		m_wPanel = null;
 		m_wContent = null;
 		m_Handler = null;

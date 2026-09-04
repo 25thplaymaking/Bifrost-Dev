@@ -17,6 +17,12 @@ modded class EditorAttributesDialogUI
 		CloseSelf();
 	}
 
+	override void OnMenuUpdate(float tDelta)
+	{
+		super.OnMenuUpdate(tDelta);
+		DCO_GMUIController.TouchNativeProperties();
+	}
+
 	override void OnMenuClose()
 	{
 		super.OnMenuClose();

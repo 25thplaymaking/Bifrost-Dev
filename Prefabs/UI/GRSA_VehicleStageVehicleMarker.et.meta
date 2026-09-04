@@ -1,0 +1,11 @@
+MetaFileClass {
+ Name "{6A4338ABF0012001}Prefabs/UI/GRSA_VehicleStageVehicleMarker.et"
+ Configurations {
+  EntityTemplateResourceClass PC {}
+  EntityTemplateResourceClass XBOX_ONE : PC {}
+  EntityTemplateResourceClass XBOX_SERIES : PC {}
+  EntityTemplateResourceClass PS4 : PC {}
+  EntityTemplateResourceClass PS5 : PC {}
+  EntityTemplateResourceClass HEADLESS : PC {}
+ }
+}

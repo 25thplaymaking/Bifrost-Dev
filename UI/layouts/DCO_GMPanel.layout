@@ -1614,6 +1614,37 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         }
        }
       }
+      SizeLayoutWidgetClass "{BF05000000000100}" {
+       Name "DCO_ScenarioBriefingHost"
+       Slot LayoutSlot "{BF05000000000101}" { HorizontalAlign 3 Padding 14 4 14 7 }
+       "Is Visible" 0
+       AllowHeightOverride 1
+       HeightOverride 544
+       {
+        VerticalLayoutWidgetClass "{BF05000000000102}" {
+         Slot AlignableSlot "{BF05000000000103}" { HorizontalAlign 3 VerticalAlign 3 }
+         {
+          HorizontalLayoutWidgetClass "{BF05000000000104}" {
+           Slot LayoutSlot "{BF05000000000105}" { HorizontalAlign 3 Padding 0 0 0 4 }
+           {
+            ButtonWidgetClass "{BF05000000000106}" { Name "DCO_ScenarioBriefingPrev" Slot LayoutSlot "{BF05000000000107}" { VerticalAlign 1 } style blank { TextWidgetClass "{BF05000000000108}" { Slot ButtonWidgetSlot "{BF05000000000109}" { Padding 8 3 8 3 } Text "<" Color 0.851 0.537 0.169 1 "Font Size" 18 } } }
+            TextWidgetClass "{BF0500000000010A}" { Name "DCO_ScenarioBriefingSection" Slot LayoutSlot "{BF0500000000010B}" { FillWeight 1 SizeMode Fill VerticalAlign 1 Padding 8 0 8 0 } Text "MISSION INFORMATION  ·  SITUATION" Color 0.851 0.537 0.169 1 "Font Size" 17 "Min Font Size" 11 }
+            ButtonWidgetClass "{BF0500000000010C}" { Name "DCO_ScenarioBriefingNext" Slot LayoutSlot "{BF0500000000010D}" { VerticalAlign 1 } style blank { TextWidgetClass "{BF0500000000010E}" { Slot ButtonWidgetSlot "{BF0500000000010F}" { Padding 8 3 8 3 } Text ">" Color 0.851 0.537 0.169 1 "Font Size" 18 } } }
+            ButtonWidgetClass "{BF05000000000110}" { Name "DCO_ScenarioBriefingSave" Slot LayoutSlot "{BF05000000000111}" { VerticalAlign 1 Padding 10 0 0 0 } style blank { TextWidgetClass "{BF05000000000112}" { Slot ButtonWidgetSlot "{BF05000000000113}" { Padding 10 3 10 3 } Text "SAVE TO MAP" Color 0.90 0.93 0.95 1 "Font Size" 15 } } }
+           }
+          }
+          OverlayWidgetClass "{BF05000000000114}" {
+           Slot LayoutSlot "{BF05000000000115}" { HorizontalAlign 3 SizeMode Fill FillWeight 1 }
+           {
+            ImageWidgetClass "{BF05000000000116}" { Slot OverlayWidgetSlot "{BF05000000000117}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.45 }
+            ImageWidgetClass "{BF05000000000118}" { Slot OverlayWidgetSlot "{BF05000000000119}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.08 0.09 0.11 0.98 }
+            MultilineEditBoxWidgetClass "{BF0500000000011A}" { Name "DCO_ScenarioBriefingEdit" Slot OverlayWidgetSlot "{BF0500000000011B}" { HorizontalAlign 3 VerticalAlign 3 Padding 10 6 10 6 } Clipping True style default Text "" Color 0.90 0.93 0.95 1 "Font Size" 16 }
+           }
+          }
+         }
+        }
+       }
+      }
       SizeLayoutWidgetClass "{0DC0000000001542}" {
        Name "DCO_ScenarioScrollHost"
        Slot LayoutSlot "{0DC0000000001543}" {
@@ -3148,6 +3179,44 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           }
          }
         }
+        ButtonWidgetClass "{0DC00000000F4020}" {
+         Name "DCO_Cat_MOD"
+         Slot LayoutSlot "{0DC00000000F4021}" {
+          FillWeight 1
+          Padding 3 2 3 2
+         }
+         "Is Visible" 0
+         style blank
+         {
+          HorizontalLayoutWidgetClass "{0DC00000000F4022}" {
+           Name "DCO_Cat_MOD_HBox"
+           Slot ButtonWidgetSlot "{0DC00000000F4023}" {
+            HorizontalAlign 1
+            VerticalAlign 1
+           }
+           {
+            ImageWidgetClass "{0DC00000000F4024}" {
+             Name "DCO_Cat_MOD_Icon"
+             Slot LayoutSlot "{0DC00000000F4025}" {
+              Padding 3 3 2 3
+              VerticalAlign 1
+             }
+             Size 26 26
+            }
+            TextWidgetClass "{0DC00000000F4026}" {
+             Name "DCO_Cat_MOD_Label"
+             Slot LayoutSlot "{0DC00000000F4027}" {
+              Padding 1 4 4 4
+             }
+             "Is Visible" 0
+             Text "MODS"
+             Color 0.66 0.70 0.74 1
+             "Font Size" 15
+            }
+           }
+          }
+         }
+        }
        }
       }
       HorizontalLayoutWidgetClass "{0DC00000000F3100}" {
@@ -3194,6 +3263,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          Name "DCO_Fac_0"
          Slot LayoutSlot "{0DC0000000000C21}" {
           FillWeight 1
+          SizeMode Fill
           Padding 3 2 3 2
          }
          style blank
@@ -3215,6 +3285,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          Name "DCO_Fac_1"
          Slot LayoutSlot "{0DC0000000000C25}" {
           FillWeight 1
+          SizeMode Fill
           Padding 3 2 3 2
          }
          style blank
@@ -3228,7 +3299,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             ImageWidgetClass "{0DC000000000D002}" {
              Name "DCO_Fac_1_Icon"
              Slot LayoutSlot "{0DC000000000D003}" {
-              Padding 7 2 7 0
+              Padding 2 2 2 0
              }
              Size 12 12
             }
@@ -3253,6 +3324,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          Name "DCO_Fac_2"
          Slot LayoutSlot "{0DC0000000000C29}" {
           FillWeight 1
+          SizeMode Fill
           Padding 3 2 3 2
          }
          style blank
@@ -3266,7 +3338,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             ImageWidgetClass "{0DC000000000D006}" {
              Name "DCO_Fac_2_Icon"
              Slot LayoutSlot "{0DC000000000D007}" {
-              Padding 7 2 7 0
+              Padding 2 2 2 0
              }
              Size 12 12
             }
@@ -3291,6 +3363,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          Name "DCO_Fac_3"
          Slot LayoutSlot "{0DC0000000000C2D}" {
           FillWeight 1
+          SizeMode Fill
           Padding 3 2 3 2
          }
          style blank
@@ -3304,7 +3377,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             ImageWidgetClass "{0DC000000000D00A}" {
              Name "DCO_Fac_3_Icon"
              Slot LayoutSlot "{0DC000000000D00B}" {
-              Padding 7 2 7 0
+              Padding 2 2 2 0
              }
              Size 12 12
             }
@@ -3329,6 +3402,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          Name "DCO_Fac_4"
          Slot LayoutSlot "{0DC0000000000C31}" {
           FillWeight 1
+          SizeMode Fill
           Padding 3 2 3 2
          }
          style blank
@@ -3342,7 +3416,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             ImageWidgetClass "{0DC000000000D00E}" {
              Name "DCO_Fac_4_Icon"
              Slot LayoutSlot "{0DC000000000D00F}" {
-              Padding 7 2 7 0
+              Padding 2 2 2 0
              }
              Size 12 12
             }
@@ -3367,6 +3441,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          Name "DCO_Fac_5"
          Slot LayoutSlot "{0DC0000000000C35}" {
           FillWeight 1
+          SizeMode Fill
           Padding 3 2 3 2
          }
          style blank
@@ -3380,7 +3455,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             ImageWidgetClass "{0DC000000000D012}" {
              Name "DCO_Fac_5_Icon"
              Slot LayoutSlot "{0DC000000000D013}" {
-              Padding 7 2 7 0
+              Padding 2 2 2 0
              }
              Size 12 12
             }
@@ -3405,6 +3480,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          Name "DCO_Fac_6"
          Slot LayoutSlot "{0DC0000000000C39}" {
           FillWeight 1
+          SizeMode Fill
           Padding 3 2 3 2
          }
          style blank
@@ -3418,7 +3494,7 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
             ImageWidgetClass "{0DC000000000D016}" {
              Name "DCO_Fac_6_Icon"
              Slot LayoutSlot "{0DC000000000D017}" {
-              Padding 7 2 7 0
+              Padding 2 2 2 0
              }
              Size 12 12
             }
@@ -3584,27 +3660,21 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          VerticalAlign 3
         }
         {
-       ScrollLayoutWidgetClass "{0DC00000000F2000}" {
-        Name "DCO_ListScroll"
-        Slot AlignableSlot "{0DC00000000F2001}" {
-         HorizontalAlign 3
-         VerticalAlign 3
-        }
-        Color 0.851 0.537 0.169 1
-        {
          VerticalLayoutWidgetClass "{0DC0000000000C40}" {
           Name "DCO_ListHost"
-          Slot AlignableSlot "{0DC00000000F2002}" {
+          Slot LayoutSlot "{0DC00000000F2002}" {
            HorizontalAlign 3
            VerticalAlign 3
+           SizeMode Fill
+           FillWeight 1
           }
         {
          ButtonWidgetClass "{0DC0000000000C42}" {
          Name "DCO_Row_0"
-          Slot LayoutSlot "{0DC0000000000C43}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000C43}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000C44}" {
@@ -3659,10 +3729,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000C4C}" {
          Name "DCO_Row_1"
-          Slot LayoutSlot "{0DC0000000000C4D}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000C4D}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000C4E}" {
@@ -3717,10 +3787,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000C56}" {
          Name "DCO_Row_2"
-          Slot LayoutSlot "{0DC0000000000C57}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000C57}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000C58}" {
@@ -3775,10 +3845,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000C60}" {
          Name "DCO_Row_3"
-          Slot LayoutSlot "{0DC0000000000C61}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000C61}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000C62}" {
@@ -3833,10 +3903,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000C6A}" {
          Name "DCO_Row_4"
-          Slot LayoutSlot "{0DC0000000000C6B}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000C6B}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000C6C}" {
@@ -3891,10 +3961,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000C74}" {
          Name "DCO_Row_5"
-          Slot LayoutSlot "{0DC0000000000C75}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000C75}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000C76}" {
@@ -3949,10 +4019,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000C7E}" {
          Name "DCO_Row_6"
-          Slot LayoutSlot "{0DC0000000000C7F}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000C7F}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000C80}" {
@@ -4007,10 +4077,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000C88}" {
          Name "DCO_Row_7"
-          Slot LayoutSlot "{0DC0000000000C89}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000C89}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000C8A}" {
@@ -4065,10 +4135,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000C92}" {
          Name "DCO_Row_8"
-          Slot LayoutSlot "{0DC0000000000C93}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000C93}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000C94}" {
@@ -4123,10 +4193,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000C9C}" {
          Name "DCO_Row_9"
-          Slot LayoutSlot "{0DC0000000000C9D}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000C9D}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000C9E}" {
@@ -4181,10 +4251,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000CA6}" {
          Name "DCO_Row_10"
-          Slot LayoutSlot "{0DC0000000000CA7}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000CA7}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000CA8}" {
@@ -4239,10 +4309,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000CB0}" {
          Name "DCO_Row_11"
-          Slot LayoutSlot "{0DC0000000000CB1}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000CB1}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000CB2}" {
@@ -4297,10 +4367,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000CBA}" {
          Name "DCO_Row_12"
-          Slot LayoutSlot "{0DC0000000000CBB}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000CBB}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000CBC}" {
@@ -4355,10 +4425,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000CC4}" {
          Name "DCO_Row_13"
-          Slot LayoutSlot "{0DC0000000000CC5}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000CC5}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000CC6}" {
@@ -4413,10 +4483,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000CCE}" {
          Name "DCO_Row_14"
-          Slot LayoutSlot "{0DC0000000000CCF}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000CCF}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000CD0}" {
@@ -4471,10 +4541,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000CD8}" {
          Name "DCO_Row_15"
-          Slot LayoutSlot "{0DC0000000000CD9}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000CD9}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000CDA}" {
@@ -4529,10 +4599,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000CE2}" {
          Name "DCO_Row_16"
-          Slot LayoutSlot "{0DC0000000000CE3}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000CE3}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000CE4}" {
@@ -4587,10 +4657,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC0000000000CEC}" {
          Name "DCO_Row_17"
-          Slot LayoutSlot "{0DC0000000000CED}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC0000000000CED}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC0000000000CEE}" {
@@ -4645,10 +4715,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC00000000F0000}" {
          Name "DCO_Row_18"
-          Slot LayoutSlot "{0DC00000000F0001}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC00000000F0001}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC00000000F0002}" {
@@ -4703,10 +4773,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC00000000F000A}" {
          Name "DCO_Row_19"
-          Slot LayoutSlot "{0DC00000000F000B}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC00000000F000B}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC00000000F000C}" {
@@ -4761,10 +4831,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC00000000F0014}" {
          Name "DCO_Row_20"
-          Slot LayoutSlot "{0DC00000000F0015}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC00000000F0015}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC00000000F0016}" {
@@ -4819,10 +4889,10 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
          }
          ButtonWidgetClass "{0DC00000000F001E}" {
          Name "DCO_Row_21"
-          Slot LayoutSlot "{0DC00000000F001F}" {
-           FillWeight 1
-           SizeMode Fill
-          }
+           Slot LayoutSlot "{0DC00000000F001F}" {
+            HorizontalAlign 3
+           }
+           Size 0 24
           style blank
           {
            HorizontalLayoutWidgetClass "{0DC00000000F0020}" {
@@ -4876,25 +4946,23 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
           }
          }
         }
-         }
-        }
        }
          VerticalLayoutWidgetClass "{0DC0000000002302}" {
           Name "DCO_ListBar"
-          Slot AlignableSlot "{0DC0000000002303}" {
+          Slot LayoutSlot "{0DC0000000002303}" {
            VerticalAlign 3
           }
           {
-           ImageWidgetClass "{0DC0000000002304}" {
-            Name "DCO_ListBar_Spacer"
-            Slot AlignableSlot "{0DC0000000002305}" {
+            ImageWidgetClass "{0DC0000000002304}" {
+             Name "DCO_ListBar_Spacer"
+             Slot LayoutSlot "{0DC0000000002305}" {
             }
             Color 0 0 0 0
             Size 5 0
            }
-           ImageWidgetClass "{0DC0000000002306}" {
-            Name "DCO_ListBar_Thumb"
-            Slot AlignableSlot "{0DC0000000002307}" {
+            ImageWidgetClass "{0DC0000000002306}" {
+             Name "DCO_ListBar_Thumb"
+             Slot LayoutSlot "{0DC0000000002307}" {
             }
             Color 0.851 0.537 0.169 1
             Size 5 24
@@ -4911,6 +4979,75 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
       HorizontalAlign 3
      }
      {
+      SizeLayoutWidgetClass "{0DCC000000001000}" {
+       Name "DCO_CrewVehiclesHost"
+       Slot LayoutSlot "{0DCC000000001001}" { Padding 12 2 12 4 HorizontalAlign 3 }
+       AllowHeightOverride 1
+       HeightOverride 28
+       {
+        ButtonWidgetClass "{0DCC000000001002}" {
+         Name "DCO_CrewVehicles"
+         Slot AlignableSlot "{0DCC000000001003}" { HorizontalAlign 3 VerticalAlign 3 }
+         style blank
+         {
+          HorizontalLayoutWidgetClass "{0DCC000000001004}" {
+           Name "DCO_CrewVehiclesRow"
+           Slot ButtonWidgetSlot "{0DCC000000001005}" { HorizontalAlign 3 VerticalAlign 3 }
+           {
+            SizeLayoutWidgetClass "{0DCC000000001006}" {
+             Name "DCO_CrewVehiclesBoxHost"
+             Slot LayoutSlot "{0DCC000000001007}" { VerticalAlign 1 Padding 2 0 8 0 }
+             AllowWidthOverride 1
+             AllowHeightOverride 1
+             WidthOverride 18
+             HeightOverride 18
+             {
+              OverlayWidgetClass "{0DCC000000001008}" {
+               Name "DCO_CrewVehiclesBox"
+               Slot AlignableSlot "{0DCC000000001009}" { HorizontalAlign 3 VerticalAlign 3 }
+               {
+                PanelWidgetClass "{0DCC00000000100A}" {
+                 Name "DCO_CrewVehiclesBorder"
+                 Slot OverlayWidgetSlot "{0DCC00000000100B}" { HorizontalAlign 3 VerticalAlign 3 }
+                 Color 0.851 0.537 0.169 0.85
+                 style outline_1px
+                }
+                TextWidgetClass "{0DCC00000000100C}" {
+                 Name "DCO_CrewVehiclesTick"
+                 Slot OverlayWidgetSlot "{0DCC00000000100D}" { HorizontalAlign 1 VerticalAlign 1 }
+                 Text "X"
+                 Color 0.94 0.96 0.98 1
+                 "Font Size" 16
+                 "Min Font Size" 11
+                 "Horizontal Alignment" Center
+                }
+               }
+              }
+             }
+            }
+            TextWidgetClass "{0DCC00000000100E}" {
+             Name "DCO_CrewVehiclesLabel"
+             Slot LayoutSlot "{0DCC00000000100F}" { VerticalAlign 1 SizeMode Fill FillWeight 1 }
+             Text "SPAWN VEHICLES CREWED"
+             Color 0.78 0.81 0.85 1
+             "Font Size" 16
+             "Min Font Size" 10
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{0DCC000000001010}" {
+       Name "DCO_CrewVehiclesDiv"
+       Slot LayoutSlot "{0DCC000000001011}" { Padding 0 0 0 2 HorizontalAlign 1 }
+       {
+        ImageWidgetClass "{0DCC000000001012}" { Name "DCO_CrewVehiclesDiv_L" Slot LayoutSlot "{0DCC000000001013}" { VerticalAlign 1 } Color 0.851 0.537 0.169 0.10 Size 70 1 }
+        ImageWidgetClass "{0DCC000000001014}" { Name "DCO_CrewVehiclesDiv_C" Slot LayoutSlot "{0DCC000000001015}" { VerticalAlign 1 } Color 0.851 0.537 0.169 0.45 Size 140 1 }
+        ImageWidgetClass "{0DCC000000001016}" { Name "DCO_CrewVehiclesDiv_R" Slot LayoutSlot "{0DCC000000001017}" { VerticalAlign 1 } Color 0.851 0.537 0.169 0.10 Size 70 1 }
+       }
+      }
        TextWidgetClass "{0DCC000000000200}" {
         Name "DCO_CreateCapacityHeader"
         Slot LayoutSlot "{0DCC000000000201}" {
@@ -9396,6 +9533,48 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
        {
         ButtonWidgetClass "{0DC0000000002C28}" { Name "DCO_OptVis10" Slot LayoutSlot "{0DC0000000002C29}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D14}" { Slot ButtonWidgetSlot "{0DC0000000002D15}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C2A}" { Name "DCO_OptVis10_Icon" Slot LayoutSlot "{0DC0000000002C2B}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{36106BA9CF5483B0}UI/Textures/Editor/Toolbar/Commanding/Toolbar_Commanding_Waypoint_Attack.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002C2C}" { Name "DCO_OptVis10_Label" Slot LayoutSlot "{0DC0000000002C2D}" { FillWeight 1 HorizontalAlign 3 VerticalAlign 1 Padding 0 5 2 5 } Text "TACTICS ON" Color 0.851 0.537 0.169 1 "Font Size" 19 "Min Font Size" 8 } } } } }
         ButtonWidgetClass "{0DC0000000002C2E}" { Name "DCO_OptVis11" Slot LayoutSlot "{0DC0000000002C2F}" { FillWeight 1 Padding 2 0 2 0 } style blank { HorizontalLayoutWidgetClass "{0DC0000000002D16}" { Slot ButtonWidgetSlot "{0DC0000000002D17}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{0DC0000000002C30}" { Name "DCO_OptVis11_Icon" Slot LayoutSlot "{0DC0000000002C31}" { VerticalAlign 1 Padding 5 0 4 0 } Texture "{E09F130847C8EB75}UI/Textures/Editor/Toolbar/ToolbarAction_Tutorial.edds" Color 0.851 0.537 0.169 1 Size 14 14 } TextWidgetClass "{0DC0000000002C32}" { Name "DCO_OptVis11_Label" Slot LayoutSlot "{0DC0000000002C33}" { FillWeight 1 HorizontalAlign 3 VerticalAlign 1 Padding 0 5 2 5 } Text "INFO ON" Color 0.851 0.537 0.169 1 "Font Size" 19 "Min Font Size" 8 } } } } }
+       }
+      }
+      ButtonWidgetClass "{0DC0000000002E20}" {
+       Name "DCO_OptNativeTools"
+       Slot LayoutSlot "{0DC0000000002E21}" {
+        Padding 16 3 16 5
+        HorizontalAlign 3
+       }
+       style blank
+       {
+        HorizontalLayoutWidgetClass "{0DC0000000002E22}" {
+         Slot ButtonWidgetSlot "{0DC0000000002E23}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+          Padding 8 0 8 0
+         }
+         {
+          ImageWidgetClass "{0DC0000000002E24}" {
+           Name "DCO_OptNativeTools_Icon"
+           Slot LayoutSlot "{0DC0000000002E25}" {
+            VerticalAlign 1
+            Padding 0 0 8 0
+           }
+            Texture "{5D9BA0547F2E3804}UI/Textures/Editor/ContextMenu/ContextAction_Control.edds"
+           Color 0.851 0.537 0.169 1
+           Size 18 18
+          }
+          TextWidgetClass "{0DC0000000002E26}" {
+           Name "DCO_OptNativeTools_Label"
+           Slot LayoutSlot "{0DC0000000002E27}" {
+            FillWeight 1
+            HorizontalAlign 3
+            VerticalAlign 1
+            Padding 0 7 0 7
+           }
+           Text "EDITOR TOOLS  ·  NATIVE"
+           Color 0.90 0.93 0.95 1
+           "Font Size" 20
+           "Min Font Size" 10
+          }
+         }
+        }
        }
       }
       ButtonWidgetClass "{0DC0000000002C34}" {

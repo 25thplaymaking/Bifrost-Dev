@@ -2,6 +2,18 @@
 //! wrappers, container routing, availability preview, and apply dispatch. Pure service layer —
 //! holds no widgets, schedules no UI behavior. Screens subscribe to the change events; the
 //! entry-point action opens the menu itself so this class never references UI types.
+enum GRSA_EExtraChangeResult
+{
+	INVALID,
+	ADDED,
+	REMOVED,
+	EMPTY,
+	NO_STORAGE,
+	INCOMPATIBLE,
+	WEIGHT_LIMIT,
+	VOLUME_LIMIT
+}
+
 class GRSA_DraftService
 {
 	protected static const int APPLY_DEBOUNCE_MS = 2100;
@@ -173,7 +185,67 @@ class GRSA_DraftService
 		if (!m_Draft)
 			return;
 
+		GRSA_KitClothing existing = m_Draft.FindClothing(slotIdx);
+		bool prefabChanged = !existing || existing.m_Prefab != prefab;
 		m_Draft.SetClothing(slotIdx, prefab);
+
+		GRSA_KitClothing clothing = m_Draft.FindClothing(slotIdx);
+		if (clothing && prefabChanged && !prefab.IsEmpty())
+		{
+			GRSA_ItemIntel.GetDefaultAttachments(prefab, clothing.m_aAttachments);
+			clothing.EnsurePins();
+		}
+
+		if (!m_TargetContainer.IsEmpty())
+		{
+			array<ResourceName> containers = {};
+			GetDraftContainers(containers);
+			if (containers.Find(m_TargetContainer) < 0)
+				m_TargetContainer = ResourceName.Empty;
+		}
+		m_LoadedKitFile = null;
+		m_bDraftDirty = true;
+		NotifyDraftChanged();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Replaces exactly one runtime-supported hardpoint on an equipped clothing item.
+	void SwapDraftClothingAttachment(int clothingSlotIdx, ResourceName oldPrefab, ResourceName newPrefab, int hardpointSlot)
+	{
+		if (!m_Draft)
+			return;
+
+		GRSA_KitClothing clothing = m_Draft.FindClothing(clothingSlotIdx);
+		if (!clothing)
+			return;
+
+		clothing.EnsurePins();
+		if (!oldPrefab.IsEmpty())
+		{
+			int existing = -1;
+			foreach (int i, ResourceName attachment : clothing.m_aAttachments)
+			{
+				if (attachment == oldPrefab && clothing.m_aAttachmentSlots[i] == hardpointSlot)
+				{
+					existing = i;
+					break;
+				}
+			}
+			if (existing < 0)
+				existing = clothing.m_aAttachments.Find(oldPrefab);
+			if (existing >= 0)
+			{
+				clothing.m_aAttachments.Remove(existing);
+				clothing.m_aAttachmentSlots.Remove(existing);
+			}
+		}
+
+		if (!newPrefab.IsEmpty())
+		{
+			clothing.m_aAttachments.Insert(newPrefab);
+			clothing.m_aAttachmentSlots.Insert(hardpointSlot);
+		}
+
 		m_LoadedKitFile = null;
 		m_bDraftDirty = true;
 		NotifyDraftChanged();
@@ -320,19 +392,64 @@ class GRSA_DraftService
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Quick-add: routes into the session target container.
-	void AddDraftExtra(ResourceName prefab, int delta)
+	//! Moves one worn-item attachment to another authored hardpoint on the same clothing item.
+	void SetDraftClothingAttachmentPin(int clothingSlotIdx, ResourceName attachmentPrefab, int hardpointSlot, int currentHardpointSlot = -1)
 	{
-		AddDraftExtraTo(prefab, delta, m_TargetContainer);
+		if (!m_Draft || attachmentPrefab.IsEmpty())
+			return;
+
+		GRSA_KitClothing clothing = m_Draft.FindClothing(clothingSlotIdx);
+		if (!clothing)
+			return;
+
+		clothing.EnsurePins();
+		int idx = -1;
+		foreach (int i, ResourceName attachment : clothing.m_aAttachments)
+		{
+			if (attachment == attachmentPrefab && (currentHardpointSlot < 0 || clothing.m_aAttachmentSlots[i] == currentHardpointSlot))
+			{
+				idx = i;
+				break;
+			}
+		}
+		if (idx < 0 || clothing.m_aAttachmentSlots[idx] == hardpointSlot)
+			return;
+
+		clothing.m_aAttachmentSlots[idx] = hardpointSlot;
+		m_LoadedKitFile = null;
+		m_bDraftDirty = true;
+		NotifyDraftChanged();
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Adds go into the given container's bucket. Removals drain that bucket first, then any other
-	//! bucket still holding the item, so "remove one" always works regardless of the current target.
-	void AddDraftExtraTo(ResourceName prefab, int delta, ResourceName container)
+	//! Quick-add: routes into the session target container.
+	bool AddDraftExtra(ResourceName prefab, int delta)
 	{
-		if (!m_Draft)
-			return;
+		return AddDraftExtraTo(prefab, delta, m_TargetContainer);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Changes only the selected container bucket so contents never move between worn items implicitly.
+	bool AddDraftExtraTo(ResourceName prefab, int delta, ResourceName container)
+	{
+		GRSA_EExtraChangeResult result = ChangeDraftExtraTo(prefab, delta, container);
+		return result == GRSA_EExtraChangeResult.ADDED || result == GRSA_EExtraChangeResult.REMOVED;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reports the exact outcome while keeping the draft unchanged on every rejected addition.
+	GRSA_EExtraChangeResult ChangeDraftExtraTo(ResourceName prefab, int delta, ResourceName container)
+	{
+		if (!m_Draft || prefab.IsEmpty() || delta == 0)
+			return GRSA_EExtraChangeResult.INVALID;
+
+		GRSA_EExtraChangeResult result;
+		if (delta > 0)
+		{
+			result = GetAddDraftExtraResult(prefab, delta, container);
+			if (result != GRSA_EExtraChangeResult.ADDED)
+				return result;
+		}
 
 		if (delta >= 0)
 		{
@@ -340,38 +457,140 @@ class GRSA_DraftService
 		}
 		else
 		{
-			int remove = -delta;
 			int inBucket = m_Draft.GetExtraCount(prefab, container);
-			int fromBucket = Math.Min(inBucket, remove);
-			if (fromBucket > 0)
-				m_Draft.SetExtra(prefab, inBucket - fromBucket, container);
-			remove -= fromBucket;
-
-			if (remove > 0)
-			{
-				array<ResourceName> otherBuckets = {};
-				array<int> otherCounts = {};
-				foreach (GRSA_KitExtra extra : m_Draft.m_aExtras)
-				{
-					if (extra.m_Prefab == prefab && extra.m_Container != container)
-					{
-						otherBuckets.Insert(extra.m_Container);
-						otherCounts.Insert(extra.m_iCount);
-					}
-				}
-
-				for (int i = 0; i < otherBuckets.Count() && remove > 0; ++i)
-				{
-					int fromOther = Math.Min(otherCounts[i], remove);
-					m_Draft.SetExtra(prefab, otherCounts[i] - fromOther, otherBuckets[i]);
-					remove -= fromOther;
-				}
-			}
+			int wanted = Math.Max(0, inBucket + delta);
+			if (wanted == inBucket)
+				return GRSA_EExtraChangeResult.EMPTY;
+			m_Draft.SetExtra(prefab, wanted, container);
+			result = GRSA_EExtraChangeResult.REMOVED;
 		}
 
 		m_LoadedKitFile = null;
 		m_bDraftDirty = true;
 		NotifyDraftChanged();
+		return result;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	bool CanAddDraftExtraTo(ResourceName prefab, int count, ResourceName container)
+	{
+		return GetAddDraftExtraResult(prefab, count, container) == GRSA_EExtraChangeResult.ADDED;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	GRSA_EExtraChangeResult GetAddDraftExtraResult(ResourceName prefab, int count, ResourceName container)
+	{
+		if (!m_Draft || prefab.IsEmpty() || count <= 0)
+			return GRSA_EExtraChangeResult.INVALID;
+		if (container.IsEmpty())
+			return GRSA_EExtraChangeResult.ADDED;
+
+		if (!GRSA_ItemIntel.HasContainerStorage(container))
+			return GRSA_EExtraChangeResult.NO_STORAGE;
+		if (!GRSA_ItemIntel.CanStoreInContainer(container, prefab))
+			return GRSA_EExtraChangeResult.INCOMPATIBLE;
+
+		return CanFitDraftContainerContents(container, prefab, count);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Replays the drafted bucket through the same ordered child stores used by targeted Wear.
+	protected GRSA_EExtraChangeResult CanFitDraftContainerContents(ResourceName container, ResourceName addedPrefab, int addedCount)
+	{
+		array<BaseInventoryStorageComponent> storages = {};
+		GRSA_ItemIntel.GetContainerStorages(container, storages);
+		if (storages.IsEmpty())
+			return GRSA_EExtraChangeResult.NO_STORAGE;
+
+		array<float> usedWeights = {};
+		array<float> usedVolumes = {};
+		for (int i = 0; i < storages.Count(); ++i)
+		{
+			usedWeights.Insert(0);
+			usedVolumes.Insert(0);
+		}
+
+		bool proposalPlaced;
+		foreach (GRSA_KitExtra extra : m_Draft.m_aExtras)
+		{
+			if (extra.m_Container != container)
+				continue;
+
+			int wanted = extra.m_iCount;
+			if (!proposalPlaced && extra.m_Prefab == addedPrefab)
+			{
+				wanted += addedCount;
+				proposalPlaced = true;
+			}
+
+			for (int n = 0; n < wanted; ++n)
+			{
+				GRSA_EExtraChangeResult result = PlaceDraftItem(extra.m_Prefab, storages, usedWeights, usedVolumes);
+				if (result != GRSA_EExtraChangeResult.ADDED)
+					return result;
+			}
+		}
+
+		if (!proposalPlaced)
+		{
+			for (int n = 0; n < addedCount; ++n)
+			{
+				GRSA_EExtraChangeResult result = PlaceDraftItem(addedPrefab, storages, usedWeights, usedVolumes);
+				if (result != GRSA_EExtraChangeResult.ADDED)
+					return result;
+			}
+		}
+
+		return GRSA_EExtraChangeResult.ADDED;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected GRSA_EExtraChangeResult PlaceDraftItem(
+		ResourceName prefab,
+		notnull array<BaseInventoryStorageComponent> storages,
+		notnull array<float> usedWeights,
+		notnull array<float> usedVolumes)
+	{
+		float itemWeight = GRSA_ItemIntel.GetWeight(prefab);
+		float itemVolume = GRSA_ItemIntel.GetVolume(prefab);
+		bool compatible;
+		bool weightBlocked;
+		bool volumeBlocked;
+
+		foreach (int i, BaseInventoryStorageComponent storage : storages)
+		{
+			if (!GRSA_ItemIntel.CanStoreInStorage(storage, prefab))
+				continue;
+
+			compatible = true;
+			float maxLoad;
+			SCR_UniversalInventoryStorageComponent universal = SCR_UniversalInventoryStorageComponent.Cast(storage);
+			if (universal)
+				maxLoad = universal.GetMaxLoad();
+			float maxVolume = storage.GetMaxVolumeCapacity();
+
+			bool weightFits = maxLoad <= 0 || usedWeights[i] + itemWeight <= maxLoad + 0.001;
+			bool volumeFits = maxVolume <= 0 || itemVolume <= 0 || usedVolumes[i] + itemVolume <= maxVolume + 0.001;
+			if (weightFits && volumeFits)
+			{
+				usedWeights[i] = usedWeights[i] + itemWeight;
+				usedVolumes[i] = usedVolumes[i] + itemVolume;
+				return GRSA_EExtraChangeResult.ADDED;
+			}
+
+			if (!weightFits)
+				weightBlocked = true;
+			if (!volumeFits)
+				volumeBlocked = true;
+		}
+
+		if (!compatible)
+			return GRSA_EExtraChangeResult.INCOMPATIBLE;
+		if (volumeBlocked)
+			return GRSA_EExtraChangeResult.VOLUME_LIMIT;
+		if (weightBlocked)
+			return GRSA_EExtraChangeResult.WEIGHT_LIMIT;
+		return GRSA_EExtraChangeResult.INCOMPATIBLE;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -570,11 +789,37 @@ class GRSA_DraftService
 	//------------------------------------------------------------------------------------------------
 	void SetTargetContainer(ResourceName container)
 	{
+		if (!container.IsEmpty() && !GRSA_ItemIntel.HasContainerStorage(container))
+			container = ResourceName.Empty;
 		m_TargetContainer = container;
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Drafted clothing with a weight-capped storage, the candidates for targeted item placement.
+	string GetTargetContainerDisplayName()
+	{
+		return GetContainerDisplayName(m_TargetContainer);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Short worn-area label keeps storage selectors readable regardless of an item's catalog name.
+	string GetContainerDisplayName(ResourceName container)
+	{
+		if (container.IsEmpty())
+			return "AUTO";
+
+		string area = GRSA_ItemIntel.GetClothAreaType(container);
+		if (!area.IsEmpty())
+		{
+			string label = GRSA_CatalogService.PrettyAreaName(area);
+			if (!label.IsEmpty())
+				return label;
+		}
+
+		return GRSA_CatalogService.GetDisplayName(container, GetBrowseFaction());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drafted clothing with player-facing cargo storage, the candidates for targeted item placement.
 	void GetDraftContainers(notnull array<ResourceName> outContainers)
 	{
 		outContainers.Clear();
@@ -583,7 +828,7 @@ class GRSA_DraftService
 
 		foreach (GRSA_KitClothing clothing : m_Draft.m_aClothings)
 		{
-			if (!clothing.m_Prefab.IsEmpty() && GRSA_ItemIntel.GetStorageMaxLoad(clothing.m_Prefab) > 0)
+			if (!clothing.m_Prefab.IsEmpty() && GRSA_ItemIntel.HasContainerStorage(clothing.m_Prefab))
 				outContainers.Insert(clothing.m_Prefab);
 		}
 	}
@@ -598,7 +843,7 @@ class GRSA_DraftService
 		{
 			foreach (GRSA_KitClothing clothing : m_Draft.m_aClothings)
 			{
-				if (!clothing.m_Prefab.IsEmpty() && GRSA_ItemIntel.GetStorageMaxLoad(clothing.m_Prefab) > 0)
+				if (!clothing.m_Prefab.IsEmpty() && GRSA_ItemIntel.HasContainerStorage(clothing.m_Prefab))
 					cycle.Insert(clothing.m_Prefab);
 			}
 		}
@@ -613,16 +858,39 @@ class GRSA_DraftService
 	//! Drafted weight already routed into this container.
 	float GetContainerFill(ResourceName container)
 	{
-		if (!m_Draft || container.IsEmpty())
-			return 0;
+		float weight;
+		float volume;
+		GetContainerUsage(container, weight, volume);
+		return weight;
+	}
 
-		float fill;
+	//------------------------------------------------------------------------------------------------
+	//! Drafted volume already routed into this container.
+	float GetContainerVolumeFill(ResourceName container)
+	{
+		float weight;
+		float volume;
+		GetContainerUsage(container, weight, volume);
+		return volume;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One canonical draft pass supplies both capacity dimensions for a worn container.
+	void GetContainerUsage(ResourceName container, out float weight, out float volume)
+	{
+		weight = 0;
+		volume = 0;
+		if (!m_Draft || container.IsEmpty())
+			return;
+
 		foreach (GRSA_KitExtra extra : m_Draft.m_aExtras)
 		{
 			if (extra.m_Container == container)
-				fill += GRSA_ItemIntel.GetWeight(extra.m_Prefab) * extra.m_iCount;
+			{
+				weight += GRSA_ItemIntel.GetWeight(extra.m_Prefab) * extra.m_iCount;
+				volume += GRSA_ItemIntel.GetVolume(extra.m_Prefab) * extra.m_iCount;
+			}
 		}
-		return fill;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -635,7 +903,11 @@ class GRSA_DraftService
 
 		float total;
 		foreach (GRSA_KitClothing clothing : m_Draft.m_aClothings)
+		{
 			total += GRSA_ItemIntel.GetWeight(clothing.m_Prefab);
+			foreach (ResourceName attachment : clothing.m_aAttachments)
+				total += GRSA_ItemIntel.GetWeight(attachment);
+		}
 
 		foreach (GRSA_KitWeapon weapon : m_Draft.m_aWeapons)
 		{

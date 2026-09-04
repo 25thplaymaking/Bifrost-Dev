@@ -329,6 +329,22 @@ modded class SCR_PlayerController
 		}
 	}
 
+	void DCO_SendGMBriefing(int entryId, string text)
+	{
+		if (Replication.IsServer())
+		{
+			DCO_GMBriefing.Apply(GetPlayerId(), entryId, text);
+			return;
+		}
+		Rpc(DCO_RpcGMBriefing, entryId, text);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcGMBriefing(int entryId, string text)
+	{
+		DCO_GMBriefing.Apply(GetPlayerId(), entryId, text);
+	}
+
 	// Authority-owned replicated pause presentation.
 	void DCO_SetPauseState(bool paused)
 	{
@@ -512,19 +528,19 @@ modded class SCR_PlayerController
 		DCO_GMAttach.DetachAllOnAuthority(GetPlayerId());
 	}
 
-	void DCO_RequestGMAIOverlay(vector cameraPosition, int requestMask, string selectedIds)
+	void DCO_RequestGMAIOverlay(vector cameraPosition, int requestMask, string selectedIds, string pathIds, string groupPathIds)
 	{
-		Rpc(DCO_RpcRequestGMAIOverlay, cameraPosition, requestMask, selectedIds);
+		Rpc(DCO_RpcRequestGMAIOverlay, cameraPosition, requestMask, selectedIds, pathIds, groupPathIds);
 	}
 
 	[RplRpc(RplChannel.Unreliable, RplRcver.Server)]
-	protected void DCO_RpcRequestGMAIOverlay(vector cameraPosition, int requestMask, string selectedIds)
+	protected void DCO_RpcRequestGMAIOverlay(vector cameraPosition, int requestMask, string selectedIds, string pathIds, string groupPathIds)
 	{
 		if (!DCO_GMRights.Allow(GetPlayerId(), "GM AI overlay"))
 			return;
 		m_iDCO_AIOverlaySerial++;
 		array<string> chunks = {};
-		DCO_GMAIOverlaySnapshot.BuildChunks(cameraPosition, requestMask, selectedIds, m_iDCO_AIOverlaySerial, chunks);
+		DCO_GMAIOverlaySnapshot.BuildChunks(cameraPosition, requestMask, selectedIds, pathIds, groupPathIds, m_iDCO_AIOverlaySerial, chunks);
 		foreach (string chunk : chunks)
 			Rpc(DCO_RpcReceiveGMAIOverlay, chunk);
 	}
@@ -533,6 +549,204 @@ modded class SCR_PlayerController
 	protected void DCO_RpcReceiveGMAIOverlay(string payload)
 	{
 		DCO_GMAIOverlaySnapshot.Receive(payload);
+	}
+
+	void DCO_SendGMMarkerMutation(int verb, int id, int kind, vector position, vector sizeRotation, string name)
+	{
+		Rpc(DCO_RpcGMMarkerMutation, verb, id, kind, position, sizeRotation, name);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcGMMarkerMutation(int verb, int id, int kind, vector position, vector sizeRotation, string name)
+	{
+		DCO_GMMarkerServer.Apply(GetPlayerId(), verb, id, kind, position, sizeRotation, name);
+	}
+
+	void DCO_RequestGMMarkerSnapshot()
+	{
+		Rpc(DCO_RpcRequestGMMarkerSnapshot);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcRequestGMMarkerSnapshot()
+	{
+		DCO_GMMarkerServer.SendSnapshot(this);
+	}
+
+	void DCO_PushGMMarkerSnapshotBegin(int serial)
+	{
+		Rpc(DCO_RpcGMMarkerSnapshotBegin, serial);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMMarkerSnapshotBegin(int serial)
+	{
+		DCO_GMMarkerService.Get().OnSnapshotBegin(serial);
+	}
+
+	void DCO_PushGMMarkerSnapshotRecord(int serial, int id, int kind, int ownerPlayerId, vector position, vector sizeRotation, string name)
+	{
+		Rpc(DCO_RpcGMMarkerSnapshotRecord, serial, id, kind, ownerPlayerId, position, sizeRotation, name);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMMarkerSnapshotRecord(int serial, int id, int kind, int ownerPlayerId, vector position, vector sizeRotation, string name)
+	{
+		DCO_GMMarkerService.Get().OnSnapshotRecord(serial, id, kind, ownerPlayerId, position, sizeRotation, name);
+	}
+
+	void DCO_PushGMMarkerSnapshotEnd(int serial)
+	{
+		Rpc(DCO_RpcGMMarkerSnapshotEnd, serial);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMMarkerSnapshotEnd(int serial)
+	{
+		DCO_GMMarkerService.Get().OnSnapshotEnd(serial);
+	}
+
+	void DCO_RequestGMVisibilityCheck(vector point, float maxDistance, int sequence)
+	{
+		Rpc(DCO_RpcRequestGMVisibilityCheck, point, maxDistance, sequence);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcRequestGMVisibilityCheck(vector point, float maxDistance, int sequence)
+	{
+		if (!DCO_GMRights.Allow(GetPlayerId(), "GM visibility check"))
+			return;
+		int viewerCount;
+		float nearestDistance;
+		bool visible = DCO_GMVisibilityServer.Evaluate(GetPlayerId(), point, maxDistance, viewerCount, nearestDistance);
+		Rpc(DCO_RpcGMVisibilityCheckResult, sequence, visible, viewerCount, nearestDistance);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMVisibilityCheckResult(int sequence, bool visible, int viewerCount, float nearestDistance)
+	{
+		DCO_GMVisibilityIndicator.Get().OnResult(sequence, visible, viewerCount, nearestDistance);
+	}
+
+	void DCO_BeginGMCompositionCapture(int token, string name, string category, string author, int expectedCount)
+	{
+		Rpc(DCO_RpcBeginGMCompositionCapture, token, name, category, author, expectedCount);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcBeginGMCompositionCapture(int token, string name, string category, string author, int expectedCount)
+	{
+		DCO_GMCompositionServer.BeginCapture(this, token, name, category, author, expectedCount);
+	}
+
+	void DCO_AddGMCompositionCaptureItem(int token, int index, RplId entityId)
+	{
+		Rpc(DCO_RpcAddGMCompositionCaptureItem, token, index, entityId);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcAddGMCompositionCaptureItem(int token, int index, RplId entityId)
+	{
+		DCO_GMCompositionServer.AddCaptureItem(this, token, index, entityId);
+	}
+
+	void DCO_CommitGMCompositionCapture(int token)
+	{
+		Rpc(DCO_RpcCommitGMCompositionCapture, token);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcCommitGMCompositionCapture(int token)
+	{
+		DCO_GMCompositionServer.CommitCapture(this, token);
+	}
+
+	void DCO_RequestGMCompositionSnapshot()
+	{
+		Rpc(DCO_RpcRequestGMCompositionSnapshot);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcRequestGMCompositionSnapshot()
+	{
+		DCO_GMCompositionServer.SendSnapshot(this);
+	}
+
+	void DCO_RequestGMCompositionPlace(int compositionId, vector position)
+	{
+		Rpc(DCO_RpcRequestGMCompositionPlace, compositionId, position);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcRequestGMCompositionPlace(int compositionId, vector position)
+	{
+		DCO_GMCompositionServer.Place(this, compositionId, position);
+	}
+
+	void DCO_RequestGMCompositionDelete(int compositionId)
+	{
+		Rpc(DCO_RpcRequestGMCompositionDelete, compositionId);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcRequestGMCompositionDelete(int compositionId)
+	{
+		DCO_GMCompositionServer.DeleteLibraryEntry(this, compositionId);
+	}
+
+	void DCO_RequestGMCompositionUndo()
+	{
+		Rpc(DCO_RpcRequestGMCompositionUndo);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcRequestGMCompositionUndo()
+	{
+		DCO_GMCompositionServer.UndoLastPlacement(this);
+	}
+
+	void DCO_PushGMCompositionSnapshotBegin(int serial)
+	{
+		Rpc(DCO_RpcGMCompositionSnapshotBegin, serial);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMCompositionSnapshotBegin(int serial)
+	{
+		DCO_GMCompositionService.Get().OnSnapshotBegin(serial);
+	}
+
+	void DCO_PushGMCompositionSnapshotRecord(int serial, int id, string name, string category, string author, int itemCount)
+	{
+		Rpc(DCO_RpcGMCompositionSnapshotRecord, serial, id, name, category, author, itemCount);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMCompositionSnapshotRecord(int serial, int id, string name, string category, string author, int itemCount)
+	{
+		DCO_GMCompositionService.Get().OnSnapshotRecord(serial, id, name, category, author, itemCount);
+	}
+
+	void DCO_PushGMCompositionSnapshotEnd(int serial)
+	{
+		Rpc(DCO_RpcGMCompositionSnapshotEnd, serial);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMCompositionSnapshotEnd(int serial)
+	{
+		DCO_GMCompositionService.Get().OnSnapshotEnd(serial);
+	}
+
+	void DCO_PushGMCompositionResult(bool success, string message)
+	{
+		Rpc(DCO_RpcGMCompositionResult, success, message);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMCompositionResult(bool success, string message)
+	{
+		DCO_GMCompositionService.Get().OnResult(success, message);
 	}
 
 	void DCO_SendGMOrderFor(RplId groupId, int actionId)
@@ -728,6 +942,30 @@ modded class SCR_PlayerController
 	void DCO_SendGMArsenalAccessCreate(RplId targetId, vector interactionPosition, vector accentRgb, float panelOpacity)
 	{
 		Rpc(DCO_RpcGMArsenalAccessCreate, targetId, interactionPosition, accentRgb, panelOpacity);
+	}
+
+	void DCO_SendGMVehicleServiceAccessMove(RplId zoneId, vector interactionPosition)
+	{
+		Rpc(DCO_RpcGMVehicleServiceAccessMove, zoneId, interactionPosition);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcGMVehicleServiceAccessMove(RplId zoneId, vector interactionPosition)
+	{
+		if (!DCO_GMRights.Allow(GetPlayerId(), "vehicle service access placement"))
+		{
+			Rpc(DCO_RpcGMVehicleServiceAccessConfirmed, false, "Vehicle Service access refused: Game Master rights required.");
+			return;
+		}
+		string result;
+		bool success = DCO_VehicleServiceAccessPlacement.ApplyRelayed(zoneId, interactionPosition, result);
+		Rpc(DCO_RpcGMVehicleServiceAccessConfirmed, success, result);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcGMVehicleServiceAccessConfirmed(bool success, string result)
+	{
+		DCO_VehicleServiceAccessPlacement.Get().OnAuthorityResult(success, result);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]

@@ -8,6 +8,14 @@ class GRSA_ArsenalTabViewComponent : SCR_TabViewComponent
 		m_TransitionGuard = guard;
 	}
 
+	override bool OnUpdate(Widget w)
+	{
+		if (!m_TransitionGuard)
+			return true;
+
+		return super.OnUpdate(w);
+	}
+
 	override void ShowTab(int i, bool callAction = true, bool playSound = true)
 	{
 		if (m_TransitionGuard && i != GetShownTab()
@@ -40,6 +48,7 @@ class GRSA_ArsenalTabViewComponent : SCR_TabViewComponent
 class GRSA_ShellMenu : SCR_SuperMenuBase
 {
 	protected static bool s_bOpen;
+	protected static GRSA_ShellMenu s_ActiveInstance;
 	protected TextWidget m_wHeaderSupply;
 	protected TextWidget m_wHeaderWeight;
 	protected TextWidget m_wStatus;
@@ -77,6 +86,7 @@ class GRSA_ShellMenu : SCR_SuperMenuBase
 			Close();
 			return;
 		}
+		s_ActiveInstance = this;
 
 		Widget root = GetRootWidget();
 		GRSA_Theme.Apply(root);
@@ -115,6 +125,9 @@ class GRSA_ShellMenu : SCR_SuperMenuBase
 		service.m_OnDraftChanged.Insert(RefreshHeader);
 		SCR_ResourcePlayerControllerInventoryComponent.GRSA_GetOnApplyResult().Insert(OnApplyResult);
 		GetGame().GetInputManager().AddActionListener("MenuBack", EActionTrigger.DOWN, OnBack);
+		#ifdef WORKBENCH
+		GetGame().GetInputManager().AddActionListener("MenuBackWB", EActionTrigger.DOWN, OnBack);
+		#endif
 		RefreshHeader();
 	}
 
@@ -166,8 +179,13 @@ class GRSA_ShellMenu : SCR_SuperMenuBase
 
 		super.OnMenuClose();
 		s_bOpen = false;
+		if (s_ActiveInstance == this)
+			s_ActiveInstance = null;
 
 		GetGame().GetInputManager().RemoveActionListener("MenuBack", EActionTrigger.DOWN, OnBack);
+		#ifdef WORKBENCH
+		GetGame().GetInputManager().RemoveActionListener("MenuBackWB", EActionTrigger.DOWN, OnBack);
+		#endif
 		SCR_ResourcePlayerControllerInventoryComponent.GRSA_GetOnApplyResult().Remove(OnApplyResult);
 		GetGame().GetCallqueue().Remove(ClearStatus);
 
@@ -187,6 +205,30 @@ class GRSA_ShellMenu : SCR_SuperMenuBase
 	static bool IsArmoryOpen()
 	{
 		return s_bOpen;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	static bool OpenGunsmithForClothing(int clothingSlot)
+	{
+		if (!s_ActiveInstance || !s_ActiveInstance.m_TabView || clothingSlot < 0)
+			return false;
+
+		GRSA_GunsmithScreen.QueueClothingInspection(clothingSlot);
+		s_ActiveInstance.m_TabView.ShowTab(1);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Short transient feedback shared by local Arsenal interactions.
+	static void ShowStatus(string text, bool success)
+	{
+		if (!s_ActiveInstance)
+			return;
+
+		Color color = GRSA_Theme.TextPrimary();
+		if (!success)
+			color = GRSA_Theme.Separator();
+		s_ActiveInstance.PresentStatus(text, color, 2200);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -335,10 +377,19 @@ class GRSA_ShellMenu : SCR_SuperMenuBase
 		if ((status == GRSA_EApplyStatus.SUCCESS || status == GRSA_EApplyStatus.PARTIAL) && GRSA_DraftService.Get())
 			GRSA_DraftService.Get().m_bDraftDirty = false;
 
+		PresentStatus(text, statusColor, 4000);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void PresentStatus(string text, Color color, int durationMs)
+	{
+		if (!m_wStatus)
+			return;
+
 		m_wStatus.SetText(text);
-		m_wStatus.SetColor(statusColor);
+		m_wStatus.SetColor(color);
 		GetGame().GetCallqueue().Remove(ClearStatus);
-		GetGame().GetCallqueue().CallLater(ClearStatus, 4000, false);
+		GetGame().GetCallqueue().CallLater(ClearStatus, durationMs, false);
 	}
 
 	//------------------------------------------------------------------------------------------------

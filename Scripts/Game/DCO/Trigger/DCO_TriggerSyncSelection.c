@@ -17,6 +17,8 @@ modded class SCR_SelectionEditorUIComponent
 			GetRootComponent().FindComponent(SCR_CursorEditorUIComponent));
 		if (cursor)
 			hasCursorWorldPosition = cursor.GetCursorWorldPos(cursorWorldPosition);
+		if (DCO_VehicleServiceAccessPlacement.Get().SelectAtCursor(cursorWorldPosition, hasCursorWorldPosition))
+			return;
 		if (DCO_ArsenalAccessPlacement.Get().SelectFromFocused(m_FocusedManager, cursorWorldPosition, hasCursorWorldPosition))
 			return;
 		if (DCO_AIAnimationFxTool.Get().SelectFromFocused(m_FocusedManager))
@@ -45,6 +47,8 @@ modded class SCR_SelectionEditorUIComponent
 
 	override protected void EditorDrawSelectionCancel(float value, EActionTrigger reason)
 	{
+		if (DCO_VehicleServiceAccessPlacement.Get().Cancel())
+			return;
 		if (DCO_ArsenalAccessPlacement.Get().Cancel())
 			return;
 		if (DCO_AIAnimationFxTool.Get().Cancel())

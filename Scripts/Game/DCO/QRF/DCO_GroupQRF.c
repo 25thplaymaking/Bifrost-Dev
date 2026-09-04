@@ -1,11 +1,17 @@
 modded class SCR_AIGroupUtilityComponent
 {
+	[RplProp()]
 	protected bool	m_bDCO_IsQRFResponder	= false;
+	[RplProp()]
 	protected float	m_fDCO_QRFRange			= 1500.0;
 	protected float	m_fDCO_LastQRFTime		= -1;
+	[RplProp()]
 	protected bool	m_bDCO_QRFDeployed		= false;
+	protected IEntity m_DCO_QRFSupportTarget;
 
+	[RplProp()]
 	protected vector	m_vDCO_QRFHoldPos		= vector.Zero;
+	[RplProp()]
 	protected bool		m_bDCO_HasQRFHold		= false;
 
 	protected static const float DCO_QRF_CHECK_INTERVAL_MS = 5000.0;
@@ -14,34 +20,12 @@ modded class SCR_AIGroupUtilityComponent
 	override SCR_AIActionBase EvaluateActivity(out bool restartActivity)
 	{
 		SCR_AIActionBase action = super.EvaluateActivity(restartActivity);
-		DCO_UpdateMorale();
-		DCO_UpdateMemberMorale();
-		DCO_UpdateEmergencyRearm();
-		DCO_UpdateSuppression();
-		DCO_UpdateArmorAvoid();
-		DCO_UpdateFriendlyFire();
-		DCO_UpdateMerge();
 		DCO_UpdateAmbush();
 		DCO_UpdateDefend();
-		DCO_UpdateTacticalCoordinator();
-		DCO_UpdateTacticalBrain();
-		DCO_UpdateReactToContact();
-		DCO_UpdateFormation();
-		DCO_UpdateCoverPlacement();
-		DCO_UpdateFormationShape();
-		DCO_UpdateTacticalPath();
-		DCO_UpdateLauncherDiscipline();
-		DCO_UpdateVisionLimit();
-		DCO_UpdateBaseSettings();
-		DCO_UpdateReaction();
-		DCO_UpdateIdle();
 		DCO_UpdateGMFormation();
-		DCO_UpdateGMStance();
-		DCO_UpdateCoverStance();
-		DCO_UpdateCQB();
 		DCO_UpdateCqbClear();
-		DCO_UpdateMachineGunner();
 		DCO_UpdateQRF();
+		DCO_UpdateGMGarrison();
 		return action;
 	}
 
@@ -52,9 +36,16 @@ modded class SCR_AIGroupUtilityComponent
 
 	void DCO_SetQRFResponder(bool enable)
 	{
+		if (!Replication.IsServer() || m_bDCO_IsQRFResponder == enable)
+			return;
 		m_bDCO_IsQRFResponder = enable;
 		if (!enable)
+		{
 			m_bDCO_QRFDeployed = false;
+			m_DCO_QRFSupportTarget = null;
+		}
+		Replication.BumpMe();
+		Print(string.Format("[DCO-GM] QRF responder %1: group=%2 range=%3m", enable, m_Owner, m_fDCO_QRFRange), LogLevel.NORMAL);
 	}
 
 	float DCO_GetQRFRange()
@@ -64,13 +55,20 @@ modded class SCR_AIGroupUtilityComponent
 
 	void DCO_SetQRFHoldPosition(vector pos)
 	{
+		if (!Replication.IsServer())
+			return;
 		m_vDCO_QRFHoldPos = pos;
 		m_bDCO_HasQRFHold = true;
+		Replication.BumpMe();
+		Print(string.Format("[DCO-GM] QRF rally updated: group=%1 position=%2", m_Owner, pos), LogLevel.NORMAL);
 	}
 
 	void DCO_ClearQRFHoldPosition()
 	{
+		if (!Replication.IsServer())
+			return;
 		m_bDCO_HasQRFHold = false;
+		Replication.BumpMe();
 	}
 
 	bool DCO_HasQRFHoldPosition()
@@ -85,18 +83,19 @@ modded class SCR_AIGroupUtilityComponent
 
 	void DCO_SetQRFRange(float range)
 	{
+		if (!Replication.IsServer() || m_fDCO_QRFRange == range)
+			return;
 		m_fDCO_QRFRange = range;
+		Replication.BumpMe();
+		Print(string.Format("[DCO-GM] QRF range updated: group=%1 range=%2m", m_Owner, range), LogLevel.NORMAL);
 	}
 
 	bool DCO_NeedsQRFSupport()
 	{
-		if (m_bDCO_Broken)
-			return true;
-
 		if (m_Perception)
 		{
 			array<IEntity> targets = m_Perception.m_aTargetEntities;
-			if (targets && !targets.IsEmpty() && m_fDCO_Morale <= DCO_MoraleSettings.Get().m_fQRFCriticalMorale)
+			if (targets && !targets.IsEmpty())
 				return true;
 		}
 		return false;
@@ -190,8 +189,11 @@ modded class SCR_AIGroupUtilityComponent
 
 		if (!supportTarget)
 		{
+			if (m_bDCO_QRFDeployed)
+				Print(string.Format("[DCO-GM] QRF standing down: group=%1 returning to rally", m_Owner), LogLevel.NORMAL);
 			m_bDCO_QRFDeployed = false;
-			DCO_CoordinatorRelease(EDCO_TacticalIntent.QRF_REINFORCE);	// nobody needs help - re-arm.
+			m_DCO_QRFSupportTarget = null;
+			Replication.BumpMe();
 
 			// Fall-back behaviour: walk back to the staging/rally point so it waits there until the next call.
 			vector holdPos = m_vDCO_QRFHoldPos;
@@ -203,11 +205,9 @@ modded class SCR_AIGroupUtilityComponent
 			}
 			if (hasHold)
 			{
-				float leash = DCO_MoraleSettings.Get().m_fQRFHoldLeash;
+				float leash = 50.0;
 				if (vector.DistanceSq(selfPos, holdPos) > leash * leash)
 				{
-					if (!DCO_CoordinatorRequest(EDCO_TacticalIntent.QRF_REINFORCE, 60, 10.0, "QRF return"))
-						return;
 					AICommunicationComponent rcomms = m_Mailbox;
 					if (rcomms)
 						DCO_VehicleUtil.OrderGroupMoveToPosition(m_Owner, holdPos, rcomms);
@@ -216,23 +216,25 @@ modded class SCR_AIGroupUtilityComponent
 			return;
 		}
 
-		if (m_bDCO_QRFDeployed)
-			return;	// already responding to the current call.
+		if (m_bDCO_QRFDeployed && m_DCO_QRFSupportTarget == supportTarget)
+			return;	// already responding to this call.
 
 		AIAgent selfLeaderAgent = m_Owner.GetLeaderAgent();
 		AICommunicationComponent comms = m_Mailbox;
 		if (!selfLeaderAgent || !comms)
 			return;
 
-		// QRF intentionally overrides the responder's patrol/waypoint to go support.
-		if (DCO_MoraleSettings.Get().m_bClearWaypointOnOverride)
+		// A QRF intent waypoint remains as the rally point; ordinary responder flags override their external route.
+		if (qrfDirected)
+			DCO_WaypointIntentUtil.ReleaseWaypointMovement(this);
+		else
 			DCO_ClearExternalWaypoints(m_Owner);
-
-		if (!DCO_CoordinatorRequest(EDCO_TacticalIntent.QRF_REINFORCE, 60, 15.0, "QRF deploy"))
-			return;
 
 		DCO_VehicleUtil.OrderGroupMoveToEntity(m_Owner, supportTarget, comms);
 		m_bDCO_QRFDeployed = true;
+		m_DCO_QRFSupportTarget = supportTarget;
+		Replication.BumpMe();
+		Print(string.Format("[DCO-GM] QRF deployed: group=%1 target=%2 distance=%3m", m_Owner, supportTarget, Math.Round(Math.Sqrt(bestDistSq))), LogLevel.NORMAL);
 	}
 
 	// Prefer moving onto the distressed group's enemy; fall back to the friendly group's position.

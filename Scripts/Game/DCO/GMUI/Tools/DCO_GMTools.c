@@ -359,11 +359,9 @@ class DCO_GMTools
 		if (restoredAnim)
 			restoredAnim.PhysicsEnableGravity(!m_SimOff.Contains(owner));
 
-		// Returns stance control to the AI.
-		DCO_StanceUtil.SetGMStanceLock(owner, -1);	// <0 releases.
 		BumpStanceSeq(owner);	// stales THIS unit's pending retries only - other units keep theirs.
 
-		Print("[DCO-GM] ai toggled: ON (freeze released + brain reactivated + LOD released + stance lock cleared)", LogLevel.NORMAL);
+		Print("[DCO-GM] ai toggled: ON (freeze released + brain reactivated + LOD released)", LogLevel.NORMAL);
 	}
 
 	protected void InstallFreezeCommand(IEntity owner)
@@ -503,7 +501,7 @@ class DCO_GMTools
 	// Pose a unit into a stance.
 	void SetStanceEntity(IEntity owner, int stanceOrd)
 	{
-		if (!owner)
+		if (!Replication.IsServer() || !owner)
 			return;
 		if (DCO_PlayerUtil.IsPlayer(owner))
 		{
@@ -529,8 +527,9 @@ class DCO_GMTools
 		}
 
 		ECharacterStance st = stanceOrd;
-		DCO_StanceUtil.SetGMStanceLock(owner, stanceOrd);	// GM order beats the autonomous DCO stance systems.
-		bool issued = DCO_StanceUtil.TrySetStance(owner, st, 0);	// 0 = no throttle; a direct order, not a nudge.
+		bool issued = cc.GetStance() != stanceOrd;
+		if (issued)
+			SCR_AIStanceHandling.SetStance(cc, st);
 
 		// Supersedes retries from earlier stance requests.
 		int stanceSeq = BumpStanceSeq(owner);	// supersedes only THIS entity's pending retries.
@@ -562,7 +561,7 @@ class DCO_GMTools
 			return;	// the engine confirms it took - done.
 
 		ECharacterStance st = stanceOrd;
-		DCO_StanceUtil.TrySetStance(owner, st, 0);
+		SCR_AIStanceHandling.SetStance(cc, st);
 		GetGame().GetCallqueue().CallLater(EnforceStanceTick, STANCE_RETRY_MS, false, owner, stanceOrd, triesLeft - 1, seq);
 	}
 

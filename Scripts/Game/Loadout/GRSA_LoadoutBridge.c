@@ -352,7 +352,7 @@ class GRSA_LoadoutBridge
 		}
 		context.EndArray();
 
-		if (wanted.IsEmpty() || !owner || !manager)
+		if (!owner || !manager)
 			return;
 
 		WeaponAttachmentsStorageComponent topStorage = WeaponAttachmentsStorageComponent.Cast(owner.FindComponent(WeaponAttachmentsStorageComponent));

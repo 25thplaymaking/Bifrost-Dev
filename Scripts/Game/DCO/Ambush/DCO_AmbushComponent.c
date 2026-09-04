@@ -1,10 +1,14 @@
 // Ambush / hold-fire, per group.
 modded class SCR_AIGroupUtilityComponent
 {
+	[RplProp()]
 	protected bool	m_bDCO_IsAmbusher		= false;
+	[RplProp()]
 	protected float	m_fDCO_AmbushRange		= 50.0;
+	[RplProp()]
 	protected bool	m_bDCO_AmbushSprung		= false;
 	protected float	m_fDCO_LastAmbushTime	= -1;
+	[RplProp()]
 	protected bool	m_bDCO_ManualHold		= false;	// GM right-click hold-fire, independent of the ambush trigger.
 	protected float	m_fDCO_LastManualHoldTopUp = -1;
 
@@ -18,9 +22,19 @@ modded class SCR_AIGroupUtilityComponent
 
 	void DCO_SetAmbusher(bool enable)
 	{
+		if (!Replication.IsServer())
+			return;
+		bool changed = m_bDCO_IsAmbusher != enable || (enable && m_bDCO_AmbushSprung);
 		m_bDCO_IsAmbusher = enable;
-		if (!enable)
-			m_bDCO_AmbushSprung = false;	// disarming clears the sprung latch so it can be re-armed.
+		m_bDCO_AmbushSprung = false;	// both arming and disarming reset the one-shot latch.
+		int affected;
+		if (enable || m_bDCO_ManualHold)
+			affected = DCO_SetGroupNoFireTime(DCO_AMBUSH_HOLD_NOFIRE_SEC);
+		else
+			affected = DCO_SetGroupNoFireTime(0);
+		Replication.BumpMe();
+		if (changed)
+			Print(string.Format("[DCO-GM] ambush %1: group=%2 directAI=%3 range=%4m", enable, m_Owner, affected, m_fDCO_AmbushRange), LogLevel.NORMAL);
 	}
 
 	float DCO_GetAmbushRange()
@@ -30,7 +44,13 @@ modded class SCR_AIGroupUtilityComponent
 
 	void DCO_SetAmbushRange(float range)
 	{
+		if (!Replication.IsServer())
+			return;
+		if (m_fDCO_AmbushRange == range)
+			return;
 		m_fDCO_AmbushRange = range;
+		Replication.BumpMe();
+		Print(string.Format("[DCO-GM] ambush range updated: group=%1 range=%2m", m_Owner, range), LogLevel.NORMAL);
 	}
 
 	// Manual hold-fire context action.
@@ -41,15 +61,18 @@ modded class SCR_AIGroupUtilityComponent
 
 	void DCO_SetManualHold(bool hold)
 	{
+		if (!Replication.IsServer())
+			return;
 		if (m_bDCO_ManualHold == hold)
 			return;
 		m_bDCO_ManualHold = hold;
+		Replication.BumpMe();
 		int affected = 0;
 		vector groupPos = vector.Zero;
 		if (m_Owner)
 		{
 			groupPos = m_Owner.GetOrigin();
-			if (hold)
+			if (hold || (m_bDCO_IsAmbusher && !m_bDCO_AmbushSprung))
 				affected = DCO_SetGroupNoFireTime(DCO_AMBUSH_HOLD_NOFIRE_SEC);
 			else
 				affected = DCO_SetGroupNoFireTime(0);
@@ -61,10 +84,16 @@ modded class SCR_AIGroupUtilityComponent
 // Springs a paired ambush when an enemy enters its detached kill zone.
 	void DCO_SpringAmbush()
 	{
-		if (!m_Owner || m_bDCO_AmbushSprung)
+		if (!Replication.IsServer() || !m_Owner || m_bDCO_AmbushSprung)
 			return;
-		DCO_SetGroupNoFireTime(0);
+		int affected;
+		if (m_bDCO_ManualHold)
+			affected = DCO_SetGroupNoFireTime(DCO_AMBUSH_HOLD_NOFIRE_SEC);
+		else
+			affected = DCO_SetGroupNoFireTime(0);
 		m_bDCO_AmbushSprung = true;
+		Replication.BumpMe();
+		Print(string.Format("[DCO-GM] ambush sprung: group=%1 directAI=%2", m_Owner, affected), LogLevel.NORMAL);
 	}
 
 	void DCO_UpdateAmbush()
@@ -103,8 +132,7 @@ modded class SCR_AIGroupUtilityComponent
 		if (enemyInRange)
 		{
 			// Spring the ambush: release the hold so the group can fire, then stop managing it.
-			DCO_SetGroupNoFireTime(0);
-			m_bDCO_AmbushSprung = true;
+			DCO_SpringAmbush();
 		}
 		else
 		{

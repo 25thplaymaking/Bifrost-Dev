@@ -1,9 +1,11 @@
 // Defensive hold.
 modded class SCR_AIGroupUtilityComponent
 {
+	[RplProp()]
 	protected bool	m_bDCO_IsDefender		= false;
 	protected float	m_fDCO_LastDefendTime	= -1;
 	protected bool	m_bDCO_DefendIssued		= false;
+	protected vector m_vDCO_DefendDirection	= vector.Zero;
 
 	protected static const float DCO_DEFEND_CHECK_INTERVAL_MS	= 5000.0;
 	protected static const float DCO_DEFEND_ARC_RAD				= 3.14159;
@@ -16,9 +18,16 @@ modded class SCR_AIGroupUtilityComponent
 
 	void DCO_SetDefender(bool enable)
 	{
+		if (!Replication.IsServer() || m_bDCO_IsDefender == enable)
+			return;
 		m_bDCO_IsDefender = enable;
+		Replication.BumpMe();
 		if (!enable)
+		{
 			m_bDCO_DefendIssued = false;
+			m_vDCO_DefendDirection = vector.Zero;
+		}
+		Print(string.Format("[DCO-GM] defensive hold %1: group=%2", enable, m_Owner), LogLevel.NORMAL);
 	}
 
 	void DCO_UpdateDefend()
@@ -46,12 +55,12 @@ modded class SCR_AIGroupUtilityComponent
 		array<IEntity> targets = m_Perception.m_aTargetEntities;
 		if (!targets || targets.IsEmpty())
 		{
+			if (m_bDCO_DefendIssued)
+				Print(string.Format("[DCO-GM] defensive hold: contact lost, waiting at group=%1", m_Owner), LogLevel.NORMAL);
 			m_bDCO_DefendIssued = false;
+			m_vDCO_DefendDirection = vector.Zero;
 			return;
 		}
-
-		if (m_bDCO_DefendIssued)
-			return;	// already holding/facing the current contact.
 
 		IEntity leader = m_Owner.GetLeaderEntity();
 		if (!leader)
@@ -79,6 +88,8 @@ modded class SCR_AIGroupUtilityComponent
 		if (dir.LengthSq() < 0.01)
 			return;
 		dir.Normalize();
+		if (m_bDCO_DefendIssued && vector.Dot(m_vDCO_DefendDirection, dir) >= 0.94)
+			return;
 
 		SCR_AIMessage_Defend msg = SCR_AIMessage_Defend.Create(dir, DCO_DEFEND_ARC_RAD, false, DCO_DEFEND_PRIORITY, null, null);
 		if (!msg)
@@ -86,5 +97,7 @@ modded class SCR_AIGroupUtilityComponent
 
 		m_Mailbox.RequestBroadcast(msg);
 		m_bDCO_DefendIssued = true;
+		m_vDCO_DefendDirection = dir;
+		Print(string.Format("[DCO-GM] defensive hold oriented: group=%1 target=%2 direction=%3", m_Owner, nearest, dir), LogLevel.NORMAL);
 	}
 }

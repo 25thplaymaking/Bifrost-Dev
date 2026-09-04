@@ -12,13 +12,12 @@ class GRSA_CalloutEntry
 	GRSA_ItemRowComponent m_Row;
 	ImageWidget m_wDot;
 	ImageWidget m_wLine;
-	bool m_bRightSide;
 	float m_fChipX;
 	float m_fChipY;
 	float m_fAnchorY;
 }
 
-//! Gunsmith hardpoint callouts: chips stacked in fixed side columns, anchor dots pinned to the
+//! Gunsmith hardpoint callouts: chips stacked beneath the hardpoint counter, anchor dots pinned to the
 //! rendered weapon, and one selected leader line tracking the preview as it orbits. Chips are
 //! instanced item rows; dots and lines are code-created solid-color images, so the layer ships no
 //! new layout resources.
@@ -30,9 +29,6 @@ class GRSA_CalloutLayer
 	protected static const float CHIP_GAP = 10;
 	protected static const float COLUMN_MARGIN = 48;
 	protected static const float COLUMN_TOP = 96;
-	//! Fraction of the stage width the columns sit from center — smaller pulls the chips in
-	//! toward the weapon.
-	protected static const float COLUMN_INSET_FRAC = 0.21;
 	protected static const float DOT_SIZE = 6;
 	protected static const float LINE_WIDTH = 2;
 
@@ -192,6 +188,9 @@ class GRSA_CalloutLayer
 			{
 				FrameSlot.SetSize(entry.m_wChip, CHIP_W, CHIP_H);
 				entry.m_wChip.SetVisible(false);
+				Widget border = entry.m_wChip.FindAnyWidget("CalloutBorder");
+				if (border)
+					border.SetVisible(true);
 
 				GRSA_ItemRowComponent row = GRSA_ItemRowComponent.Cast(entry.m_wChip.FindHandler(GRSA_ItemRowComponent));
 				if (row)
@@ -276,9 +275,7 @@ class GRSA_CalloutLayer
 
 			if (entry.m_wLine && entry.m_wChip && m_bChipsVisible && i == m_iLineSelection)
 			{
-				float chipEdgeX = entry.m_fChipX + CHIP_W;
-				if (entry.m_bRightSide)
-					chipEdgeX = entry.m_fChipX;
+				float chipEdgeX = entry.m_fChipX;
 				float chipEdgeY = entry.m_fChipY + CHIP_H * 0.5;
 
 				float dx = anchor[0] - chipEdgeX;
@@ -322,8 +319,8 @@ class GRSA_CalloutLayer
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Splits callouts to the side their anchor projects on, sorts each column by anchor height,
-	//! and stacks the chips without overlap. Runs once per build, on the first valid projection.
+	//! Stacks every callout beneath the right-aligned hardpoint counter. Runs once per build,
+	//! on the first valid projection.
 	protected bool TryPlaceColumns()
 	{
 		float sizeX, sizeY;
@@ -334,10 +331,7 @@ class GRSA_CalloutLayer
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
 		float rootW = workspace.DPIUnscale(sizeX);
 
-		array<ref GRSA_CalloutEntry> leftSide = {};
-		array<ref GRSA_CalloutEntry> rightSide = {};
-
-		float centerX = rootW * 0.5;
+		array<ref GRSA_CalloutEntry> column = {};
 		foreach (GRSA_CalloutEntry entry : m_aEntries)
 		{
 			vector anchor;
@@ -345,20 +339,12 @@ class GRSA_CalloutLayer
 				return false;
 
 			entry.m_fAnchorY = anchor[1];
-			entry.m_bRightSide = anchor[0] >= centerX;
-			if (entry.m_bRightSide)
-				rightSide.Insert(entry);
-			else
-				leftSide.Insert(entry);
+			column.Insert(entry);
 		}
 
-		SortByAnchor(leftSide);
-		SortByAnchor(rightSide);
-
-		float leftX = Math.Max(COLUMN_MARGIN, centerX - CHIP_W - rootW * COLUMN_INSET_FRAC);
-		float rightX = Math.Min(rootW - COLUMN_MARGIN - CHIP_W, centerX + rootW * COLUMN_INSET_FRAC);
-		StackColumn(leftSide, leftX);
-		StackColumn(rightSide, rightX);
+		SortByAnchor(column);
+		float rightX = rootW - COLUMN_MARGIN - CHIP_W;
+		StackColumn(column, rightX);
 		m_bColumnsPlaced = true;
 		return true;
 	}
@@ -395,6 +381,8 @@ class GRSA_CalloutLayer
 			{
 				FrameSlot.SetPos(entry.m_wChip, entry.m_fChipX, entry.m_fChipY);
 				entry.m_wChip.SetVisible(m_bChipsVisible);
+				if (entry.m_Row)
+					entry.m_Row.SetThumbnail(entry.m_AttachedPrefab);
 			}
 		}
 	}

@@ -71,6 +71,85 @@ OverlayWidgetClass "{AB21040000000001}" {
           Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
          }
         }
+        HorizontalLayoutWidgetClass "{AB21040000000100}" {
+         Name "StatsIconRow"
+         Slot LayoutSlot "{AB21040000000101}" {
+          HorizontalAlign 3
+          Padding 0 8 0 0
+         }
+         "Is Visible" 0
+         {
+          ImageWidgetClass "{AB21040000000102}" {
+           Name "StatsDamageIcon"
+           Slot LayoutSlot "{AB21040000000103}" {
+            VerticalAlign 1
+            Padding 0 0 5 0
+           }
+           Color 0.851 0.537 0.169 1
+           Size 18 18
+          }
+          TextWidgetClass "{AB21040000000104}" {
+           Name "StatsDamageValue"
+           Slot LayoutSlot "{AB21040000000105}" {
+            FillWeight 1
+            VerticalAlign 1
+           }
+           Color 0.88 0.91 0.94 1
+           Text ""
+           "Font Size" 11
+           "Min Font Size" 9
+           FontProperties FontProperties "{AB21040000000106}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          ImageWidgetClass "{AB21040000000107}" {
+           Name "StatsAmmoIcon"
+           Slot LayoutSlot "{AB21040000000108}" {
+            VerticalAlign 1
+            Padding 7 0 5 0
+           }
+           Color 0.851 0.537 0.169 1
+           Size 18 18
+          }
+          TextWidgetClass "{AB21040000000109}" {
+           Name "StatsAmmoValue"
+           Slot LayoutSlot "{AB2104000000010A}" {
+            FillWeight 1
+            VerticalAlign 1
+           }
+           Color 0.88 0.91 0.94 1
+           Text ""
+           "Font Size" 11
+           "Min Font Size" 9
+           FontProperties FontProperties "{AB2104000000010B}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+          ImageWidgetClass "{AB2104000000010C}" {
+           Name "StatsCargoIcon"
+           Slot LayoutSlot "{AB2104000000010D}" {
+            VerticalAlign 1
+            Padding 7 0 5 0
+           }
+           Color 0.851 0.537 0.169 1
+           Size 18 18
+          }
+          TextWidgetClass "{AB2104000000010E}" {
+           Name "StatsCargoValue"
+           Slot LayoutSlot "{AB2104000000010F}" {
+            FillWeight 1
+            VerticalAlign 1
+           }
+           Color 0.88 0.91 0.94 1
+           Text ""
+           "Font Size" 11
+           "Min Font Size" 9
+           FontProperties FontProperties "{AB21040000000110}" {
+            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+           }
+          }
+         }
+        }
         SizeLayoutWidgetClass "{AB21040000000028}" {
          Name "StatsRuleSize"
          Slot LayoutSlot "{AB21040000000029}" {
@@ -165,10 +244,18 @@ OverlayWidgetClass "{AB21040000000001}" {
         }
        }
       }
+       ButtonWidgetClass "{AB21040000000120}" {
+        Name "ReceiverCardButton"
+        Slot OverlayWidgetSlot "{AB21040000000121}" {
+         HorizontalAlign 3
+         VerticalAlign 3
+        }
+        style blank
+       }
+      }
      }
     }
    }
-  }
   SizeLayoutWidgetClass "{AB2104000000000C}" {
    Name "CandidatesPanel"
    Slot OverlayWidgetSlot "{AB2104000000000D}" {

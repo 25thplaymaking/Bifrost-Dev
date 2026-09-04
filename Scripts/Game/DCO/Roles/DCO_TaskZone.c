@@ -168,26 +168,43 @@ class DCO_TaskZoneComponent : ScriptComponent
 	int DCO_GetPairId()			{ return m_iPairId; }
 	void DCO_SetPairId(int id)
 	{
-		m_iPairId = Math.ClampInt(id, 0, 50);
+		int pairId = Math.ClampInt(id, 0, 50);
+		if (m_iPairId == pairId)
+			return;
+		m_iPairId = pairId;
 		if (Replication.IsServer())
+		{
 			Replication.BumpMe();
+			Print(string.Format("[DCO-GM] task-zone pair updated: role=%1 pair=%2", m_eRole, m_iPairId), LogLevel.NORMAL);
+		}
 	}
 	float DCO_GetPushRange()	{ return m_fPushRange; }
 
 	void DCO_SetRadius(float r)
 	{
-		m_fRadius = Math.Clamp(r, 5.0, 500.0);
+		float radius = Math.Clamp(r, 5.0, 500.0);
+		if (m_fRadius == radius)
+			return;
+		m_fRadius = radius;
 		DCO_DrawVisual();
 		if (Replication.IsServer())
+		{
 			Replication.BumpMe();
+			Print(string.Format("[DCO-GM] task-zone radius updated: role=%1 radius=%2m", m_eRole, m_fRadius), LogLevel.NORMAL);
+		}
 	}
 
 	// GM range write.
 	void DCO_SetPushRange(float r)
 	{
-		m_fPushRange = Math.Clamp(r, 0.0, 3000.0);
-		if (Replication.IsServer())
-			Replication.BumpMe();
+		float range = Math.Clamp(r, 0.0, 3000.0);
+		if (m_fPushRange == range)
+			return;
+		m_fPushRange = range;
+		if (!Replication.IsServer())
+			return;
+		Replication.BumpMe();
+		Print(string.Format("[DCO-GM] task-zone role range updated: role=%1 range=%2m", m_eRole, m_fPushRange), LogLevel.NORMAL);
 		for (int i = 0, c = m_aManaged.Count(); i < c; i++)
 		{
 			SCR_AIGroup grp = m_aManaged[i];
@@ -198,9 +215,15 @@ class DCO_TaskZoneComponent : ScriptComponent
 
 	void DCO_RearmTrigger()
 	{
+		if (!Replication.IsServer())
+			return;
 		m_bDCO_Tripped = false;
-		if (Replication.IsServer())
-			Replication.BumpMe();
+		array<DCO_TaskZoneComponent> positions = {};
+		DCO_GetPairedPositions(positions);
+		foreach (DCO_TaskZoneComponent position : positions)
+			position.DCO_RearmManagedAmbushes();
+		Replication.BumpMe();
+		Print(string.Format("[DCO-GM] ambush trigger rearmed: pair=%1 positions=%2", m_iPairId, positions.Count()), LogLevel.NORMAL);
 	}
 
 	protected void DCO_PushRangeTo(SCR_AIGroup grp)
@@ -268,15 +291,17 @@ class DCO_TaskZoneComponent : ScriptComponent
 		}
 
 		if (m_eRole == EDCO_ZoneRole.NONE || m_fRadius < 1.0)
+		{
+			m_DCO_VisualShape = null;
+			m_DCO_TriggerRing = null;
 			return;
+		}
 
 		IEntity owner = GetOwner();
 		if (!owner)
 			return;
 
-		int color = 0xFFFFFFFF;
-		if (m_eRole == EDCO_ZoneRole.AMBUSH_TRIGGER)
-			color = 0xFFFF3030;
+		int color = DCO_VisualColor();
 		m_DCO_VisualShape = DCO_ZoneShape.FlatCircle(owner.GetOrigin(), m_fRadius, color);
 
 		m_DCO_TriggerRing = null;
@@ -371,6 +396,7 @@ class DCO_TaskZoneComponent : ScriptComponent
 		Replication.BumpMe();
 		foreach (DCO_TaskZoneComponent p : positions)
 			p.DCO_SpringManagedAmbushes();
+		Print(string.Format("[DCO-GM] ambush kill-zone tripped: pair=%1 positions=%2 center=%3", m_iPairId, positions.Count(), DCO_GetCenter()), LogLevel.NORMAL);
 
 		if (m_iPairId != 0)
 			DCO_DeleteSiblingTriggers();
@@ -520,6 +546,19 @@ class DCO_TaskZoneComponent : ScriptComponent
 		}
 	}
 
+	void DCO_RearmManagedAmbushes()
+	{
+		for (int i = 0, c = m_aManaged.Count(); i < c; i++)
+		{
+			SCR_AIGroup grp = m_aManaged[i];
+			if (!grp)
+				continue;
+			SCR_AIGroupUtilityComponent util = grp.GetGroupUtilityComponent();
+			if (util)
+				util.DCO_SetAmbusher(true);
+		}
+	}
+
 	protected void DCO_ApplyRoleTo(SCR_AIGroup grp, bool enable)
 	{
 		SCR_AIGroupUtilityComponent util = grp.GetGroupUtilityComponent();
@@ -569,6 +608,7 @@ class DCO_TaskZoneComponent : ScriptComponent
 				break;
 			}
 		}
+		Print(string.Format("[DCO-GM] task-zone assignment: role=%1 enabled=%2 group=%3", m_eRole, enable, grp), LogLevel.NORMAL);
 	}
 
 	protected void DCO_ClearAllManaged()

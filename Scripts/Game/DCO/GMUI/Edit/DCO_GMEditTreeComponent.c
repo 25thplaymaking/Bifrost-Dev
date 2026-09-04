@@ -146,7 +146,6 @@ class DCO_GMEditTreeComponent
 	protected ref array<TextWidget> m_ForceAmmo = {};
 	protected ref array<ProgressBarWidget> m_ForceBars = {};
 	protected ref array<ImageWidget> m_ForceIcons = {};
-	protected ref array<ResourceName> m_ForceLoadedIcons = {};
 	protected ref array<ImageWidget> m_ForceHideIcons = {};
 	protected ref array<ImageWidget> m_ForceBackgrounds = {};
 	protected ref array<ButtonWidget> m_ForceSelectBtns = {};
@@ -238,7 +237,6 @@ class DCO_GMEditTreeComponent
 			m_ForceAmmo.Insert(TextWidget.Cast(m_wTree.FindAnyWidget(string.Format("DCO_ForceAmmo_%1", i))));
 			m_ForceBars.Insert(ProgressBarWidget.Cast(m_wTree.FindAnyWidget(string.Format("DCO_ForceBar_%1", i))));
 			m_ForceIcons.Insert(ImageWidget.Cast(m_wTree.FindAnyWidget(string.Format("DCO_ForceIcon_%1", i))));
-			m_ForceLoadedIcons.Insert(ResourceName.Empty);
 			m_ForceHideIcons.Insert(ImageWidget.Cast(m_wTree.FindAnyWidget(string.Format("DCO_ForceHideIcon_%1", i))));
 			m_ForceBackgrounds.Insert(ImageWidget.Cast(m_wTree.FindAnyWidget(string.Format("DCO_ForceBg_%1", i))));
 
@@ -523,20 +521,19 @@ class DCO_GMEditTreeComponent
 				m_ForceBars[slot].SetCurrent(health / 100.0);
 			if (m_ForceIcons[slot])
 			{
-				ResourceName forceIcon = App6IconFor(faction);
-				if (!forceIcon.IsEmpty())
+				FactionKey forceKey = ForceKey(faction);
+				string forceIconSource;
+				if (DCO_App6Icons.SetFactionIcon(m_ForceIcons[slot], forceKey, forceIconSource))
 				{
-					// ImageWidget texture loads are state changes, not repaint operations.
-					if (m_ForceLoadedIcons[slot] != forceIcon)
-					{
-						m_ForceIcons[slot].LoadImageTexture(0, forceIcon);
-						m_ForceLoadedIcons[slot] = forceIcon;
-					}
+					ResourceName forceIcon = DCO_App6Icons.FactionIcon(forceKey);
+					if (DCO_App6Icons.IsPackageIcon(forceIcon))
+						m_ForceIcons[slot].SetSize(22, 22);
+					else
+						m_ForceIcons[slot].SetSize(26, 26);
 					m_ForceIcons[slot].SetVisible(true);
 				}
 				else
 				{
-					m_ForceLoadedIcons[slot] = ResourceName.Empty;
 					m_ForceIcons[slot].SetVisible(false);
 				}
 			}
@@ -911,9 +908,7 @@ class DCO_GMEditTreeComponent
 			return ResourceName.Empty;
 		if (e.GetEntityType() == EEditableEntityType.FACTION)
 			return DCO_App6Icons.FactionIcon(ForceKey(e));
-		array<EEditableEntityLabel> labels = {};
-		info.GetEntityLabels(labels);
-		return DCO_App6Icons.GetIcon(labels, info.GetName(), info.GetFactionKey(), e.GetEntityType());
+		return DCO_App6Icons.ForEntity(e);
 	}
 
 	// One primary type-filter bucket per entity.
@@ -1101,33 +1096,38 @@ class DCO_GMEditTreeComponent
 			if (ico)
 			{
 				ResourceName useIcon = row.m_Icon;
-				bool isApp6 = !row.m_App6.IsEmpty();
-				if (isApp6)
+				bool hasResolvedIcon = !row.m_App6.IsEmpty();
+				if (hasResolvedIcon)
 					useIcon = row.m_App6;
-				if (!useIcon.IsEmpty())
+				bool factionIconLoaded = false;
+				if (row.m_bFaction)
 				{
-					if (m_RowLoadedIcons[r] != useIcon)
+					string factionIconSource;
+					factionIconLoaded = DCO_App6Icons.SetFactionIcon(ico, ForceKey(row.m_Entity), factionIconSource);
+				}
+				if (factionIconLoaded || !useIcon.IsEmpty())
+				{
+					if (!factionIconLoaded && m_RowLoadedIcons[r] != useIcon)
 					{
 						ico.LoadImageTexture(0, useIcon);
 						m_RowLoadedIcons[r] = useIcon;
 					}
+					if (factionIconLoaded)
+						m_RowLoadedIcons[r] = useIcon;
 					ico.SetOpacity(1.0);
 					if (isDead)
 						ico.SetColor(Color.FromRGBA(145, 150, 154, 255));
 					else
 						ico.SetColor(Color.FromRGBA(255, 255, 255, 255));
-					if (isApp6)
+					if (DCO_App6Icons.IsPackageIcon(useIcon))
 					{
-						// Faction affiliation frames sit a touch smaller than unit icons; units at the default 18.
 						if (row.m_bFaction)
 							ico.SetSize(14, 14);
 						else
 							ico.SetSize(18, 18);
 					}
 					else
-					{
-						ico.SetSize(18, 18);	// restore the default size on a reused pool row showing a native icon.
-					}
+						ico.SetSize(18, 18);
 					ico.SetVisible(true);
 				}
 				else

@@ -165,7 +165,10 @@ class GRSA_KitConvert
 
 			string key = ClothingKeyForSlot(loadoutStorage, clothing.m_iSlotIdx);
 			if (!key.IsEmpty())
-				kit.SetOverrideSlot(key, clothing.m_Prefab);
+			{
+				clothing.EnsurePins();
+				kit.SetOverrideSlot(key, clothing.m_Prefab, clothing.m_aAttachments, false, clothing.m_aAttachmentSlots);
+			}
 		}
 
 		foreach (GRSA_KitWeapon weapon : draft.m_aWeapons)
@@ -226,8 +229,8 @@ class GRSA_KitConvert
 				GRSA_KitWeapon draftWeapon = outDraft.FindWeapon(weaponIdx);
 				if (draftWeapon)
 				{
-					kit.GetSlotAttachments(key, draftWeapon.m_aAttachments, draftWeapon.m_aAttachmentSlots);
-					if (draftWeapon.m_aAttachments.IsEmpty())
+					bool explicitAttachments = kit.GetSlotAttachments(key, draftWeapon.m_aAttachments, draftWeapon.m_aAttachmentSlots);
+					if (!explicitAttachments)
 						GRSA_ItemIntel.GetDefaultAttachments(prefab, draftWeapon.m_aAttachments);
 					draftWeapon.EnsurePins();
 				}
@@ -239,7 +242,17 @@ class GRSA_KitConvert
 
 			int clothingSlot = FindClothingSlotForKey(loadoutStorage, key);
 			if (clothingSlot >= 0)
+			{
 				outDraft.SetClothing(clothingSlot, prefab);
+				GRSA_KitClothing draftClothing = outDraft.FindClothing(clothingSlot);
+				if (draftClothing)
+				{
+					bool explicitAttachments = kit.GetSlotAttachments(key, draftClothing.m_aAttachments, draftClothing.m_aAttachmentSlots);
+					if (!explicitAttachments)
+						GRSA_ItemIntel.GetDefaultAttachments(prefab, draftClothing.m_aAttachments);
+					draftClothing.EnsurePins();
+				}
+			}
 		}
 
 		foreach (GRSA_KitExtra extra : kit.m_aExtras)

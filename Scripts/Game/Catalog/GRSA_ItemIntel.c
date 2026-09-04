@@ -7,6 +7,8 @@ class GRSA_SlotNode
 	typename m_SlotTypename;
 	ResourceName m_AttachedPrefab;
 	int m_iDepth;
+	int m_iStorageSlot = -1;
+	bool m_bVisible;
 }
 
 class GRSA_ItemIntel
@@ -17,7 +19,12 @@ class GRSA_ItemIntel
 	// Built on first use - eager static initializers charge the module-init budget shared by every loaded mod.
 	protected static ref map<ResourceName, string> s_mAreaTypeCache;
 	protected static ref map<ResourceName, float> s_mWeightCache;
+	protected static ref map<ResourceName, float> s_mVolumeCache;
 	protected static ref map<ResourceName, float> s_mStorageLoadCache;
+	protected static ref map<ResourceName, float> s_mStorageVolumeCache;
+	protected static ref map<ResourceName, int> s_mContainerStorageCache;
+	protected static ref map<string, int> s_mStorageCompatCache;
+	protected static ref map<ResourceName, int> s_mVisibleAttachmentSlotCache;
 	protected static ref map<string, int> s_mAttachCompatCache;
 	protected static ref map<ResourceName, string> s_mAttachTypeCache;
 	protected static ref map<ResourceName, string> s_mAttachClassCache;
@@ -31,7 +38,12 @@ class GRSA_ItemIntel
 
 		s_mAreaTypeCache = new map<ResourceName, string>();
 		s_mWeightCache = new map<ResourceName, float>();
+		s_mVolumeCache = new map<ResourceName, float>();
 		s_mStorageLoadCache = new map<ResourceName, float>();
+		s_mStorageVolumeCache = new map<ResourceName, float>();
+		s_mContainerStorageCache = new map<ResourceName, int>();
+		s_mStorageCompatCache = new map<string, int>();
+		s_mVisibleAttachmentSlotCache = new map<ResourceName, int>();
 		s_mAttachCompatCache = new map<string, int>();
 		s_mAttachTypeCache = new map<ResourceName, string>();
 		s_mAttachClassCache = new map<ResourceName, string>();
@@ -111,7 +123,92 @@ class GRSA_ItemIntel
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Weight capacity of a wearable container prefab, 0 when it has no player-facing storage.
+	//! Concrete cargo stores exposed by a worn item. Cloth roots route to their owned pouch stores.
+	static void CollectContainerStorages(IEntity entity, notnull array<BaseInventoryStorageComponent> outStorages)
+	{
+		outStorages.Clear();
+		if (!entity)
+			return;
+
+		array<BaseInventoryStorageComponent> direct = {};
+		array<BaseInventoryStorageComponent> nested = {};
+		set<BaseInventoryStorageComponent> storages = new set<BaseInventoryStorageComponent>();
+		SCR_PlayerArsenalLoadout.FindStorageComponents(entity, storages);
+		foreach (BaseInventoryStorageComponent storage : storages)
+		{
+			ClothNodeStorageComponent clothRoot = ClothNodeStorageComponent.Cast(storage);
+			if (clothRoot)
+			{
+				array<BaseInventoryStorageComponent> ownedStorages = {};
+				clothRoot.GetOwnedStorages(ownedStorages, 1, false);
+				foreach (BaseInventoryStorageComponent ownedStorage : ownedStorages)
+				{
+					if (ClothNodeStorageComponent.Cast(ownedStorage) || !IsContainerStorage(ownedStorage))
+						continue;
+					if (direct.Find(ownedStorage) == -1 && nested.Find(ownedStorage) == -1)
+						nested.Insert(ownedStorage);
+				}
+				continue;
+			}
+
+			if (!IsContainerStorage(storage))
+				continue;
+
+			if (storage.GetOwner() == entity)
+			{
+				if (direct.Find(storage) == -1)
+					direct.Insert(storage);
+			}
+			else if (nested.Find(storage) == -1)
+				nested.Insert(storage);
+		}
+
+		foreach (BaseInventoryStorageComponent storage : direct)
+			outStorages.Insert(storage);
+
+		foreach (BaseInventoryStorageComponent storage : nested)
+			outStorages.Insert(storage);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	static void GetContainerStorages(ResourceName prefab, notnull array<BaseInventoryStorageComponent> outStorages)
+	{
+		CollectContainerStorages(ResolveEntity(prefab), outStorages);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected static bool IsContainerStorage(BaseInventoryStorageComponent storage)
+	{
+		if (!storage || AttachmentsStorageComponent.Cast(storage) || BaseEquipmentStorageComponent.Cast(storage))
+			return false;
+
+		if (storage.GetMaxVolumeCapacity() > 0)
+			return true;
+
+		SCR_UniversalInventoryStorageComponent universal = SCR_UniversalInventoryStorageComponent.Cast(storage);
+		return universal && universal.GetMaxLoad() > 0;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	static bool HasContainerStorage(ResourceName prefab)
+	{
+		EnsureCaches();
+		int cached;
+		if (s_mContainerStorageCache.Find(prefab, cached))
+			return cached > 0;
+
+		array<BaseInventoryStorageComponent> storages = {};
+		GetContainerStorages(prefab, storages);
+		bool hasStorage = !storages.IsEmpty();
+		if (hasStorage)
+			s_mContainerStorageCache.Insert(prefab, 1);
+		else
+			s_mContainerStorageCache.Insert(prefab, 0);
+		return hasStorage;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Weight capacity of a wearable container prefab, 0 when it is volume-only.
 	static float GetStorageMaxLoad(ResourceName prefab)
 	{
 		EnsureCaches();
@@ -120,16 +217,114 @@ class GRSA_ItemIntel
 			return cached;
 
 		float maxLoad;
-		IEntity entity = ResolveEntity(prefab);
-		if (entity)
+		bool volumeOnly;
+		array<BaseInventoryStorageComponent> storages = {};
+		GetContainerStorages(prefab, storages);
+		foreach (BaseInventoryStorageComponent storage : storages)
 		{
-			SCR_UniversalInventoryStorageComponent storage = SCR_UniversalInventoryStorageComponent.Cast(entity.FindComponent(SCR_UniversalInventoryStorageComponent));
-			if (storage)
-				maxLoad = storage.GetMaxLoad();
+			SCR_UniversalInventoryStorageComponent universal = SCR_UniversalInventoryStorageComponent.Cast(storage);
+			if (!universal || universal.GetMaxLoad() <= 0)
+			{
+				volumeOnly = true;
+				continue;
+			}
+
+			maxLoad += universal.GetMaxLoad();
 		}
+		if (volumeOnly)
+			maxLoad = 0;
 
 		s_mStorageLoadCache.Insert(prefab, maxLoad);
 		return maxLoad;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Volume capacity shared by universal, cloth-node, and modded wearable cargo storages.
+	static float GetStorageMaxVolume(ResourceName prefab)
+	{
+		EnsureCaches();
+		float cached;
+		if (s_mStorageVolumeCache.Find(prefab, cached))
+			return cached;
+
+		float maxVolume;
+		array<BaseInventoryStorageComponent> storages = {};
+		GetContainerStorages(prefab, storages);
+		foreach (BaseInventoryStorageComponent storage : storages)
+		{
+			maxVolume += storage.GetMaxVolumeCapacity();
+		}
+
+		s_mStorageVolumeCache.Insert(prefab, maxVolume);
+		return maxVolume;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	static bool CanStoreInContainer(ResourceName containerPrefab, ResourceName itemPrefab)
+	{
+		EnsureCaches();
+		string key = containerPrefab + "|" + itemPrefab;
+		int cached;
+		if (s_mStorageCompatCache.Find(key, cached))
+			return cached > 0;
+
+		bool compatible;
+		array<BaseInventoryStorageComponent> storages = {};
+		GetContainerStorages(containerPrefab, storages);
+		foreach (BaseInventoryStorageComponent storage : storages)
+		{
+			if (CanStoreInStorage(storage, itemPrefab))
+			{
+				compatible = true;
+				break;
+			}
+		}
+
+		if (compatible)
+			s_mStorageCompatCache.Insert(key, 1);
+		else
+			s_mStorageCompatCache.Insert(key, 0);
+		return compatible;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	static bool CanStoreInStorage(BaseInventoryStorageComponent storage, ResourceName itemPrefab)
+	{
+		return storage
+			&& storage.CanStoreResource(itemPrefab, -1)
+			&& storage.PerformVolumeValidationForResource(itemPrefab, true);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! True when the item exposes at least one authored inspection hardpoint.
+	static bool HasVisibleAttachmentSlots(ResourceName prefab)
+	{
+		EnsureCaches();
+		int cached;
+		if (s_mVisibleAttachmentSlotCache.Find(prefab, cached))
+			return cached > 0;
+
+		bool hasVisibleSlot;
+		IEntity entity = ResolveEntity(prefab);
+		if (entity)
+		{
+			array<ref GRSA_SlotNode> nodes = {};
+			BuildSlotTree(entity, nodes);
+			foreach (GRSA_SlotNode node : nodes)
+			{
+				if (node && node.m_iDepth == 0 && node.m_bVisible)
+				{
+					hasVisibleSlot = true;
+					break;
+				}
+			}
+		}
+
+		if (hasVisibleSlot)
+			s_mVisibleAttachmentSlotCache.Insert(prefab, 1);
+		else
+			s_mVisibleAttachmentSlotCache.Insert(prefab, 0);
+		return hasVisibleSlot;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -151,6 +346,31 @@ class GRSA_ItemIntel
 
 		s_mWeightCache.Insert(prefab, weight);
 		return weight;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	static float GetVolume(ResourceName prefab)
+	{
+		EnsureCaches();
+		float cached;
+		if (s_mVolumeCache.Find(prefab, cached))
+			return cached;
+
+		float volume;
+		IEntity entity = ResolveEntity(prefab);
+		if (entity)
+		{
+			InventoryItemComponent itemComponent = InventoryItemComponent.Cast(entity.FindComponent(InventoryItemComponent));
+			if (itemComponent)
+			{
+				ItemPhysicalAttributes attributes = ItemPhysicalAttributes.Cast(itemComponent.FindAttribute(ItemPhysicalAttributes));
+				if (attributes)
+					volume = attributes.GetVolume();
+			}
+		}
+
+		s_mVolumeCache.Insert(prefab, volume);
+		return volume;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -270,6 +490,10 @@ class GRSA_ItemIntel
 		EnsureCaches();
 		s_mAttachCompatCache.Clear();
 		s_mStorageLoadCache.Clear();
+		s_mStorageVolumeCache.Clear();
+		s_mContainerStorageCache.Clear();
+		s_mStorageCompatCache.Clear();
+		s_mVisibleAttachmentSlotCache.Clear();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -307,6 +531,8 @@ class GRSA_ItemIntel
 			node.m_SlotTypename = slotComponent.GetAttachmentSlotType().Type();
 			node.m_sTypePretty = PrettyTypeName(node.m_SlotTypename.ToString());
 			node.m_iDepth = depth;
+			node.m_iStorageSlot = i;
+			node.m_bVisible = slotComponent.ShouldShowInInspection();
 			if (parentLabel.IsEmpty())
 				node.m_sLabel = node.m_sTypePretty;
 			else

@@ -1,3 +1,21 @@
+class GRSA_ReceiverCardHandler : ScriptedWidgetEventHandler
+{
+	protected GRSA_ReceiverBrowser m_Owner;
+
+	void GRSA_ReceiverCardHandler(GRSA_ReceiverBrowser owner)
+	{
+		m_Owner = owner;
+	}
+
+	override bool OnClick(Widget w, int x, int y, int button)
+	{
+		if (button != 0 || !m_Owner)
+			return false;
+		m_Owner.OnCardPanelClicked();
+		return true;
+	}
+}
+
 //! Receiver switching for the gunsmith: the bottom-right receiver card and the weapon browser it
 //! opens in the tile strip, class chips being the config's weapon-slot categories. Owns the card
 //! row and the browser state; the picked weapon goes back to the screen through typed invokers,
@@ -14,6 +32,7 @@ class GRSA_ReceiverBrowser
 	protected int m_iClass = -1;
 	protected ResourceName m_StagedPrefab;
 	protected int m_iStagedSlot = -1;
+	protected ref GRSA_ReceiverCardHandler m_CardHandler;
 
 	//! Card clicked; the screen decides whether the browser may open.
 	ref ScriptInvoker m_OnCardClicked = new ScriptInvoker();
@@ -31,6 +50,12 @@ class GRSA_ReceiverBrowser
 		m_wCard = screenRoot.FindAnyWidget("ReceiverCard");
 		if (!m_wCard)
 			return;
+		Widget cardButton = m_wCard.FindAnyWidget("ReceiverCardButton");
+		if (cardButton)
+		{
+			m_CardHandler = new GRSA_ReceiverCardHandler(this);
+			cardButton.AddHandler(m_CardHandler);
+		}
 
 		Widget cardSlot = m_wCard.FindAnyWidget("ReceiverCardSlot");
 		if (!cardSlot)
@@ -204,6 +229,11 @@ class GRSA_ReceiverBrowser
 
 	//------------------------------------------------------------------------------------------------
 	protected void OnRowClicked(GRSA_ItemRowComponent row)
+	{
+		m_OnCardClicked.Invoke();
+	}
+
+	void OnCardPanelClicked()
 	{
 		m_OnCardClicked.Invoke();
 	}

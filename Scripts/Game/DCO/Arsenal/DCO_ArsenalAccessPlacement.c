@@ -10,6 +10,7 @@ class DCO_ArsenalAccessComponentClass : ScriptComponentClass
 class DCO_ArsenalAccessComponent : ScriptComponent
 {
 	static const float USE_RANGE = 4.5;
+	protected static const float MIN_AIM_RADIUS = 0.65;
 	protected static ref array<DCO_ArsenalAccessComponent> s_aInstances;
 	protected RplId m_TargetId;
 	protected vector m_vLocalAnchor;
@@ -197,11 +198,11 @@ class DCO_ArsenalAccessComponent : ScriptComponent
 		trace.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
 		trace.TargetLayers = EPhysicsLayerDefs.FireGeometry;
 		trace.Exclude = user;
-		float traceFraction = world.TraceMove(trace, null);
-		float hitDistance = rayLength * traceFraction;
+		world.TraceMove(trace, null);
 
 		DCO_ArsenalAccessComponent best;
 		float bestScore = float.MAX;
+		bool bestIsDirectHit;
 		foreach (DCO_ArsenalAccessComponent access : s_aInstances)
 		{
 			if (!access)
@@ -216,16 +217,35 @@ class DCO_ArsenalAccessComponent : ScriptComponent
 			if (forward <= 0.05 || forward > rayLength)
 				continue;
 			float lateralSq = Math.Max(0, toAnchor.LengthSq() - forward * forward);
-			float aimRadius = Math.Max(0.22, forward * 0.1);
+			bool targetHit = trace.TraceEnt && SharesHierarchy(trace.TraceEnt, target);
+			float aimRadius = Math.Max(MIN_AIM_RADIUS, forward * 0.12);
 			if (lateralSq > aimRadius * aimRadius)
 				continue;
 
-			bool targetHit = trace.TraceEnt && SharesHierarchy(trace.TraceEnt, target);
-			bool clearToAnchor = traceFraction >= 0.999 || hitDistance + 0.18 >= forward;
-			if (!targetHit && !clearToAnchor)
-				continue;
+			if (!targetHit)
+			{
+				if (bestIsDirectHit)
+					continue;
+				TraceParam anchorTrace = new TraceParam();
+				anchorTrace.Start = rayStart;
+				anchorTrace.End = access.GetAnchorWorld();
+				anchorTrace.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
+				anchorTrace.TargetLayers = EPhysicsLayerDefs.FireGeometry;
+				anchorTrace.Exclude = user;
+				float anchorFraction = world.TraceMove(anchorTrace, null);
+				bool reachesAnchor = anchorFraction >= 0.999;
+				bool reachesTarget = anchorTrace.TraceEnt && SharesHierarchy(anchorTrace.TraceEnt, target);
+				if (!reachesAnchor && !reachesTarget)
+					continue;
+			}
+			else if (!bestIsDirectHit)
+			{
+				best = null;
+				bestScore = float.MAX;
+				bestIsDirectHit = true;
+			}
 
-			float score = lateralSq + Math.AbsFloat(forward - hitDistance) * 0.001;
+			float score = lateralSq;
 			if (score >= bestScore)
 				continue;
 			bestScore = score;
@@ -361,47 +381,69 @@ class DCO_OpenArsenalAction : ScriptedUserAction
 modded class SCR_InteractionHandlerComponent
 {
 	protected DCO_ArsenalAccessComponent m_DCOArsenalAccess;
+	protected DCO_VehicleServiceAccessComponent m_DCOVehicleServiceAccess;
 
 	override protected void HandleOverride(notnull ChimeraCharacter character)
 	{
 		m_DCOArsenalAccess = null;
+		m_DCOVehicleServiceAccess = null;
 		super.HandleOverride(character);
 
 		DCO_ArsenalAccessComponent access = DCO_ArsenalAccessComponent.FindAimed(character, GetVisibilityRange());
-		if (!access)
-			return;
-		IEntity target = access.GetTarget();
-		if (!target)
-			return;
+		if (access)
+		{
+			IEntity target = access.GetTarget();
+			IEntity helper = access.GetOwner();
+			if (target && helper)
+			{
+				helper.SetOrigin(access.GetAnchorWorld());
+				DCO_ArsenalAccessComponent.AppendActionOwners(helper, m_aCollectedEntities);
+				DCO_ArsenalAccessComponent.AppendActionOwners(helper, m_aCollectedNearbyEntities);
+				DCO_ArsenalAccessComponent.AppendActionOwners(target, m_aCollectedEntities);
+				DCO_ArsenalAccessComponent.AppendActionOwners(target, m_aCollectedNearbyEntities);
+				m_DCOArsenalAccess = access;
+			}
+		}
 
-		IEntity helper = access.GetOwner();
-		if (!helper)
+		DCO_VehicleServiceAccessComponent vehicleAccess = DCO_VehicleServiceAccessComponent.FindUsable(character);
+		if (vehicleAccess)
+		{
+			DCO_VehicleServiceAccessComponent.AppendActionOwner(vehicleAccess, m_aCollectedEntities);
+			DCO_VehicleServiceAccessComponent.AppendActionOwner(vehicleAccess, m_aCollectedNearbyEntities);
+			m_DCOVehicleServiceAccess = vehicleAccess;
+		}
+		if (!m_DCOArsenalAccess && !m_DCOVehicleServiceAccess)
 			return;
-		helper.SetOrigin(access.GetAnchorWorld());
-		DCO_ArsenalAccessComponent.AppendActionOwners(helper, m_aCollectedEntities);
-		DCO_ArsenalAccessComponent.AppendActionOwners(helper, m_aCollectedNearbyEntities);
-		DCO_ArsenalAccessComponent.AppendActionOwners(target, m_aCollectedEntities);
-		DCO_ArsenalAccessComponent.AppendActionOwners(target, m_aCollectedNearbyEntities);
-		m_DCOArsenalAccess = access;
-		SetManualCollectionOverride(true);
+		// Service is additive to aimed vehicle actions; only Arsenal inspection replaces them.
+		SetManualCollectionOverride(m_DCOArsenalAccess != null);
 		SetManualNearbyCollectionOverride(true);
 	}
 
 	override array<IEntity> GetManualOverrideList(IEntity owner, out vector referencePoint)
 	{
-		if (!m_DCOArsenalAccess || !m_DCOArsenalAccess.GetOwner())
+		if (m_DCOArsenalAccess && m_DCOArsenalAccess.GetOwner())
+		{
+			referencePoint = m_DCOArsenalAccess.GetAnchorWorld();
+			return m_aCollectedEntities;
+		}
+		if (!m_DCOVehicleServiceAccess || !m_DCOVehicleServiceAccess.GetOwner())
 			return super.GetManualOverrideList(owner, referencePoint);
 
-		referencePoint = m_DCOArsenalAccess.GetAnchorWorld();
+		referencePoint = m_DCOVehicleServiceAccess.GetAnchorWorld();
 		return m_aCollectedEntities;
 	}
 
 	override array<IEntity> GetManualNearbyOverrideList(IEntity owner, out vector referencePoint)
 	{
-		if (!m_DCOArsenalAccess || !m_DCOArsenalAccess.GetOwner())
+		if (m_DCOArsenalAccess && m_DCOArsenalAccess.GetOwner())
+		{
+			referencePoint = m_DCOArsenalAccess.GetAnchorWorld();
+			return m_aCollectedNearbyEntities;
+		}
+		if (!m_DCOVehicleServiceAccess || !m_DCOVehicleServiceAccess.GetOwner())
 			return super.GetManualNearbyOverrideList(owner, referencePoint);
 
-		referencePoint = m_DCOArsenalAccess.GetAnchorWorld();
+		referencePoint = m_DCOVehicleServiceAccess.GetAnchorWorld();
 		return m_aCollectedNearbyEntities;
 	}
 }
@@ -411,7 +453,7 @@ modded class SCR_InteractionHandlerComponent
 class DCO_ArsenalAccessPlacement
 {
 	protected static const ResourceName ACCESS_PREFAB = "{B7D1A94F63C84E20}Prefabs/E_DCO_ArsenalAccess.et";
-	protected static const float INTERACTION_VERTICAL_LIFT = 0.75;
+	protected static const float INTERACTION_VERTICAL_LIFT = 0.15;
 	protected static ref DCO_ArsenalAccessPlacement s_Instance;
 	protected bool m_bTargeting;
 

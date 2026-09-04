@@ -21,4 +21,6 @@ Role and category glyphs derived from [Game-icons.net](https://game-icons.net/) 
 
 APP-6 unit symbols were generated with [milsymbol](https://github.com/spatialillusions/milsymbol) 2.2.0 by Måns Beckman, licensed under MIT.
 
+Vehicle service part glyphs are adapted from [Tabler Icons](https://github.com/tabler/tabler-icons/tree/v3.46.0) 3.46.0 by Paweł Kuna, licensed under MIT.
+
 Other Bifrost interface glyphs are project-authored assets.

@@ -43,7 +43,12 @@ class GRSA_PreviewDress
 				if (kitClothing)
 					wantedPrefab = kitClothing.m_Prefab;
 
-				SyncSlot(slot, wantedPrefab, previewWorld);
+				IEntity clothing = SyncSlot(slot, wantedPrefab, previewWorld);
+				if (clothing && kitClothing)
+				{
+					kitClothing.EnsurePins();
+					SyncWeaponAttachmentList(clothing, kitClothing.m_aAttachments, previewWorld, kitClothing.m_aAttachmentSlots);
+				}
 			}
 		}
 

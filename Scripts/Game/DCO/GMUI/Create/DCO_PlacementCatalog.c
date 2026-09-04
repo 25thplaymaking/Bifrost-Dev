@@ -37,23 +37,7 @@ class DCO_PlacementCatalog
 {
 	static const ResourceName ANIMATION_FX_RESOURCE = "DCO_ANIMATIONS_FX";
 	static const ResourceName ARSENAL_ACCESS_RESOURCE = "DCO_ARSENAL_ACCESS";
-	protected static ref array<string> s_TacticsOwnedZones;
-
-	protected static array<string> TacticsOwnedZones()
-	{
-		if (!s_TacticsOwnedZones)
-		{
-			s_TacticsOwnedZones = {
-				"/E_DCO_TaskZone.et",
-				"/E_DCO_TaskZone_Ambush.et",
-				"/E_DCO_TaskZone_AmbushKillZone.et",
-				"/E_DCO_TaskZone_Defend.et",
-				"/E_AIWaypoint_DCO_CqbClear.et",
-			};
-		}
-		return s_TacticsOwnedZones;
-	}
-
+	static const ResourceName VEHICLE_SERVICE_RESOURCE = "{C6A17D4B92E83F50}Prefabs/E_DCO_VehicleServiceZone.et";
 	static const int CAT_ALL    = -1;
 	static const int CAT_MAN    = 0;	// CHARACTER.
 	static const int CAT_GROUP  = 1;	// GROUP.
@@ -63,8 +47,8 @@ class DCO_PlacementCatalog
 
 	protected ref array<ref DCO_CatalogEntry> m_Entries = {};
 	protected ref array<FactionKey> m_FactionKeys = {};	// distinct factions that actually have content.
-	protected ref map<string, bool> m_Expanded = new map<string, bool>();
-	protected bool m_bSeedSubCatsOpen;	// set per-Query: a category tab is active, so its sub-category folders seed open.
+	protected static ref map<string, bool> s_Expanded;
+	protected static BaseWorld s_ExpandedWorld;
 	protected SCR_PlacingEditorComponent m_Placing;
 	protected bool m_bBuilt;
 	protected int m_iBrowserInfoCount;
@@ -75,9 +59,15 @@ class DCO_PlacementCatalog
 	int GetEntryCount() { return m_Entries.Count(); }
 	static bool IsAnimationFxResource(ResourceName resource) { return resource == ANIMATION_FX_RESOURCE; }
 	static bool IsArsenalAccessResource(ResourceName resource) { return resource == ARSENAL_ACCESS_RESOURCE; }
+	static bool IsVehicleServiceResource(ResourceName resource) { return resource == VEHICLE_SERVICE_RESOURCE; }
+	static bool IsBifrostResource(ResourceName resource)
+	{
+		return resource.Contains("/E_DCO_") || resource.Contains("/E_AIWaypoint_DCO_")
+			|| IsAnimationFxResource(resource) || IsArsenalAccessResource(resource);
+	}
 	static bool IsGlobalUtilityResource(ResourceName resource)
 	{
-		return IsAnimationFxResource(resource) || IsArsenalAccessResource(resource);
+		return IsBifrostResource(resource);
 	}
 
 	// Resolve the editor components and enumerate every placeable entity.
@@ -198,7 +188,7 @@ class DCO_PlacementCatalog
 		entry.m_Name = "Animations FX";
 		entry.m_Type = EEditableEntityType.CHARACTER;
 		entry.m_Category = CAT_EFFECTS;
-		entry.m_SubCat = "Animations";
+		entry.m_SubCat = "FX";
 		array<EEditableEntityLabel> labels = {};
 		entry.m_App6Icon = DCO_App6Icons.GetIcon(labels, entry.m_Name, "", entry.m_Type);
 		entry.m_SearchMetadata = "animations animation ai pose emote smoke sit chair lean pushups loiter officer";
@@ -213,11 +203,9 @@ class DCO_PlacementCatalog
 		entry.m_Name = "Arsenal Access";
 		entry.m_Type = EEditableEntityType.CHARACTER;
 		entry.m_Category = CAT_EFFECTS;
-		entry.m_SubCat = "Arsenal";
+		entry.m_SubCat = "Bifrost";
 		entry.m_SearchMetadata = "arsenal access inventory loadout equipment object vehicle prop interaction attachments";
-
-		array<EEditableEntityLabel> labels = {};
-		entry.m_App6Icon = DCO_App6Icons.GetIcon(labels, entry.m_Name, "", EEditableEntityType.GENERIC);
+		entry.m_Icon = "{24C2C142CE0F1758}img/icons/ars-crate.edds";
 		m_Entries.Insert(entry);
 	}
 
@@ -251,12 +239,6 @@ class DCO_PlacementCatalog
 			if (existing.m_Prefab == res)
 				return;
 		}
-		foreach (string zonePath : TacticsOwnedZones())
-		{
-			if (res.Contains(zonePath))
-				return;	// tactics tab is the one truth for this zone.
-		}
-
 		DCO_CatalogEntry e = new DCO_CatalogEntry();
 		e.m_Prefab = res;
 		e.m_Name = DCO_GMDisplayName.Resolve(info.GetName(), res, "Entity");
@@ -264,16 +246,21 @@ class DCO_PlacementCatalog
 		e.m_Faction = info.GetFactionKey();
 		e.m_Type = info.GetEntityType();
 		e.m_Category = CategoryForType(info.GetEntityType());
-		// Bifrost FX placeables live on their own EFFECTS tab regardless of editable type.
-		if (res.Contains("/E_DCO_Fx"))
+		// Every Bifrost-authored placeable is discoverable under the Lightning tab.
+		if (IsBifrostResource(res))
 			e.m_Category = CAT_EFFECTS;
-		if (res.Contains("/E_DCO_Trigger"))
-			e.m_Category = CAT_MODULE;
 		e.m_BudgetText = BudgetText(info);
 		array<EEditableEntityLabel> labels = {};
 		info.GetEntityLabels(labels);
 		e.m_App6Icon = DCO_App6Icons.GetIcon(labels, e.m_Name, e.m_Faction, e.m_Type);
 		e.m_SubCat = SubCatFor(res);
+		if (e.m_Category == CAT_EFFECTS)
+		{
+			if (res.Contains("/E_DCO_Fx"))
+				e.m_SubCat = "FX";
+			else
+				e.m_SubCat = "Bifrost";
+		}
 		e.m_SearchMetadata = string.Format("%1 %2 %3 %4 %5", res, e.m_Faction, CategoryLabel(e.m_Category), TypeLabel(e.m_Type), e.m_SubCat);
 		e.m_SearchMetadata.ToLower();
 		m_Entries.Insert(e);
@@ -388,16 +375,28 @@ class DCO_PlacementCatalog
 
 	void ToggleSection(string sectionKey)
 	{
+		map<string, bool> expandedState = ExpansionState();
 		bool expanded = false;
-		m_Expanded.Find(sectionKey, expanded);
-		m_Expanded.Set(sectionKey, !expanded);
+		expandedState.Find(sectionKey, expanded);
+		expandedState.Set(sectionKey, !expanded);
+	}
+
+	protected static map<string, bool> ExpansionState()
+	{
+		BaseWorld world = GetGame().GetWorld();
+		if (!s_Expanded || s_ExpandedWorld != world)
+		{
+			s_ExpandedWorld = world;
+			s_Expanded = new map<string, bool>();
+		}
+		return s_Expanded;
 	}
 
 	// Nested folders default collapsed so the 3-level browser never emits ~1500 item rows on entry.
 	protected bool IsCollapsed(string sectionKey)
 	{
 		bool expanded = false;
-		m_Expanded.Find(sectionKey, expanded);
+		ExpansionState().Find(sectionKey, expanded);
 		return !expanded;
 	}
 
@@ -422,7 +421,7 @@ class DCO_PlacementCatalog
 			return CategoryLabel(e.m_Category);
 		if (level == 1)
 			return GetFactionLabel(e.m_Faction);
-		if (e.m_Category == CAT_OBJECT && !e.m_SubCat.IsEmpty())
+		if ((e.m_Category == CAT_OBJECT || e.m_Category == CAT_EFFECTS) && !e.m_SubCat.IsEmpty())
 			return e.m_SubCat;
 		return TypeLabel(e.m_Type);
 	}
@@ -510,13 +509,6 @@ class DCO_PlacementCatalog
 			string path = k;
 			if (!pathPrefix.IsEmpty())
 				path = pathPrefix + "/" + k;
-			// Seed the top-level categories open so ALL uses the full chooser viewport instead of presenting five rows over a large blank canvas.
-			if (level == 0 || (level == 2 && m_bSeedSubCatsOpen))
-			{
-				bool exp;
-				if (!m_Expanded.Find(path, exp))
-					m_Expanded.Set(path, true);
-			}
 			bool collapsed = IsCollapsed(path);
 			rows.Insert(MakeFolderRow(path, k, b.Count(), depth, level, b[0].m_Category, b[0].m_Faction, collapsed));
 			if (collapsed)
@@ -528,8 +520,6 @@ class DCO_PlacementCatalog
 	// Filter by category + faction + search, group into collapsible sections, and return the flat render rows.
 	array<ref DCO_CatalogRow> Query(int categoryFilter, FactionKey factionFilter, string search)
 	{
-		m_bSeedSubCatsOpen = categoryFilter != CAT_ALL;	// see EmitLevel: a tab click opens its sub-category folders.
-
 		// 1.
 		array<ref DCO_CatalogEntry> candidates = {};
 		foreach (DCO_CatalogEntry e : m_Entries)
@@ -610,9 +600,10 @@ class DCO_PlacementCatalog
 
 				// One header per category.
 				string path = "search:" + CategoryLabel(cat);
+				map<string, bool> expandedState = ExpansionState();
 				bool exp;
-				if (!m_Expanded.Find(path, exp))
-					m_Expanded.Set(path, true);
+				if (!expandedState.Find(path, exp))
+					expandedState.Set(path, true);
 				bool collapsed = IsCollapsed(path);
 				rows.Insert(MakeFolderRow(path, CategoryLabel(cat), inCat.Count(), 0, 0, cat, "", collapsed));
 				if (collapsed)

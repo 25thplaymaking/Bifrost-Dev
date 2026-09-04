@@ -6,7 +6,7 @@
 
 Bifrost is an unofficial community addon and is not affiliated with or endorsed by Bohemia Interactive.
 
-Bifrost is an Arma Reforger Game Master addon focused on a compact operational interface, faster scenario editing, and additional AI and effects controls.
+Bifrost is an Arma Reforger Game Master addon focused on a compact operational interface, faster scenario editing, and effects controls.
 
 ## Current scope
 
@@ -14,7 +14,7 @@ Bifrost is an Arma Reforger Game Master addon focused on a compact operational i
 - Searchable placement catalog and full-screen loadout editor
 - Precise move/rotate tools, snapping, attachment, visibility, simulation, and stance controls
 - Scenario presets, time/date controls, weather, side relations, and budget readouts
-- Tactical AI features including morale, formations, contact reactions, ambush, defence, QRF, CQB clearing, machine-gunner, and launcher discipline
+- GM-directed group orders and scenario tools, including formations, ambush, defence, QRF, and building clearing
 - Placeable triggers, tracer and explosion emitters, mortar effects, flybys, gunruns, and loitering aircraft
 - GM overlays, nametags, awareness cues, map tools, notifications, chat feed, tutorial, and performance readout
 

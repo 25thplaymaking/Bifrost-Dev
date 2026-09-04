@@ -4,12 +4,11 @@ modded class SCR_AIGroupUtilityComponent
 	protected float m_fDCO_GMFormationLast  = -1;	// throttle for the standing-hold reposition.
 	protected float m_fDCO_GMFormHandlerLast = -1;
 
-	protected int  m_iDCO_GMStance        = -1;
-	protected bool m_bDCO_GMStanceLocked  = false;
-
 	// GM formation order.
 	void DCO_OrderFormation(int ord)
 	{
+		if (!Replication.IsServer())
+			return;
 		IEntity groupEnt = GetOwner();
 		if (!groupEnt)
 			return;
@@ -21,32 +20,31 @@ modded class SCR_AIGroupUtilityComponent
 			return;
 
 		AIGroupMovementComponent moveComp = AIGroupMovementComponent.Cast(groupEnt.FindComponent(AIGroupMovementComponent));
-		if (moveComp)
-			moveComp.SetFormationDefinition(0, formName);
+		int handlerCount = DCO_GMApplyFormationToHandlers(moveComp, formName);
 
 		AIFormationComponent formComp = grp.GetFormationComponent();
+		bool formationSet;
 		if (formComp)
-			formComp.SetFormation(formName);
+			formationSet = formComp.SetFormation(formName);
 
 		m_iDCO_GMFormationOrd    = ord;
 		m_fDCO_GMFormationLast   = -1;	// reform standing immediately.
 		m_fDCO_GMFormHandlerLast = -1;	// re-assert travel formation immediately.
 
-		Print(string.Format("[DCO-GM] Formation '%1' ordered (travel+held; moveComp=%2 formComp=%3)", formName, moveComp != null, formComp != null), LogLevel.NORMAL);
+		Print(string.Format("[DCO-GM] formation ordered: type=%1 handlers=%2 formationComponent=%3", formName, handlerCount, formationSet), LogLevel.NORMAL);
 	}
 
 	// GM stance order.
 	void DCO_SetGMStance(int stanceOrd)
 	{
-		m_iDCO_GMStance = stanceOrd;
-		Print(string.Format("[DCO-GM] GM stance ordered (ord=%1; persists via DCO_UpdateGMStance)", stanceOrd), LogLevel.NORMAL);
+		if (!Replication.IsServer())
+			return;
+		SCR_AIGroup group = SCR_AIGroup.Cast(GetOwner());
+		if (!group)
+			return;
+		int affected = DCO_GMStanceForMembers(group, stanceOrd);
+		Print(string.Format("[DCO-GM] server stance ordered: stance=%1 directAI=%2", stanceOrd, affected), LogLevel.NORMAL);
 	}
-
-	int DCO_GetGMStance()
-	{
-		return m_iDCO_GMStance;
-	}
-
 
 	void DCO_SendGMOrder(int actionId)
 	{
@@ -75,51 +73,43 @@ modded class SCR_AIGroupUtilityComponent
 	}
 
 
-	void DCO_UpdateGMStance()
+	protected int DCO_GMStanceForMembers(SCR_AIGroup grp, int ord)
 	{
-		if (!Replication.IsServer())
-			return;
-
-		IEntity groupEnt = GetOwner();
-		SCR_AIGroup grp = SCR_AIGroup.Cast(groupEnt);
-		if (!grp)
-			return;
-
-		if (m_iDCO_GMStance < 0)
-		{
-			if (m_bDCO_GMStanceLocked)
-			{
-				DCO_GMStanceForMembers(grp, -1);
-				m_bDCO_GMStanceLocked = false;
-			}
-			return;
-		}
-
-		if (DCO_VehicleUtil.IsGroupInVehicle(grp))
-			return;	// seated members can't meaningfully change stance.
-
-		DCO_GMStanceForMembers(grp, m_iDCO_GMStance);	// lock every member to the GM stance + apply it.
-		m_bDCO_GMStanceLocked = true;
-	}
-
-	protected void DCO_GMStanceForMembers(SCR_AIGroup grp, int ord)
-	{
+		if (ord < 0 || DCO_VehicleUtil.IsGroupInVehicle(grp))
+			return 0;
 		array<AIAgent> agents = {};
 		grp.GetAgents(agents);
+		int affected;
 		foreach (AIAgent a : agents)
 		{
-			if (!a)
+			if (!a || a.GetParentGroup() != grp)
 				continue;
 			IEntity ent = a.GetControlledEntity();
-			if (!ent)
+			if (!ent || DCO_PlayerUtil.IsPlayer(ent))
 				continue;
-			DCO_StanceUtil.SetGMStanceLock(ent, ord);	// ord<0 releases; supersedes the autonomous stance systems.
-			if (ord >= 0)
+			SCR_CharacterControllerComponent controller = SCR_CharacterControllerComponent.Cast(ent.FindComponent(SCR_CharacterControllerComponent));
+			if (controller)
 			{
-				ECharacterStance st = ord;
-				DCO_StanceUtil.TrySetStance(ent, st, 1500.0);	// guards players + anti-jitter throttle.
+				SCR_AIStanceHandling.SetStance(controller, ord);
+				affected++;
 			}
 		}
+		return affected;
+	}
+
+	protected int DCO_GMApplyFormationToHandlers(AIGroupMovementComponent moveComp, string formName)
+	{
+		if (!moveComp)
+			return 0;
+		int applied;
+		for (int handlerId = 0; handlerId < 32; handlerId++)
+		{
+			if (moveComp.GetMoveHandlerAgentCount(handlerId) == -1)
+				break;
+			if (moveComp.SetFormationDefinition(handlerId, formName))
+				applied++;
+		}
+		return applied;
 	}
 
 	// Keep the GM formation followed both moving and standing.
@@ -149,7 +139,7 @@ modded class SCR_AIGroupUtilityComponent
 		if (moveComp && (m_fDCO_GMFormHandlerLast < 0 || (now - m_fDCO_GMFormHandlerLast) >= 3000.0))
 		{
 			m_fDCO_GMFormHandlerLast = now;
-			moveComp.SetFormationDefinition(0, formName);
+			DCO_GMApplyFormationToHandlers(moveComp, formName);
 		}
 
 		// (B) Standing hold only when idle + calm.
@@ -184,7 +174,7 @@ modded class SCR_AIGroupUtilityComponent
 		int idx = 0;
 		foreach (AIAgent a : agents)
 		{
-			if (!a)
+			if (!a || a.GetParentGroup() != grp)
 				continue;
 			IEntity ent = a.GetControlledEntity();
 			if (!ent || ent == leader)

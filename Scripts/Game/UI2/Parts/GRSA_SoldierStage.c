@@ -487,6 +487,30 @@ class GRSA_SoldierStage
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Mutable preview source for inspecting the runtime hardpoints on one worn item.
+	IEntity GetClothingSource(int clothingSlot)
+	{
+		if (clothingSlot < 0)
+			return null;
+
+		IEntity source = m_PooledCharacter;
+		if (!source)
+			source = m_Character;
+		if (!source)
+			return null;
+
+		EquipedLoadoutStorageComponent loadoutStorage = EquipedLoadoutStorageComponent.Cast(source.FindComponent(EquipedLoadoutStorageComponent));
+		if (!loadoutStorage)
+			return null;
+
+		InventoryStorageSlot slot = loadoutStorage.GetSlot(clothingSlot);
+		if (!slot)
+			return null;
+
+		return slot.GetAttachedEntity();
+	}
+
+	//------------------------------------------------------------------------------------------------
 	protected IEntity ResolveSlotEntity(bool isWeapon, int weaponSlot, int clothingSlot)
 	{
 		IEntity slotSource = m_Character;

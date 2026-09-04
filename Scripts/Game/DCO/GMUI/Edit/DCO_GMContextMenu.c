@@ -33,6 +33,9 @@ class DCO_ContextMenuHandler : ScriptedWidgetEventHandler
 class DCO_GMContextMenu
 {
 	static const int SLOTS = 18;
+	protected static const int PAGED_ACTION_SLOTS = SLOTS - 2;
+	protected static const int PAGE_PREV_ID = -1001;
+	protected static const int PAGE_NEXT_ID = -1002;
 	static const float EDGE_GAP = 8;
 	static const float FALLBACK_WIDTH = 404;
 	static const float FALLBACK_ROW_HEIGHT = 36;
@@ -46,10 +49,14 @@ class DCO_GMContextMenu
 	protected ref array<ButtonWidget> m_Btns = {};
 	protected ref array<TextWidget> m_Labels = {};
 	protected ref array<int> m_ActionIds = {};
+	protected ref array<string> m_AllLabels = {};
+	protected ref array<int> m_AllIds = {};
+	protected ref array<bool> m_AllEnabled = {};
 	protected TextWidget m_wTitle;
 	protected TextWidget m_wSubtitle;
 	protected TextWidget m_wFooter;
 	protected int m_iVisibleItems;
+	protected int m_iPage;
 	protected int m_iSelectedId = -1;
 	protected float m_fAnchorX;
 	protected float m_fAnchorY;
@@ -98,17 +105,22 @@ class DCO_GMContextMenu
 
 	void Show(notnull array<string> labels, notnull array<int> ids, int x, int y, ScriptInvoker onAction, SCR_EditableEntityComponent e)
 	{
-		ShowInternal(labels, ids, x, y, 0, 0, false, null, "ACTIONS", "Choose an action", -1, onAction, e);
+		ShowInternal(labels, ids, null, x, y, 0, 0, false, null, "ACTIONS", "Choose an action", -1, onAction, e);
+	}
+
+	void ShowWithAvailability(notnull array<string> labels, notnull array<int> ids, notnull array<bool> enabled, int x, int y, ScriptInvoker onAction, SCR_EditableEntityComponent e)
+	{
+		ShowInternal(labels, ids, enabled, x, y, 0, 0, false, null, "ACTIONS", "Choose an action", -1, onAction, e);
 	}
 
 	void ShowTitled(notnull array<string> labels, notnull array<int> ids, int x, int y, string title, ScriptInvoker onAction, SCR_EditableEntityComponent e)
 	{
-		ShowInternal(labels, ids, x, y, 0, 0, false, null, title, "Choose an option", -1, onAction, e);
+		ShowInternal(labels, ids, null, x, y, 0, 0, false, null, title, "Choose an option", -1, onAction, e);
 	}
 
 	void ShowTitledDetailed(notnull array<string> labels, notnull array<int> ids, int x, int y, string title, string subtitle, int selectedId, ScriptInvoker onAction, SCR_EditableEntityComponent e)
 	{
-		ShowInternal(labels, ids, x, y, 0, 0, false, null, title, subtitle, selectedId, onAction, e);
+		ShowInternal(labels, ids, null, x, y, 0, 0, false, null, title, subtitle, selectedId, onAction, e);
 	}
 
 	// Open a dropdown beside a source panel.
@@ -119,18 +131,40 @@ class DCO_GMContextMenu
 		float x, y, w, h;
 		anchor.GetScreenPos(x, y);
 		anchor.GetScreenSize(w, h);
-		ShowInternal(labels, ids, x, y, w, h, true, avoidPanel, title, "Choose an option", -1, onAction, e);
+		ShowInternal(labels, ids, null, x, y, w, h, true, avoidPanel, title, "Choose an option", -1, onAction, e);
+	}
+
+	void ShowAdjacentWithAvailability(notnull array<string> labels, notnull array<int> ids, notnull array<bool> enabled, Widget anchor, Widget avoidPanel, string title, ScriptInvoker onAction, SCR_EditableEntityComponent e)
+	{
+		if (!anchor)
+			return;
+		float x, y, w, h;
+		anchor.GetScreenPos(x, y);
+		anchor.GetScreenSize(w, h);
+		ShowInternal(labels, ids, enabled, x, y, w, h, true, avoidPanel, title, "Choose an option", -1, onAction, e);
 	}
 
 	// Populate first, then measure and place.
-	protected void ShowInternal(notnull array<string> labels, notnull array<int> ids, float x, float y, float anchorW, float anchorH, bool adjacent, Widget avoidPanel, string title, string subtitle, int selectedId, ScriptInvoker onAction, SCR_EditableEntityComponent e)
+	protected void ShowInternal(notnull array<string> labels, notnull array<int> ids, array<bool> enabled, float x, float y, float anchorW, float anchorH, bool adjacent, Widget avoidPanel, string title, string subtitle, int selectedId, ScriptInvoker onAction, SCR_EditableEntityComponent e)
 	{
 		if (!m_wMenu)
 			return;
 		m_OnAction = onAction;
 		m_Entity = e;
-		m_ActionIds.Clear();
-		m_iVisibleItems = Math.Min(labels.Count(), SLOTS);
+		m_AllLabels.Clear();
+		m_AllIds.Clear();
+		m_AllEnabled.Clear();
+		int itemCount = Math.Min(labels.Count(), ids.Count());
+		for (int itemIndex = 0; itemIndex < itemCount; itemIndex++)
+		{
+			m_AllLabels.Insert(labels[itemIndex]);
+			m_AllIds.Insert(ids[itemIndex]);
+			if (enabled && itemIndex < enabled.Count())
+				m_AllEnabled.Insert(enabled[itemIndex]);
+			else
+				m_AllEnabled.Insert(true);
+		}
+		m_iPage = 0;
 		m_iSelectedId = selectedId;
 		m_bAdjacent = adjacent;
 		m_wAvoidPanel = avoidPanel;
@@ -138,38 +172,7 @@ class DCO_GMContextMenu
 			m_wTitle.SetText(BoundText(title, MAX_TITLE_CHARS));
 		if (m_wSubtitle)
 			m_wSubtitle.SetText(BoundText(subtitle, MAX_LABEL_CHARS));
-		if (m_wFooter)
-			m_wFooter.SetText(string.Format("%1 OPTIONS  ·  CLICK TO APPLY  ·  ESC TO CLOSE", m_iVisibleItems));
-
-		int n = labels.Count();
-		if (n > SLOTS)
-			Print(string.Format("[DCO-GM] context menu has %1 items but only %2 slots - extras dropped (bump SLOTS/paginate)", n, SLOTS), LogLevel.WARNING);
-		for (int i = 0; i < SLOTS; i++)
-		{
-			ButtonWidget b = m_Btns[i];
-			TextWidget lbl = m_Labels[i];
-			if (i < n)
-			{
-				if (lbl)
-				{
-					string rowLabel = string.Format("%1  ·  %2", i + 1, labels[i]);
-					if (ids[i] == m_iSelectedId)
-						rowLabel = rowLabel + "  ·  SELECTED";
-					lbl.SetText(BoundText(rowLabel, MAX_LABEL_CHARS));
-					if (ids[i] == m_iSelectedId)
-						lbl.SetColor(DCO_GMTheme.Get().m_AccentColor);
-					else
-						lbl.SetColor(ColorForId(ids[i]));
-				}
-				if (b)
-					b.SetVisible(true);
-				m_ActionIds.Insert(ids[i]);
-			}
-			else if (b)
-			{
-				b.SetVisible(false);
-			}
-		}
+		RenderPage();
 
 		WorkspaceWidget ws = GetGame().GetWorkspace();
 		m_fAnchorX = x;
@@ -188,9 +191,103 @@ class DCO_GMContextMenu
 		m_wMenu.SetVisible(true);
 		PositionMenu();
 
-		// Re-measure after the visibility/layout pass.
 		GetGame().GetCallqueue().Remove(PositionMenu);
 		GetGame().GetCallqueue().CallLater(PositionMenu, 0, false);
+	}
+
+	protected void RenderPage()
+	{
+		m_ActionIds.Clear();
+		bool paged = m_AllLabels.Count() > SLOTS;
+		int pageSize = SLOTS;
+		if (paged)
+			pageSize = PAGED_ACTION_SLOTS;
+		int pageCount = 1;
+		if (paged)
+			pageCount = (m_AllLabels.Count() + pageSize - 1) / pageSize;
+		if (m_iPage >= pageCount)
+			m_iPage = pageCount - 1;
+
+		int first = m_iPage * pageSize;
+		int last = Math.Min(first + pageSize, m_AllLabels.Count());
+		int slot;
+		for (int itemIndex = first; itemIndex < last; itemIndex++)
+		{
+			ButtonWidget b = m_Btns[slot];
+			TextWidget lbl = m_Labels[slot];
+			bool canPerform = m_AllEnabled[itemIndex];
+			if (lbl)
+			{
+				string rowLabel = string.Format("%1  ·  %2", itemIndex + 1, m_AllLabels[itemIndex]);
+				if (m_AllIds[itemIndex] == m_iSelectedId)
+					rowLabel = rowLabel + "  ·  SELECTED";
+				if (!canPerform)
+					rowLabel = rowLabel + "  ·  UNAVAILABLE";
+				lbl.SetText(BoundText(rowLabel, MAX_LABEL_CHARS));
+				if (!canPerform)
+					lbl.SetColor(DCO_GMTheme.Get().m_MutedColor);
+				else if (m_AllIds[itemIndex] == m_iSelectedId)
+					lbl.SetColor(DCO_GMTheme.Get().m_AccentColor);
+				else
+					lbl.SetColor(ColorForId(m_AllIds[itemIndex]));
+			}
+			if (b)
+			{
+				b.SetVisible(true);
+				b.SetEnabled(canPerform);
+			}
+			m_ActionIds.Insert(m_AllIds[itemIndex]);
+			slot++;
+		}
+
+		if (paged && m_iPage > 0)
+		{
+			PopulatePageControl(slot, "< PREVIOUS PAGE", PAGE_PREV_ID);
+			slot++;
+		}
+		if (paged && m_iPage + 1 < pageCount)
+		{
+			PopulatePageControl(slot, "NEXT PAGE >", PAGE_NEXT_ID);
+			slot++;
+		}
+
+		m_iVisibleItems = slot;
+		for (int hideIndex = slot; hideIndex < SLOTS; hideIndex++)
+		{
+			ButtonWidget hiddenButton = m_Btns[hideIndex];
+			if (hiddenButton)
+			{
+				hiddenButton.SetEnabled(true);
+				hiddenButton.SetVisible(false);
+			}
+		}
+
+		if (m_wFooter)
+		{
+			if (paged)
+				m_wFooter.SetText(string.Format("%1 OPTIONS  ·  PAGE %2/%3  ·  SELECT  ·  ESC BACK", m_AllLabels.Count(), m_iPage + 1, pageCount));
+			else
+				m_wFooter.SetText(string.Format("%1 OPTIONS  ·  SELECT  ·  ESC BACK", m_AllLabels.Count()));
+		}
+	}
+
+	protected void PopulatePageControl(int slot, string label, int actionId)
+	{
+		if (slot < 0 || slot >= SLOTS)
+			return;
+		ButtonWidget button = m_Btns[slot];
+		TextWidget text = m_Labels[slot];
+		if (text)
+		{
+			text.SetText(label);
+			text.SetColor(DCO_GMTheme.Get().m_AccentColor);
+		}
+		if (button)
+		{
+			button.SetEnabled(true);
+			button.SetVisible(true);
+		}
+		m_ActionIds.Insert(actionId);
 	}
 
 	protected string BoundText(string value, int maxChars)
@@ -338,11 +435,11 @@ class DCO_GMContextMenu
 			return Color.FromInt(DCO_GMTheme.SEM_FRIENDLY);	// green - resume fire.
 		if (id == DCO_GMGroupOrders.ORD_CANCEL_AMBUSH)
 			return Color.FromRGBA(200, 124, 92, 255);	// muted - cancel.
-		if (id == DCO_GMGroupOrders.ORD_AMBUSH || id == DCO_GMGroupOrders.ORD_CQB || id == DCO_GMGroupOrders.ORD_QRF)
+		if (id == DCO_GMGroupOrders.ORD_AMBUSH || id == DCO_GMGroupOrders.ORD_QRF)
 			return Color.FromRGBA(232, 172, 72, 255);	// amber - tactics verbs.
 		if (id >= DCO_GMGroupOrders.ORD_FORM_WEDGE && id <= DCO_GMGroupOrders.ORD_FORM_STAGGERED)
 			return Color.FromRGBA(92, 162, 232, 255);	// blue - formations.
-		if (id >= DCO_GMGroupOrders.ORD_STANCE_STAND && id <= DCO_GMGroupOrders.ORD_STANCE_AUTO)
+		if (id >= DCO_GMGroupOrders.ORD_STANCE_STAND && id <= DCO_GMGroupOrders.ORD_STANCE_PRONE)
 			return DCO_GMTheme.Get().m_MutedColor;	// grey - stances.
 		if (DCO_GMGroupOrders.IsSubmenu(id))
 			return theme.m_AccentColor;	// accent - drill-in headers + Back.
@@ -401,6 +498,26 @@ class DCO_GMContextMenu
 				int actionId = -1;
 				if (i < m_ActionIds.Count())
 					actionId = m_ActionIds[i];
+				if (actionId == PAGE_PREV_ID)
+				{
+					if (m_iPage > 0)
+						m_iPage--;
+					RenderPage();
+					PositionMenu();
+					GetGame().GetCallqueue().Remove(PositionMenu);
+					GetGame().GetCallqueue().CallLater(PositionMenu, 0, false);
+					return true;
+				}
+				if (actionId == PAGE_NEXT_ID)
+				{
+					m_iPage++;
+					RenderPage();
+					PositionMenu();
+					GetGame().GetCallqueue().Remove(PositionMenu);
+					GetGame().GetCallqueue().CallLater(PositionMenu, 0, false);
+					return true;
+				}
+
 				ScriptInvoker cb = m_OnAction;
 				SCR_EditableEntityComponent e = m_Entity;
 				Hide();

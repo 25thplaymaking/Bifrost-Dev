@@ -38,6 +38,18 @@ class DCO_GMPlacementConfirm
 	{
 		if (!m_bActive)
 			return;
+		DCO_GMCompositionPanel compositions = DCO_GMCompositionPanel.Get();
+		if (compositions.IsTargetingPlacement())
+		{
+			if (IsCursorOverPanels())
+				return;
+			SCR_MenuLayoutEditorComponent menuLayout = SCR_MenuLayoutEditorComponent.Cast(
+				SCR_MenuLayoutEditorComponent.GetInstance(SCR_MenuLayoutEditorComponent, false));
+			vector cursorPosition;
+			if (menuLayout && menuLayout.GetCursorWorldPos(cursorPosition))
+				compositions.PlaceAtWorldCursor(cursorPosition);
+			return;
+		}
 		if (!m_Placing)
 			m_Placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
 		if (!m_Placing)

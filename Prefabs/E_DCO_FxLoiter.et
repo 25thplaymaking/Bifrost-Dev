@@ -3,7 +3,7 @@ GenericEntity : "{52BB1377E8B65369}Prefabs/E_DCO_FxExplosion.et" {
  components {
   DCO_FxExplosionComponent "{3A135A260F23A531}" {
    m_eFamily LOITER
-   m_eDelivery LOITER_FLYBY
+   m_eDelivery LOITER_GUNRUN
   }
   SCR_EditableSystemComponent "{DC0F000000000022}" {
    m_UIInfo SCR_EditableEntityUIInfo "{DC0F000000000023}" {

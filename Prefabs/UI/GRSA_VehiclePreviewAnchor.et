@@ -1,0 +1,11 @@
+GenericEntity {
+ ID "6A4338ABF0010002"
+ components {
+  DCO_VehiclePreviewAnchorComponent "{6A4338ABF0010003}" {
+  }
+  Hierarchy "{6A4338ABF0010004}" {
+   Enabled 1
+  }
+ }
+ Flags 0x403 0
+}

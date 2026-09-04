@@ -91,12 +91,22 @@ class DCO_CreateSearchHandler : ScriptedWidgetEventHandler
 	}
 }
 
+class DCO_GMCreateSessionState
+{
+	int m_iCategory;
+	FactionKey m_sFaction;
+	string m_sSearch;
+	int m_iScrollOffset;
+	int m_iCustomFactionPage;
+	bool m_bCustomFactionOpen;
+	bool m_bCrewVehicles;
+}
+
 class DCO_GMCreatePanelComponent
 {
 	static const int ROWS = 22;
 	static const int FAC_SLOTS = 7;
 	static const int CUSTOM_FAC_SLOTS = 6;
-	static const int CUSTOM_FAC_TAB = FAC_SLOTS - 1;
 	static const ResourceName WORKSHOP_ICONS = "{3262679C50EF4F01}UI/Textures/Icons/icons_wrapperUI.imageset";
 	static const ResourceName FOLD_DOWN  = "{A3EE9DF5A7573679}img/icons/fold-down.edds";	// expanded section header.
 	static const ResourceName FOLD_RIGHT = "{12D85C56D7B4F8AA}img/icons/fold-right.edds";	// collapsed section header.
@@ -123,6 +133,8 @@ class DCO_GMCreatePanelComponent
 
 	protected EditBoxWidget m_wSearch;
 	protected TextWidget m_wBudgetLine;
+	protected ButtonWidget m_wCrewVehicles;
+	protected Widget m_wCrewVehiclesTick;
 
 	protected ref array<ButtonWidget> m_CatBtns = {};
 	protected ref array<int> m_CatValues = {};
@@ -131,6 +143,9 @@ class DCO_GMCreatePanelComponent
 	protected ref array<TextWidget> m_FacLabels = {};
 	protected ref array<ImageWidget> m_FacIcons = {};	// aligned with m_FacBtns; null for the ALL slot.
 	protected ref array<FactionKey> m_FacSlotKeys = {};
+	protected ButtonWidget m_wCustomFactionTab;
+	protected ImageWidget m_wCustomFactionTabIcon;
+	protected TextWidget m_wCustomFactionTabLabel;
 	protected Widget m_wCustomFactionDrop;
 	protected ref array<Widget> m_CustomFacHosts = {};
 	protected ref array<ButtonWidget> m_CustomFacBtns = {};
@@ -153,7 +168,6 @@ class DCO_GMCreatePanelComponent
 	protected ref array<FactionKey> m_FactionKeys = {};
 	protected ref array<FactionKey> m_CustomFactionKeys = {};
 	protected int m_CustomFactionPage;
-	protected int m_iCustomFactionTab = -1;
 	protected bool m_bCustomFactionOpen;
 
 	protected int m_Category = DCO_PlacementCatalog.CAT_ALL;
@@ -185,6 +199,8 @@ class DCO_GMCreatePanelComponent
 	protected bool m_bSearchFocused;
 	protected bool m_bAnimationFxTargeting;
 	protected bool m_bArsenalAccessTargeting;
+	protected static BaseWorld s_StateWorld;
+	protected static ref DCO_GMCreateSessionState s_State;
 
 	void Init(Widget shellRoot)
 	{
@@ -200,6 +216,7 @@ class DCO_GMCreatePanelComponent
 
 		m_Handler = new DCO_CreatePanelButtonHandler(this);
 		BindControls();
+		RestoreSessionState();
 		BindRows();
 		BindHover(shellRoot);
 		m_wBrowser.SetVisible(false);	// controller shows it on the CREATE tab.
@@ -211,6 +228,7 @@ class DCO_GMCreatePanelComponent
 
 	void Shutdown()
 	{
+		SaveSessionState();
 		GetGame().GetCallqueue().Remove(PollSearch);
 		GetGame().GetCallqueue().Remove(ShowHoverPreview);
 		GetGame().GetCallqueue().Remove(BarDragTick);
@@ -247,6 +265,19 @@ class DCO_GMCreatePanelComponent
 		m_wBarSpacer  = m_wBrowser.FindAnyWidget("DCO_ListBar_Spacer");
 		m_wBarThumb   = m_wBrowser.FindAnyWidget("DCO_ListBar_Thumb");
 		m_wBudgetLine = TextWidget.Cast(m_wBrowser.FindAnyWidget("DCO_BudgetLine"));
+		m_wCrewVehicles = BindButton("DCO_CrewVehicles");
+		m_wCrewVehiclesTick = m_wBrowser.FindAnyWidget("DCO_CrewVehiclesTick");
+		m_wCustomFactionTab = BindButton("DCO_Cat_MOD");
+		m_wCustomFactionTabIcon = ImageWidget.Cast(m_wBrowser.FindAnyWidget("DCO_Cat_MOD_Icon"));
+		m_wCustomFactionTabLabel = TextWidget.Cast(m_wBrowser.FindAnyWidget("DCO_Cat_MOD_Label"));
+		bool modIconLoaded = m_wCustomFactionTabIcon
+			&& m_wCustomFactionTabIcon.LoadImageFromSet(0, WORKSHOP_ICONS, "modIcon");
+		if (m_wCustomFactionTabIcon)
+			m_wCustomFactionTabIcon.SetVisible(modIconLoaded);
+		if (m_wCustomFactionTabLabel)
+			m_wCustomFactionTabLabel.SetVisible(!modIconLoaded);
+		if (m_wCustomFactionTab)
+			m_wCustomFactionTab.SetVisible(false);
 		if (m_wSearch)
 		{
 			m_SearchHandler = new DCO_CreateSearchHandler(this);
@@ -318,6 +349,63 @@ class DCO_GMCreatePanelComponent
 		}
 		if (m_wCustomFactionDrop)
 			m_wCustomFactionDrop.SetVisible(false);
+		RefreshCrewVehicles();
+	}
+
+	protected static DCO_GMCreateSessionState SessionState()
+	{
+		BaseWorld world = GetGame().GetWorld();
+		if (!s_State || s_StateWorld != world)
+		{
+			s_StateWorld = world;
+			s_State = new DCO_GMCreateSessionState();
+			s_State.m_iCategory = DCO_PlacementCatalog.CAT_ALL;
+		}
+		return s_State;
+	}
+
+	protected void RestoreSessionState()
+	{
+		DCO_GMCreateSessionState state = SessionState();
+		m_Category = state.m_iCategory;
+		m_Faction = state.m_sFaction;
+		m_Search = state.m_sSearch;
+		m_LastSearch = state.m_sSearch;
+		m_ScrollOffset = state.m_iScrollOffset;
+		m_CustomFactionPage = state.m_iCustomFactionPage;
+		m_bCustomFactionOpen = state.m_bCustomFactionOpen;
+		if (m_wSearch)
+			m_wSearch.SetText(m_Search);
+		SetCrewVehicles(state.m_bCrewVehicles);
+	}
+
+	protected void SaveSessionState()
+	{
+		DCO_GMCreateSessionState state = SessionState();
+		state.m_iCategory = m_Category;
+		state.m_sFaction = m_Faction;
+		state.m_sSearch = m_Search;
+		state.m_iScrollOffset = m_ScrollOffset;
+		state.m_iCustomFactionPage = m_CustomFactionPage;
+		state.m_bCustomFactionOpen = m_bCustomFactionOpen;
+		SCR_PlacingEditorComponent placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
+		state.m_bCrewVehicles = placing && placing.HasPlacingFlag(EEditorPlacingFlags.VEHICLE_CREWED);
+	}
+
+	protected void SetCrewVehicles(bool enabled)
+	{
+		SCR_PlacingEditorComponent placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
+		if (placing)
+			placing.SetPlacingFlag(EEditorPlacingFlags.VEHICLE_CREWED, enabled);
+		RefreshCrewVehicles();
+	}
+
+	protected void RefreshCrewVehicles()
+	{
+		SCR_PlacingEditorComponent placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
+		bool enabled = placing && placing.HasPlacingFlag(EEditorPlacingFlags.VEHICLE_CREWED);
+		if (m_wCrewVehiclesTick)
+			m_wCrewVehiclesTick.SetVisible(enabled);
 	}
 
 	protected ResourceName CategoryIconTexture(int category)
@@ -379,6 +467,7 @@ class DCO_GMCreatePanelComponent
 		m_bShown = show;
 		if (!show)
 		{
+			SaveSessionState();
 			ReleaseSearchFocus();
 			GetGame().GetCallqueue().Remove(ShowHoverPreview);
 			HideHover();
@@ -392,7 +481,7 @@ class DCO_GMCreatePanelComponent
 		{
 			SyncAnimationFxTargeting();
 			SyncArsenalAccessTargeting();
-			Refresh();
+			Refresh(false);
 		}
 	}
 
@@ -460,6 +549,8 @@ class DCO_GMCreatePanelComponent
 
 	protected void OnBrowserEntriesFiltered()
 	{
+		if (m_bCatalogReady)
+			return;
 		RefreshCatalogIfChanged();
 	}
 
@@ -470,7 +561,7 @@ class DCO_GMCreatePanelComponent
 			return;
 		BuildCatalog();
 		if (m_bShown)
-			Refresh();
+			Refresh(false);
 	}
 
 	protected void RefreshCatalogIfChanged()
@@ -486,7 +577,6 @@ class DCO_GMCreatePanelComponent
 	protected void BuildFactionTabs()
 	{
 		m_CustomFactionKeys.Clear();
-		m_iCustomFactionTab = CUSTOM_FAC_TAB;
 		for (int resetIndex = 0; resetIndex < m_FacSlotKeys.Count(); resetIndex++)
 			m_FacSlotKeys[resetIndex] = "";
 
@@ -522,33 +612,6 @@ class DCO_GMCreatePanelComponent
 				continue;
 			}
 
-			if (i == CUSTOM_FAC_TAB)
-			{
-				bool iconLoaded = icon && icon.LoadImageFromSet(0, WORKSHOP_ICONS, "modIcon");
-				if (icon)
-				{
-					icon.SetVisible(iconLoaded);
-					icon.SetColor(Color.FromRGBA(255, 255, 255, 255));
-					icon.SetSize(22, 22);
-				}
-				if (i < m_FacIcons.Count())
-				{
-					if (iconLoaded)
-						m_FacIcons[i] = icon;
-					else
-						m_FacIcons[i] = null;
-				}
-				if (label)
-				{
-					label.SetText(string.Format("CUSTOM (%1)", m_CustomFactionKeys.Count()));
-					label.SetColor(DCO_GMTheme.Get().m_AccentColor);
-					label.SetVisible(!iconLoaded);
-				}
-				if (button)
-					button.SetVisible(!m_CustomFactionKeys.IsEmpty());
-				continue;
-			}
-
 			int canonicalIndex = i - 1;
 			if (canonicalIndex < canonical.Count())
 			{
@@ -572,9 +635,12 @@ class DCO_GMCreatePanelComponent
 				icon.SetVisible(false);
 		}
 
+		if (m_wCustomFactionTab)
+			m_wCustomFactionTab.SetVisible(!m_CustomFactionKeys.IsEmpty());
 		if (m_CustomFactionKeys.IsEmpty())
 			SetCustomFactionOpen(false);
 		BindCustomFactionPage();
+		HighlightModFaction();
 	}
 
 	protected void BindFactionIcon(int slot, FactionKey key, ImageWidget icon, TextWidget label)
@@ -588,7 +654,11 @@ class DCO_GMCreatePanelComponent
 			return;
 		}
 		icon.SetColor(Color.FromRGBA(255, 255, 255, 255));
-		icon.SetSize(22, 22);
+		ResourceName factionIcon = DCO_App6Icons.FactionIcon(key);
+		if (DCO_App6Icons.IsPackageIcon(factionIcon))
+			icon.SetSize(27, 18);
+		else
+			icon.SetSize(22, 22);
 		icon.SetVisible(true);
 		if (label)
 			label.SetVisible(false);
@@ -663,6 +733,11 @@ class DCO_GMCreatePanelComponent
 				if (DCO_App6Icons.SetFactionIcon(icon, key, source))
 				{
 					icon.SetColor(Color.FromRGBA(255, 255, 255, 255));
+					ResourceName factionIcon = DCO_App6Icons.FactionIcon(key);
+					if (DCO_App6Icons.IsPackageIcon(factionIcon))
+						icon.SetSize(27, 18);
+					else
+						icon.SetSize(20, 20);
 					icon.SetVisible(true);
 				}
 				else
@@ -678,19 +753,22 @@ class DCO_GMCreatePanelComponent
 		m_bCustomFactionOpen = open && !m_CustomFactionKeys.IsEmpty();
 		if (m_wCustomFactionDrop)
 			m_wCustomFactionDrop.SetVisible(m_bCustomFactionOpen);
+		HighlightModFaction();
 	}
 
 	// Re-run the query and repaint from the top.
-	void Refresh()
+	void Refresh(bool resetScroll = true)
 	{
 		if (!m_bCatalogReady || !m_Catalog)
 			return;
 		m_QueryRows = m_Catalog.Query(m_Category, m_Faction, m_Search);
 		if (m_QueryRows.IsEmpty() && !m_Faction.IsEmpty() && !m_FactionKeys.Contains(m_Faction) && m_wBudgetLine)
 			m_wBudgetLine.SetText("FACTION CONTENT UNAVAILABLE  ·  CHOOSE ANOTHER FACTION");
-		m_ScrollOffset = 0;
+		if (resetScroll)
+			m_ScrollOffset = 0;
 		UpdateHeaderCrumb();
 		Repaint();
+		SaveSessionState();
 	}
 
 	// Shows the active category and faction.
@@ -816,7 +894,10 @@ class DCO_GMCreatePanelComponent
 		m_ScrollOffset += rows;
 		ClampScroll();
 		if (m_ScrollOffset != before)
+		{
 			Repaint();	// nothing re-queries; only the window moved.
+			SaveSessionState();
+		}
 	}
 
 	bool OnBarMouseDown(Widget w, int button)
@@ -942,6 +1023,10 @@ class DCO_GMCreatePanelComponent
 							ico.SetColor(Color.FromRGBA(255, 255, 255, 255));
 						else
 							ico.SetColor(theme.m_AccentColor);
+						if (row.m_Level == 1 && factionIconLoaded && DCO_App6Icons.IsPackageIcon(DCO_App6Icons.FactionIcon(row.m_Faction)))
+							ico.SetSize(18, 18);
+						else
+							ico.SetSize(22, 22);
 						ico.SetVisible(true);
 					}
 					else
@@ -972,6 +1057,11 @@ class DCO_GMCreatePanelComponent
 				}
 				if (bud)
 				{
+					bud.SetMinFontSize(10);
+					if (targetingActive)
+						bud.SetDesiredFontSize(11);
+					else
+						bud.SetDesiredFontSize(19);
 					if (animationFxActive)
 						bud.SetText("SELECT AI");
 					else if (arsenalAccessActive)
@@ -996,6 +1086,10 @@ class DCO_GMCreatePanelComponent
 							ico.SetColor(theme.m_AccentColor);
 						else
 							ico.SetColor(Color.FromRGBA(255, 255, 255, 255));
+						if (DCO_App6Icons.IsPackageIcon(useIcon))
+							ico.SetSize(18, 18);
+						else
+							ico.SetSize(22, 22);
 						ico.SetVisible(true);
 					}
 					else
@@ -1042,12 +1136,25 @@ class DCO_GMCreatePanelComponent
 	{
 		// A click elsewhere in CREATE is an explicit handoff away from text entry.
 		ReleaseSearchFocus();
+		if (w == m_wCrewVehicles)
+		{
+			SCR_PlacingEditorComponent placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
+			SetCrewVehicles(!placing || !placing.HasPlacingFlag(EEditorPlacingFlags.VEHICLE_CREWED));
+			SaveSessionState();
+			return true;
+		}
+		if (w == m_wCustomFactionTab)
+		{
+			SetCustomFactionOpen(!m_bCustomFactionOpen);
+			return true;
+		}
 
 		// Category?
 		for (int i = 0; i < m_CatBtns.Count(); i++)
 		{
 			if (w == m_CatBtns[i])
 			{
+				SetCustomFactionOpen(false);
 				m_Category = m_CatValues[i];
 				HighlightCategory();
 				Refresh();
@@ -1059,12 +1166,7 @@ class DCO_GMCreatePanelComponent
 		{
 			if (w == m_FacBtns[i])
 			{
-				if (i == m_iCustomFactionTab)
-				{
-					SetCustomFactionOpen(!m_bCustomFactionOpen);
-					HighlightFaction();
-					return true;
-				}
+				SetCustomFactionOpen(false);
 				SelectFaction(m_FacSlotKeys[i]);
 				Refresh();
 				return true;
@@ -1115,8 +1217,10 @@ class DCO_GMCreatePanelComponent
 			m_QueryRows = m_Catalog.Query(m_Category, m_Faction, m_Search);
 			m_ScrollOffset = keep;
 			Repaint();
+			SaveSessionState();
 			return;
 		}
+		DCO_VehicleServiceAccessPlacement.Get().Cancel();
 		if (DCO_PlacementCatalog.IsAnimationFxResource(row.m_Prefab))
 		{
 			m_Catalog.CancelPlacement();
@@ -1287,8 +1391,6 @@ class DCO_GMCreatePanelComponent
 		for (int i = 0; i < m_FacBtns.Count(); i++)
 		{
 			bool selected = m_FacSlotKeys[i] == m_Faction;
-			if (i == m_iCustomFactionTab)
-				selected = !m_Faction.IsEmpty() && m_CustomFactionKeys.Contains(m_Faction);
 			ImageWidget ic = null;
 			if (i < m_FacIcons.Count())
 				ic = m_FacIcons[i];
@@ -1313,11 +1415,26 @@ class DCO_GMCreatePanelComponent
 				lbl.SetColor(theme.m_TextColor);
 				continue;
 			}
-			if (i == m_iCustomFactionTab)
-				lbl.SetColor(theme.m_AccentColor);
-			else if (!m_FacSlotKeys[i].IsEmpty())
+			if (!m_FacSlotKeys[i].IsEmpty())
 				lbl.SetColor(m_Catalog.GetFactionColor(m_FacSlotKeys[i]));
 		}
+		HighlightModFaction();
+	}
+
+	protected void HighlightModFaction()
+	{
+		bool active = m_bCustomFactionOpen
+			|| (!m_Faction.IsEmpty() && m_CustomFactionKeys.Contains(m_Faction));
+		Color color = DCO_GMTheme.Get().m_MutedColor;
+		if (active)
+			color = DCO_GMTheme.Get().m_AccentColor;
+		if (m_wCustomFactionTabIcon)
+		{
+			m_wCustomFactionTabIcon.SetColor(color);
+			m_wCustomFactionTabIcon.SetOpacity(1.0);
+		}
+		if (m_wCustomFactionTabLabel)
+			m_wCustomFactionTabLabel.SetColor(color);
 	}
 
 	protected void PollSearch()

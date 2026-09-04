@@ -1,0 +1,60 @@
+GenericWorldEntity {
+ ID "6A46F1C2D9A70002"
+ coords 0 0 0
+ boundMins 0 0 0
+ boundMaxs 0 0 0
+ blockSize 200 1500 200
+ SkyPreset "{4B7788810A110A83}UI/Materials/GRSA_StageVoid.emat"
+ ShadowPreset Custom
+ CustomShadowPreset "ItemPreview"
+ DisableDistantShadows 1
+ {
+  $grp GenericWorldPPEffect {
+   PP_HBAO {
+    ID "6A46F1C2D9A70003"
+    Camera 0
+    Priority 5
+    Material "{926D9013AF833992}UI/Materials/GRSA_StageHBAO.emat"
+   }
+   PP_SSDO {
+    ID "6A46F1C2D9A70004"
+    Camera 0
+    Priority 8
+    Material "{BFBA626280EB1F53}UI/Materials/GRSA_StageSSDO.emat"
+   }
+  }
+  GenericWorldLightEntity {
+   ID "6A46F1C2D9A70006"
+   coords 3 6 -2
+   angles -42 -55 0
+   SunAngularSize 1
+   DirectLightLV 1.4
+   DirectLightColor 1 0.96 0.9 0
+   IndirectLightLV 0.7
+   IndirectLightColor 0.45 0.55 0.7 0
+   ProbeReflectionEV 5.5
+   ProbeReflectionDesaturation 0.3
+   ProbeDiffuseEV 1.5
+   ProbeDiffuseDesaturation 0.5
+   "GlobalAOPower " 1
+   TargetEV 0
+   ManualHDRBrightness always
+   ManualHDRBrightnessLV 1
+  }
+  GenericEntity : "{6A4338ABF0010001}Prefabs/UI/GRSA_VehiclePreviewAnchor.et" {
+   ID "6A46F1C2D9A70007"
+   coords 3.18 0.023 6.241
+   angles 0 180 0
+  }
+  GenericEntity : "{6A4338ABF0012001}Prefabs/UI/GRSA_VehicleStageVehicleMarker.et" {
+   ID "6A46F1C2D9A70008"
+   components {
+    DCO_VehicleStageVehicleMarkerComponent "{6A4338ABF0012003}" {
+     m_VehiclePrefab "{27E2E58E734A80EC}Prefabs/Vehicles/Wheeled/M998/M1025_MERDC.et"
+    }
+   }
+   coords -8.049 0.023 4.286
+   angles -0.017 -167.579 0
+  }
+ }
+}

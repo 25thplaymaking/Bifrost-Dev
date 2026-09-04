@@ -1,0 +1,128 @@
+FrameWidgetClass "{B1F05E4C09011000}" {
+ Name "GRSA_ServiceProgressModal"
+ "Is Visible" 0
+ "Z Order" 250
+ {
+  BlurWidgetClass "{B1F05E4C09011001}" {
+   Name "ServiceProgressBlur"
+   Slot FrameWidgetSlot "{B1F05E4C09011002}" { Anchor 0 0 1 1 }
+   Color 0.008 0.010 0.013 0.24
+   Intensity 0.26
+   "Ignore Cursor" 1
+  }
+  ImageWidgetClass "{B1F05E4C09011003}" {
+   Name "ServiceProgressVeil"
+   Slot FrameWidgetSlot "{B1F05E4C09011004}" { Anchor 0 0 1 1 }
+   Color 0.003 0.0033 0.0037 0.26
+   "Ignore Cursor" 1
+  }
+  ButtonWidgetClass "{B1F05E4C09011005}" {
+   Name "ServiceProgressBlocker"
+   Slot FrameWidgetSlot "{B1F05E4C09011006}" { Anchor 0 0 1 1 }
+   style blank
+  }
+  FrameWidgetClass "{B1F05E4C09011007}" {
+   Name "ServiceProgressCard"
+   Slot FrameWidgetSlot "{B1F05E4C09011008}" { Anchor 0.32 0.75 0.68 0.90 OffsetLeft 0 OffsetTop 0 OffsetRight 0 OffsetBottom 0 }
+   {
+    ImageWidgetClass "{B1F05E4C09011009}" {
+     Name "ServiceProgressCardBg"
+     Slot FrameWidgetSlot "{B1F05E4C0901100A}" { Anchor 0 0 1 1 OffsetLeft 0 OffsetTop 0 OffsetRight 0 OffsetBottom 0 }
+     Color 0.003 0.0033 0.0037 0.94
+     "Ignore Cursor" 1
+    }
+    PanelWidgetClass "{B1F05E4C0901100B}" {
+     Name "ServiceProgressBorder"
+     Slot FrameWidgetSlot "{B1F05E4C0901100C}" { Anchor 0 0 1 1 OffsetLeft 0 OffsetTop 0 OffsetRight 0 OffsetBottom 0 }
+     Color 0.851 0.537 0.169 1
+     style outline_1px
+     "Ignore Cursor" 1
+    }
+    TextWidgetClass "{B1F05E4C0901100D}" {
+     Name "ServiceProgressOperation"
+     Slot FrameWidgetSlot "{B1F05E4C0901100E}" { Anchor 0.045 0.10 0.34 0.32 }
+     Color 0.88 0.91 0.94 1
+     Text "REPAIR"
+     "Font Size" 14
+     "Min Font Size" 11
+     FontProperties FontProperties "{B1F05E4C0901100F}" { Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt" }
+    }
+    TextWidgetClass "{B1F05E4C09011010}" {
+     Name "ServiceProgressPercent"
+     Slot FrameWidgetSlot "{B1F05E4C09011011}" { Anchor 0.34 0.10 0.66 0.32 }
+     Color 0.851 0.537 0.169 1
+     Text "0%"
+     "Font Size" 14
+     "Min Font Size" 11
+     "Horizontal Alignment" Center
+     FontProperties FontProperties "{B1F05E4C09011012}" { Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt" }
+    }
+    TextWidgetClass "{B1F05E4C09011013}" {
+     Name "ServiceProgressRemaining"
+     Slot FrameWidgetSlot "{B1F05E4C09011014}" { Anchor 0.66 0.10 0.955 0.32 }
+     Color 0.72 0.76 0.81 1
+     Text "25 SEC"
+     "Font Size" 13
+     "Min Font Size" 10
+     "Horizontal Alignment" Right
+     FontProperties FontProperties "{B1F05E4C09011015}" { Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt" }
+    }
+    FrameWidgetClass "{B1F05E4C09011016}" {
+     Name "ServiceProgressTrack"
+     Slot FrameWidgetSlot "{B1F05E4C09011017}" { Anchor 0.045 0.40 0.955 0.62 OffsetLeft 0 OffsetTop 0 OffsetRight 0 OffsetBottom 0 }
+     Clipping True
+     {
+      ImageWidgetClass "{B1F05E4C09011018}" {
+       Name "ServiceProgressTrackBg"
+       Slot FrameWidgetSlot "{B1F05E4C09011019}" { Anchor 0 0 1 1 OffsetLeft 0 OffsetTop 0 OffsetRight 0 OffsetBottom 0 }
+       Color 0.08 0.09 0.10 1
+       "Ignore Cursor" 1
+      }
+      ProgressBarWidgetClass "{B1F05E4C0901101A}" {
+       Name "ServiceProgressBar"
+       Slot FrameWidgetSlot "{B1F05E4C0901101B}" { Anchor 0 0 1 1 OffsetLeft 0 OffsetTop 0 OffsetRight 0 OffsetBottom 0 }
+       Color 0.851 0.537 0.169 1
+       style SimpleWithBackground
+       Current 0
+       "Ignore Cursor" 1
+      }
+      HorizontalLayoutWidgetClass "{B1F05E4C0901101C}" {
+       Name "ServiceProgressSegments"
+       Slot FrameWidgetSlot "{B1F05E4C0901101D}" { Anchor 0 0 1 1 OffsetLeft 0 OffsetTop 0 OffsetRight 0 OffsetBottom 0 }
+       "Ignore Cursor" 1
+       {
+        TextWidgetClass "{B1F05E4C09011020}" { Slot LayoutSlot "{B1F05E4C09011021}" { SizeMode Fill FillWeight 1 } Text "/" Color 0.01 0.012 0.015 0.78 "Font Size" 16 "Horizontal Alignment" Center }
+        TextWidgetClass "{B1F05E4C09011022}" { Slot LayoutSlot "{B1F05E4C09011023}" { SizeMode Fill FillWeight 1 } Text "/" Color 0.01 0.012 0.015 0.78 "Font Size" 16 "Horizontal Alignment" Center }
+        TextWidgetClass "{B1F05E4C09011024}" { Slot LayoutSlot "{B1F05E4C09011025}" { SizeMode Fill FillWeight 1 } Text "/" Color 0.01 0.012 0.015 0.78 "Font Size" 16 "Horizontal Alignment" Center }
+        TextWidgetClass "{B1F05E4C09011026}" { Slot LayoutSlot "{B1F05E4C09011027}" { SizeMode Fill FillWeight 1 } Text "/" Color 0.01 0.012 0.015 0.78 "Font Size" 16 "Horizontal Alignment" Center }
+        TextWidgetClass "{B1F05E4C09011028}" { Slot LayoutSlot "{B1F05E4C09011029}" { SizeMode Fill FillWeight 1 } Text "/" Color 0.01 0.012 0.015 0.78 "Font Size" 16 "Horizontal Alignment" Center }
+       }
+      }
+     }
+    }
+    FrameWidgetClass "{B1F05E4C09011030}" {
+     Name "ServiceProgressIconHost"
+     Slot FrameWidgetSlot "{B1F05E4C09011031}" { Anchor 0.045 0.39 0.045 0.39 OffsetLeft -12 OffsetTop 0 OffsetRight 12 OffsetBottom 24 }
+     {
+      ImageWidgetClass "{B1F05E4C09011032}" {
+       Name "ServiceProgressIcon"
+       Slot FrameWidgetSlot "{B1F05E4C09011033}" { Anchor 0 0 1 1 }
+       Color 0.851 0.537 0.169 1
+       "Ignore Cursor" 1
+      }
+     }
+    }
+    TextWidgetClass "{B1F05E4C09011038}" {
+     Name "ServiceProgressHint"
+     Slot FrameWidgetSlot "{B1F05E4C09011039}" { Anchor 0.045 0.70 0.955 0.87 }
+     Color 0.52 0.56 0.60 1
+     Text "ESC - CANCEL SERVICE AND EXIT"
+     "Font Size" 11
+     "Min Font Size" 9
+     "Horizontal Alignment" Center
+     FontProperties FontProperties "{B1F05E4C0901103A}" { Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt" }
+    }
+   }
+  }
+ }
+}

@@ -222,7 +222,7 @@ class DCO_CqbClearUtil
 		CollectDoorSideCells(pf, world, building, queryCenter, queryRadius, cells, doorFlags,
 			doorCount, doorCandidates, doorNav, doorSupport);
 
-		if (DCO_MoraleSettings.Get().m_bDebugCqbClear)
+		if (DCO_CqbClearSettings.Get().m_bDebugCqbClear)
 		{
 			Print(string.Format("[DCO-WPI] CQB survey geometry: bounds %1 x %2 x %3; grid %4 x %5 x %6; samples=%7 nav=%8 support=%9",
 				sizeX, sizeY, sizeZ, countX, countY, countZ, sampleCount, navCount, supportCount), LogLevel.NORMAL);

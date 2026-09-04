@@ -42,6 +42,7 @@ class DCO_GMOrdersPanel
 
 	protected SCR_EditableEntityComponent m_CurrentGroup;
 	protected ref array<SCR_EditableEntityComponent> m_aGroups = {};	// EVERY selected group - orders fan out over all of them.
+	protected SCR_EditableEntityComponent m_SelectedBuilding;
 
 	void Init(Widget shellRoot, DCO_GMContextMenu menu)
 	{
@@ -83,6 +84,8 @@ class DCO_GMOrdersPanel
 		ButtonWidget b = ButtonWidget.Cast(m_wBox.FindAnyWidget(name));
 		if (b)
 			b.AddHandler(m_Handler);
+		else
+			Print("[DCO-GM] orders UI binding missing: " + name, LogLevel.ERROR);
 		return b;
 	}
 
@@ -90,11 +93,13 @@ class DCO_GMOrdersPanel
 	{
 		array<SCR_EditableEntityComponent> groups = {};
 		ResolveSelectedGroups(groups);
-		if (SameAsTracked(groups))
+		SCR_EditableEntityComponent building = DCO_GMWorldControlClient.FindSelectedBuilding();
+		if (SameAsTracked(groups, building))
 		{
 			RefreshLoopState();
 			return;
 		}
+		m_SelectedBuilding = building;
 		m_aGroups.Clear();
 		foreach (SCR_EditableEntityComponent g : groups)
 			m_aGroups.Insert(g);
@@ -118,8 +123,10 @@ class DCO_GMOrdersPanel
 		}
 	}
 
-	protected bool SameAsTracked(notnull array<SCR_EditableEntityComponent> groups)
+	protected bool SameAsTracked(notnull array<SCR_EditableEntityComponent> groups, SCR_EditableEntityComponent building)
 	{
+		if (building != m_SelectedBuilding)
+			return false;
 		if (groups.Count() != m_aGroups.Count())
 			return false;
 		for (int i = 0; i < groups.Count(); i++)
@@ -222,6 +229,19 @@ class DCO_GMOrdersPanel
 			m_Commands.BuildCategoryOptions(cat, labels, ids);
 		else
 			DCO_GMGroupOrders.BuildCategoryOptions(cat, labels, ids);	// DCO orders.
+		if (cat == DCO_GMGroupOrders.SUB_TACTICS)
+		{
+			if (m_SelectedBuilding)
+			{
+				labels.Insert("Garrison Groups in Selected Building");
+				ids.Insert(DCO_GMWorldControlClient.MENU_GARRISON);
+			}
+			if (HasGarrisonedGroup())
+			{
+				labels.Insert("Release Selected Garrison");
+				ids.Insert(DCO_GMWorldControlClient.MENU_RELEASE_GARRISON);
+			}
+		}
 
 		// Anchor beside the COMMAND surface.
 		string menuTitle = "COMMAND OPTIONS";
@@ -234,6 +254,22 @@ class DCO_GMOrdersPanel
 		else if (w == m_btnSpawn) menuTitle = "SPAWN POINT";
 		m_Menu.ShowAdjacent(labels, ids, w, m_wBox, menuTitle, m_Cb, m_CurrentGroup);
 		return true;
+	}
+
+	protected bool HasGarrisonedGroup()
+	{
+		foreach (SCR_EditableEntityComponent editable : m_aGroups)
+		{
+			SCR_AIGroup group;
+			if (editable)
+				group = SCR_AIGroup.Cast(editable.GetOwner());
+			SCR_AIGroupUtilityComponent utility;
+			if (group)
+				utility = group.GetGroupUtilityComponent();
+			if (utility && utility.DCO_IsGMGarrisoned())
+				return true;
+		}
+		return false;
 	}
 
 	protected void GetSelectedEditableGroups(notnull set<SCR_EditableGroupComponent> outGroups)
@@ -326,6 +362,16 @@ class DCO_GMOrdersPanel
 		}
 		if (targets.IsEmpty())
 			targets.Insert(e);	// selection changed under the open menu - honour what it was opened for.
+		if (actionId == DCO_GMWorldControlClient.MENU_GARRISON)
+		{
+			DCO_GMWorldControlClient.Garrison(targets, m_SelectedBuilding);
+			return;
+		}
+		if (actionId == DCO_GMWorldControlClient.MENU_RELEASE_GARRISON)
+		{
+			DCO_GMWorldControlClient.ReleaseGarrison(targets);
+			return;
+		}
 
 		if (DCO_GMGroupOrders.IsTacticPlacement(actionId))
 		{

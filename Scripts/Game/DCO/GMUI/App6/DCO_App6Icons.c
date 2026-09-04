@@ -5,14 +5,14 @@ class DCO_App6Icons
 	{
 		string affil = AffilFromLabels(labels);
 		if (affil.IsEmpty())
-			affil = AffilOf(faction);	// fallback: no faction label -> derive from the faction key.
+			affil = AffilForFaction(faction);
 
 		if (type == EEditableEntityType.CHARACTER)
 		{
 			string roleTok = RoleTokenFromLabels(labels, name);
 			ResourceName r = DCO_App6Roles.Get(roleTok);
 			if (r.IsEmpty())
-				r = DCO_App6Roles.Get("RIFLE");	// fallback to the native generic rifleman glyph.
+				r = DCO_App6Roles.Get("RIFLE");
 			return r;
 		}
 
@@ -29,7 +29,7 @@ class DCO_App6Icons
 		}
 
 		if (type == EEditableEntityType.FACTION)
-			return DCO_App6Symbols.Get(affil + "_FACTION");	// the bare APP-6 affiliation frame for the whole faction.
+			return FactionIcon(faction);
 
 		return ResourceName.Empty;	// vehicle / object / system -> caller keeps the engine editor icon.
 	}
@@ -44,67 +44,275 @@ class DCO_App6Icons
 			return ResourceName.Empty;
 		array<EEditableEntityLabel> labels = {};
 		info.GetEntityLabels(labels);
+		if (e.GetEntityType() == EEditableEntityType.GROUP)
+		{
+			ResourceName liveGroupIcon = LiveGroupIcon(e, labels, info.GetFactionKey());
+			if (!liveGroupIcon.IsEmpty())
+				return liveGroupIcon;
+		}
 		return GetIcon(labels, info.GetName(), info.GetFactionKey(), e.GetEntityType());
+	}
+
+	protected static ResourceName LiveGroupIcon(SCR_EditableEntityComponent editable, notnull array<EEditableEntityLabel> labels, FactionKey faction)
+	{
+		IEntity owner = editable.GetOwner();
+		if (!owner)
+			return ResourceName.Empty;
+		SCR_GroupIdentityComponent identity = SCR_GroupIdentityComponent.Cast(owner.FindComponent(SCR_GroupIdentityComponent));
+		if (!identity)
+			return ResourceName.Empty;
+		SCR_MilitarySymbol symbol = identity.GetMilitarySymbol();
+		if (!symbol || symbol.GetIcons() == 0)
+			return ResourceName.Empty;
+
+		string affil = AffilFromMilitarySymbol(symbol.GetIdentity());
+		if (affil.IsEmpty())
+			affil = AffilFromLabels(labels);
+		if (affil.IsEmpty())
+			affil = AffilForFaction(faction);
+		string functionToken = FuncFromMilitarySymbol(symbol);
+		string echelonToken = EchelonFromMilitarySymbol(symbol.GetAmplifier());
+		ResourceName result = DCO_App6Symbols.Get(affil + "_" + functionToken + "_" + echelonToken);
+		if (result.IsEmpty())
+			result = DCO_App6Symbols.Get(affil + "_" + functionToken + "_X");
+		return result;
+	}
+
+	protected static string AffilFromMilitarySymbol(EMilitarySymbolIdentity identity)
+	{
+		if (identity == EMilitarySymbolIdentity.BLUFOR || identity == EMilitarySymbolIdentity.ASSUMED_BLUFOR)
+			return "F";
+		if (identity == EMilitarySymbolIdentity.OPFOR || identity == EMilitarySymbolIdentity.ASSUMED_OPFOR)
+			return "H";
+		if (identity == EMilitarySymbolIdentity.INDFOR || identity == EMilitarySymbolIdentity.ASSUMED_INDFOR)
+			return "N";
+		if (identity == EMilitarySymbolIdentity.CIVILIAN || identity == EMilitarySymbolIdentity.ASSUMED_CIVILIAN)
+			return "U";
+		return "";
+	}
+
+	protected static string FuncFromMilitarySymbol(notnull SCR_MilitarySymbol symbol)
+	{
+		if (symbol.HasIcon(EMilitarySymbolIcon.MORTAR))
+			return "MOR";
+		if (symbol.HasIcon(EMilitarySymbolIcon.ARTILLERY))
+			return "ART";
+		if (symbol.HasIcon(EMilitarySymbolIcon.ARMOR))
+			return "ARM";
+		if (symbol.HasIcon(EMilitarySymbolIcon.ANTITANK))
+			return "AT";
+		if (symbol.HasIcon(EMilitarySymbolIcon.RECON) || symbol.HasIcon(EMilitarySymbolIcon.SNIPER))
+			return "REC";
+		if (symbol.HasIcon(EMilitarySymbolIcon.MEDICAL))
+			return "MED";
+		if (symbol.HasIcon(EMilitarySymbolIcon.MAINTENANCE))
+			return "ENG";
+		if (symbol.HasIcon(EMilitarySymbolIcon.SUPPLY) || symbol.HasIcon(EMilitarySymbolIcon.SIGNAL) || symbol.HasIcon(EMilitarySymbolIcon.RELAY))
+			return "SUP";
+		return "INF";
+	}
+
+	protected static string EchelonFromMilitarySymbol(EMilitarySymbolAmplifier amplifier)
+	{
+		if (amplifier == EMilitarySymbolAmplifier.TEAM)
+			return "TM";
+		if (amplifier == EMilitarySymbolAmplifier.SQUAD)
+			return "SQ";
+		if (amplifier == EMilitarySymbolAmplifier.SECTION)
+			return "SE";
+		if (amplifier == EMilitarySymbolAmplifier.NONE)
+			return "X";
+		return "PL";
 	}
 
 	static ResourceName FactionIcon(FactionKey faction)
 	{
-		FactionManager manager = GetGame().GetFactionManager();
-		if (manager)
+		SCR_Faction authoredFaction = ResolveFaction(faction);
+		if (authoredFaction)
 		{
-			SCR_Faction authoredFaction = SCR_Faction.Cast(manager.GetFactionByKey(faction));
-			if (authoredFaction)
+			SCR_UIInfo authoredInfo = FactionUIInfo(authoredFaction);
+			if (IsUniqueFactionIcon(faction, authoredInfo))
 			{
-				UIInfo uiInfo = authoredFaction.GetUIInfo();
-				if (uiInfo && !uiInfo.GetIconPath().IsEmpty())
-					return uiInfo.GetIconPath();
-				ResourceName flag = authoredFaction.GetFactionFlag();
-				if (!flag.IsEmpty())
-					return flag;
+				if (!authoredInfo.GetIconPath().IsEmpty())
+					return authoredInfo.GetIconPath();
+				return authoredInfo.GetImageSetPath();
 			}
+			ResourceName flag = authoredFaction.GetFactionFlag();
+			if (IsUniqueFactionFlag(faction, flag))
+				return flag;
 		}
-		return DCO_App6Symbols.Get(AffilOf(faction) + "_FACTION");
+		return DCO_App6Symbols.Get(AffilForFaction(faction) + "_FACTION");
 	}
 
-	// Prefers authored faction art before built-in fallbacks.
+	// Preserves faction-specific art while replacing shared base-game art with APP-6.
 	static bool SetFactionIcon(ImageWidget image, FactionKey faction, out string source)
 	{
 		source = "none";
 		if (!image)
 			return false;
 
-		FactionManager manager = GetGame().GetFactionManager();
-		if (manager)
+		SCR_Faction authoredFaction = ResolveFaction(faction);
+		if (authoredFaction)
 		{
-			SCR_Faction authoredFaction = SCR_Faction.Cast(manager.GetFactionByKey(faction));
-			if (authoredFaction)
+			SCR_UIInfo authoredInfo = FactionUIInfo(authoredFaction);
+			if (IsUniqueFactionIcon(faction, authoredInfo))
 			{
-				UIInfo rawInfo = authoredFaction.GetUIInfo();
-				SCR_UIInfo authoredInfo;
-				if (rawInfo)
-					authoredInfo = SCR_UIInfo.CreateInfo(rawInfo);
 				if (authoredInfo && authoredInfo.HasIcon() && authoredInfo.SetIconTo(image))
 				{
-					source = "authored UIInfo icon";
-					return true;
-				}
-
-				ResourceName flag = authoredFaction.GetFactionFlag();
-				if (!flag.IsEmpty() && image.LoadImageTexture(0, flag))
-				{
-					source = "faction flag fallback";
+					source = "custom faction icon";
 					return true;
 				}
 			}
+
+			ResourceName flag = authoredFaction.GetFactionFlag();
+			if (IsUniqueFactionFlag(faction, flag) && image.LoadImageTexture(0, flag))
+			{
+				source = "custom faction flag";
+				return true;
+			}
 		}
 
-		ResourceName app6 = DCO_App6Symbols.Get(AffilOf(faction) + "_FACTION");
+		ResourceName app6 = DCO_App6Symbols.Get(AffilForFaction(faction) + "_FACTION");
 		if (!app6.IsEmpty() && image.LoadImageTexture(0, app6))
 		{
-			source = "APP-6 fallback";
+			source = "APP-6 faction";
 			return true;
 		}
 		return false;
+	}
+
+	static bool IsPackageIcon(ResourceName icon)
+	{
+		if (icon.IsEmpty())
+			return false;
+		string path = icon.GetPath();
+		path.ToLower();
+		return path.Contains("img/icons/app6/");
+	}
+
+	protected static SCR_Faction ResolveFaction(FactionKey faction)
+	{
+		FactionManager manager = GetGame().GetFactionManager();
+		if (!manager)
+			return null;
+		return SCR_Faction.Cast(manager.GetFactionByKey(faction));
+	}
+
+	protected static SCR_UIInfo FactionUIInfo(SCR_Faction faction)
+	{
+		if (!faction)
+			return null;
+		UIInfo rawInfo = faction.GetUIInfo();
+		if (!rawInfo)
+			return null;
+		return SCR_UIInfo.CreateInfo(rawInfo);
+	}
+
+	protected static string AffilForFaction(FactionKey faction)
+	{
+		SCR_Faction authoredFaction = ResolveFaction(faction);
+		SCR_Faction current = authoredFaction;
+		for (int depth = 0; current && depth < 8; depth++)
+		{
+			string inheritedAffil = KnownAffil(current.GetFactionKey());
+			if (!inheritedAffil.IsEmpty())
+				return inheritedAffil;
+			current = SCR_Faction.Cast(current.GetParent());
+		}
+
+		if (authoredFaction)
+		{
+			EEditableEntityLabel label = authoredFaction.GetFactionLabel();
+			if (label == EEditableEntityLabel.FACTION_US || authoredFaction.IsInherited("US"))
+				return "F";
+			if (label == EEditableEntityLabel.FACTION_USSR || authoredFaction.IsInherited("USSR"))
+				return "H";
+			if (label == EEditableEntityLabel.FACTION_FIA || authoredFaction.IsInherited("FIA"))
+				return "N";
+			if (label == EEditableEntityLabel.FACTION_CIV || label == EEditableEntityLabel.FACTION_NONE)
+				return "U";
+		}
+		return AffilOf(faction);
+	}
+
+	protected static bool IsCanonicalFaction(FactionKey faction)
+	{
+		string key = faction;
+		key.ToLower();
+		return key == "us" || key == "ussr" || key == "fia" || key == "civ" || key == "civilian";
+	}
+
+	protected static bool IsUniqueFactionIcon(FactionKey faction, SCR_UIInfo candidate)
+	{
+		if (IsCanonicalFaction(faction) || !candidate || !candidate.HasIcon())
+			return false;
+		SCR_Faction current = ResolveFaction(faction);
+		for (int depth = 0; current && depth < 8; depth++)
+		{
+			SCR_Faction parentFaction = SCR_Faction.Cast(current.GetParent());
+			if (!parentFaction)
+				return true;
+			SCR_UIInfo parentInfo = FactionUIInfo(parentFaction);
+			if (!parentInfo || !parentInfo.HasIcon() || !SameFactionIcon(candidate, parentInfo))
+				return true;
+			if (IsCanonicalFaction(parentFaction.GetFactionKey()))
+				return false;
+			current = parentFaction;
+		}
+		return true;
+	}
+
+	protected static bool SameFactionIcon(SCR_UIInfo left, SCR_UIInfo right)
+	{
+		return SameResource(left.GetIconPath(), right.GetIconPath())
+			&& SameResource(left.GetImageSetPath(), right.GetImageSetPath())
+			&& left.GetIconSetName() == right.GetIconSetName();
+	}
+
+	protected static bool IsUniqueFactionFlag(FactionKey faction, ResourceName flag)
+	{
+		if (IsCanonicalFaction(faction) || flag.IsEmpty())
+			return false;
+		SCR_Faction current = ResolveFaction(faction);
+		for (int depth = 0; current && depth < 8; depth++)
+		{
+			SCR_Faction parentFaction = SCR_Faction.Cast(current.GetParent());
+			if (!parentFaction)
+				return true;
+			ResourceName parentFlag = parentFaction.GetFactionFlag();
+			if (parentFlag.IsEmpty() || !SameResource(flag, parentFlag))
+				return true;
+			if (IsCanonicalFaction(parentFaction.GetFactionKey()))
+				return false;
+			current = parentFaction;
+		}
+		return true;
+	}
+
+	protected static bool SameResource(ResourceName left, ResourceName right)
+	{
+		if (left.IsEmpty() || right.IsEmpty())
+			return left.IsEmpty() && right.IsEmpty();
+		string leftPath = left.GetPath();
+		string rightPath = right.GetPath();
+		leftPath.ToLower();
+		rightPath.ToLower();
+		return leftPath == rightPath;
+	}
+
+	protected static string KnownAffil(FactionKey faction)
+	{
+		string key = faction;
+		key.ToLower();
+		if (key == "us")
+			return "F";
+		if (key == "ussr")
+			return "H";
+		if (key == "fia")
+			return "N";
+		if (key == "civ" || key == "civilian")
+			return "U";
+		return "";
 	}
 
 

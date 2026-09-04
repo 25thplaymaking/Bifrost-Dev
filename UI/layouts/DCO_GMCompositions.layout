@@ -1,0 +1,155 @@
+FrameWidgetClass "{C4B9000000000000}" {
+ Name "DCO_CompositionsRoot"
+ Slot FrameWidgetSlot "{C4B9000000000001}" { Anchor 0 0 1 1 }
+ {
+  OverlayWidgetClass "{C4B9000000000002}" {
+   Name "DCO_CompositionPanel"
+   "Is Visible" 0
+   Slot FrameWidgetSlot "{C4B9000000000003}" { Anchor 0.5 0.5 0.5 0.5 }
+   {
+    ImageWidgetClass "{C4B9000000000004}" { Name "DCO_CompositionBorder" Slot OverlayWidgetSlot "{C4B9000000000005}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 1 }
+    ImageWidgetClass "{C4B9000000000006}" { Name "DCO_CompositionBg" Slot OverlayWidgetSlot "{C4B9000000000007}" { HorizontalAlign 3 VerticalAlign 3 Padding 2 2 2 2 } Color 0.043 0.050 0.063 0.98 }
+    VerticalLayoutWidgetClass "{C4B9000000000008}" {
+     Name "DCO_CompositionVBox"
+     Slot OverlayWidgetSlot "{C4B9000000000009}" { HorizontalAlign 3 VerticalAlign 0 Padding 2 2 2 2 }
+     {
+      OverlayWidgetClass "{C4B900000000000A}" {
+       Slot LayoutSlot "{C4B900000000000B}" { HorizontalAlign 3 }
+       {
+        ImageWidgetClass "{C4B900000000000C}" { Slot OverlayWidgetSlot "{C4B900000000000D}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.14 Size 0 46 }
+        ImageWidgetClass "{C4B900000000000E}" { Slot OverlayWidgetSlot "{C4B900000000000F}" { HorizontalAlign 0 VerticalAlign 3 } Color 0.851 0.537 0.169 1 Size 3 0 }
+        TextWidgetClass "{C4B9000000000010}" { Slot OverlayWidgetSlot "{C4B9000000000011}" { HorizontalAlign 0 VerticalAlign 1 Padding 16 0 0 0 } Text "COMPOSITION LIBRARY" Color 0.851 0.537 0.169 1 "Font Size" 23 "Min Font Size" 14 }
+        ButtonWidgetClass "{C4B9000000000012}" { Name "DCO_CompositionClose" Slot OverlayWidgetSlot "{C4B9000000000013}" { HorizontalAlign 2 VerticalAlign 1 Padding 0 0 12 0 } style blank { TextWidgetClass "{C4B9000000000014}" { Slot ButtonWidgetSlot "{C4B9000000000015}" { Padding 12 7 12 7 } Text "CLOSE" Color 0.90 0.93 0.95 1 "Font Size" 16 } } }
+       }
+      }
+      TextWidgetClass "{C4B9000000000016}" { Slot LayoutSlot "{C4B9000000000017}" { HorizontalAlign 3 Padding 16 7 16 2 } Text "PERSISTENT ON THIS SERVER  /  PORTABLE TO SERVERS WITH THE SAME ADDONS" Color 0.851 0.537 0.169 1 "Font Size" 15 "Min Font Size" 11 }
+      TextWidgetClass "{C4B9000000000018}" { Slot LayoutSlot "{C4B9000000000019}" { HorizontalAlign 3 Padding 16 13 16 1 } Text "1  CAPTURE SELECTED OBJECTS" Color 0.90 0.93 0.95 1 "Font Size" 18 "Min Font Size" 12 }
+      TextWidgetClass "{C4B900000000001A}" { Slot LayoutSlot "{C4B900000000001B}" { HorizontalAlign 3 Padding 16 1 16 5 } Text "Select editable objects in the GM view, enter a reusable name, then capture them as one composition." Color 0.66 0.70 0.74 1 "Font Size" 14 "Min Font Size" 10 Wrap 1 }
+      HorizontalLayoutWidgetClass "{C4B900000000001C}" {
+       Slot LayoutSlot "{C4B900000000001D}" { HorizontalAlign 3 Padding 14 0 14 8 }
+       {
+        OverlayWidgetClass "{C4B900000000001E}" {
+         Slot LayoutSlot "{C4B900000000001F}" { FillWeight 3 Padding 2 0 4 0 }
+         {
+          ImageWidgetClass "{C4B9000000000020}" { Slot OverlayWidgetSlot "{C4B9000000000021}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.45 }
+          ImageWidgetClass "{C4B9000000000022}" { Slot OverlayWidgetSlot "{C4B9000000000023}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.10 0.11 0.13 1 }
+          EditBoxWidgetClass "{C4B9000000000024}" { Name "DCO_CompositionName" Slot OverlayWidgetSlot "{C4B9000000000025}" { HorizontalAlign 3 VerticalAlign 1 Padding 12 7 12 7 } style blank Color 0.90 0.93 0.95 1 "Font Size" 17 "Use placeholder text" 1 "Placeholder text" "Composition name" }
+         }
+        }
+        ButtonWidgetClass "{C4B9000000000026}" {
+         Name "DCO_CompositionCapture"
+         Slot LayoutSlot "{C4B9000000000027}" { FillWeight 2 Padding 4 0 2 0 }
+         style blank
+         {
+          OverlayWidgetClass "{C4B9000000000028}" {
+           Slot ButtonWidgetSlot "{C4B9000000000029}" { HorizontalAlign 3 VerticalAlign 3 }
+           {
+            ImageWidgetClass "{C4B900000000002A}" { Slot OverlayWidgetSlot "{C4B900000000002B}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 1 }
+            ImageWidgetClass "{C4B900000000002C}" { Slot OverlayWidgetSlot "{C4B900000000002D}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.851 0.537 0.169 0.16 }
+            TextWidgetClass "{C4B900000000002E}" { Slot OverlayWidgetSlot "{C4B900000000002F}" { HorizontalAlign 3 VerticalAlign 1 Padding 10 7 10 7 } Text "CAPTURE SELECTED" "Horizontal Alignment" Center Color 0.851 0.537 0.169 1 "Font Size" 16 "Min Font Size" 11 }
+           }
+          }
+         }
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{C4B9000000002000}" {
+       Slot LayoutSlot "{C4B9000000002001}" { HorizontalAlign 3 Padding 14 0 14 6 }
+       {
+        OverlayWidgetClass "{C4B9000000002002}" {
+         Slot LayoutSlot "{C4B9000000002003}" { FillWeight 1 Padding 2 0 4 0 }
+         {
+          ImageWidgetClass "{C4B9000000002004}" { Slot OverlayWidgetSlot "{C4B9000000002005}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.35 }
+          ImageWidgetClass "{C4B9000000002006}" { Slot OverlayWidgetSlot "{C4B9000000002007}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.10 0.11 0.13 1 }
+          EditBoxWidgetClass "{C4B9000000002008}" { Name "DCO_CompositionCategory" Slot OverlayWidgetSlot "{C4B9000000002009}" { HorizontalAlign 3 VerticalAlign 1 Padding 12 6 12 6 } style blank Color 0.90 0.93 0.95 1 "Font Size" 15 "Use placeholder text" 1 "Placeholder text" "Category" }
+         }
+        }
+        OverlayWidgetClass "{C4B900000000200A}" {
+         Slot LayoutSlot "{C4B900000000200B}" { FillWeight 1 Padding 4 0 2 0 }
+         {
+          ImageWidgetClass "{C4B900000000200C}" { Slot OverlayWidgetSlot "{C4B900000000200D}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.35 }
+          ImageWidgetClass "{C4B900000000200E}" { Slot OverlayWidgetSlot "{C4B900000000200F}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.10 0.11 0.13 1 }
+          EditBoxWidgetClass "{C4B9000000002010}" { Name "DCO_CompositionAuthor" Slot OverlayWidgetSlot "{C4B9000000002011}" { HorizontalAlign 3 VerticalAlign 1 Padding 12 6 12 6 } style blank Color 0.90 0.93 0.95 1 "Font Size" 15 "Use placeholder text" 1 "Placeholder text" "Author" }
+         }
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{C4B9000000000030}" {
+       Slot LayoutSlot "{C4B9000000000031}" { HorizontalAlign 3 Padding 16 5 16 3 }
+       {
+        TextWidgetClass "{C4B9000000000032}" { Slot LayoutSlot "{C4B9000000000033}" { FillWeight 2 VerticalAlign 1 } Text "2  CHOOSE FROM THE SERVER LIBRARY" Color 0.90 0.93 0.95 1 "Font Size" 18 "Min Font Size" 12 }
+        TextWidgetClass "{C4B9000000000034}" { Name "DCO_CompositionLibrarySummary" Slot LayoutSlot "{C4B9000000000035}" { FillWeight 1 HorizontalAlign 2 VerticalAlign 1 } Text "0 SAVED" "Horizontal Alignment" Right Color 0.851 0.537 0.169 1 "Font Size" 14 "Min Font Size" 10 }
+       }
+      }
+      OverlayWidgetClass "{C4B9000000000036}" {
+       Name "DCO_CompositionEmpty"
+       Slot LayoutSlot "{C4B9000000000037}" { HorizontalAlign 3 Padding 16 4 16 8 }
+       {
+        ImageWidgetClass "{C4B9000000000038}" { Slot OverlayWidgetSlot "{C4B9000000000039}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.42 Size 0 76 }
+        ImageWidgetClass "{C4B900000000003A}" { Slot OverlayWidgetSlot "{C4B900000000003B}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.07 0.08 0.10 1 }
+        VerticalLayoutWidgetClass "{C4B900000000003C}" {
+         Slot OverlayWidgetSlot "{C4B900000000003D}" { HorizontalAlign 3 VerticalAlign 1 Padding 14 9 14 9 }
+         {
+          TextWidgetClass "{C4B900000000003E}" { Slot LayoutSlot "{C4B900000000003F}" { HorizontalAlign 3 } Text "NO SAVED COMPOSITIONS" Color 0.851 0.537 0.169 1 "Font Size" 17 "Min Font Size" 11 }
+          TextWidgetClass "{C4B9000000000040}" { Slot LayoutSlot "{C4B9000000000041}" { HorizontalAlign 3 Padding 0 3 0 0 } Text "Select objects in the world, name the set above, and choose CAPTURE SELECTED." Color 0.66 0.70 0.74 1 "Font Size" 14 "Min Font Size" 10 Wrap 1 }
+         }
+        }
+       }
+      }
+      ButtonWidgetClass "{C4B9000000001000}" { Name "DCO_CompositionRow0" Slot LayoutSlot "{C4B9000000001001}" { HorizontalAlign 3 Padding 16 0 16 3 } style blank { OverlayWidgetClass "{C4B9000000001002}" { Slot ButtonWidgetSlot "{C4B9000000001003}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{C4B9000000001004}" { Slot OverlayWidgetSlot "{C4B9000000001005}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.30 } ImageWidgetClass "{C4B9000000001006}" { Name "DCO_CompositionRow0_Bg" Slot OverlayWidgetSlot "{C4B9000000001007}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.11 0.12 0.14 0.98 } TextWidgetClass "{C4B9000000001008}" { Name "DCO_CompositionRow0_Label" Slot OverlayWidgetSlot "{C4B9000000001009}" { HorizontalAlign 3 VerticalAlign 1 Padding 13 6 13 6 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 16 "Min Font Size" 10 } } } }
+      }
+      ButtonWidgetClass "{C4B900000000100A}" { Name "DCO_CompositionRow1" Slot LayoutSlot "{C4B900000000100B}" { HorizontalAlign 3 Padding 16 0 16 3 } style blank { OverlayWidgetClass "{C4B900000000100C}" { Slot ButtonWidgetSlot "{C4B900000000100D}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{C4B900000000100E}" { Slot OverlayWidgetSlot "{C4B900000000100F}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.30 } ImageWidgetClass "{C4B9000000001010}" { Name "DCO_CompositionRow1_Bg" Slot OverlayWidgetSlot "{C4B9000000001011}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.11 0.12 0.14 0.98 } TextWidgetClass "{C4B9000000001012}" { Name "DCO_CompositionRow1_Label" Slot OverlayWidgetSlot "{C4B9000000001013}" { HorizontalAlign 3 VerticalAlign 1 Padding 13 6 13 6 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 16 "Min Font Size" 10 } } } }
+      }
+      ButtonWidgetClass "{C4B9000000001014}" { Name "DCO_CompositionRow2" Slot LayoutSlot "{C4B9000000001015}" { HorizontalAlign 3 Padding 16 0 16 3 } style blank { OverlayWidgetClass "{C4B9000000001016}" { Slot ButtonWidgetSlot "{C4B9000000001017}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{C4B9000000001018}" { Slot OverlayWidgetSlot "{C4B9000000001019}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.30 } ImageWidgetClass "{C4B900000000101A}" { Name "DCO_CompositionRow2_Bg" Slot OverlayWidgetSlot "{C4B900000000101B}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.11 0.12 0.14 0.98 } TextWidgetClass "{C4B900000000101C}" { Name "DCO_CompositionRow2_Label" Slot OverlayWidgetSlot "{C4B900000000101D}" { HorizontalAlign 3 VerticalAlign 1 Padding 13 6 13 6 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 16 "Min Font Size" 10 } } } }
+      }
+      ButtonWidgetClass "{C4B900000000101E}" { Name "DCO_CompositionRow3" Slot LayoutSlot "{C4B900000000101F}" { HorizontalAlign 3 Padding 16 0 16 3 } style blank { OverlayWidgetClass "{C4B9000000001020}" { Slot ButtonWidgetSlot "{C4B9000000001021}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{C4B9000000001022}" { Slot OverlayWidgetSlot "{C4B9000000001023}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.30 } ImageWidgetClass "{C4B9000000001024}" { Name "DCO_CompositionRow3_Bg" Slot OverlayWidgetSlot "{C4B9000000001025}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.11 0.12 0.14 0.98 } TextWidgetClass "{C4B9000000001026}" { Name "DCO_CompositionRow3_Label" Slot OverlayWidgetSlot "{C4B9000000001027}" { HorizontalAlign 3 VerticalAlign 1 Padding 13 6 13 6 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 16 "Min Font Size" 10 } } } }
+      }
+      ButtonWidgetClass "{C4B9000000001028}" { Name "DCO_CompositionRow4" Slot LayoutSlot "{C4B9000000001029}" { HorizontalAlign 3 Padding 16 0 16 3 } style blank { OverlayWidgetClass "{C4B900000000102A}" { Slot ButtonWidgetSlot "{C4B900000000102B}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{C4B900000000102C}" { Slot OverlayWidgetSlot "{C4B900000000102D}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.30 } ImageWidgetClass "{C4B900000000102E}" { Name "DCO_CompositionRow4_Bg" Slot OverlayWidgetSlot "{C4B900000000102F}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.11 0.12 0.14 0.98 } TextWidgetClass "{C4B9000000001030}" { Name "DCO_CompositionRow4_Label" Slot OverlayWidgetSlot "{C4B9000000001031}" { HorizontalAlign 3 VerticalAlign 1 Padding 13 6 13 6 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 16 "Min Font Size" 10 } } } }
+      }
+      ButtonWidgetClass "{C4B9000000001032}" { Name "DCO_CompositionRow5" Slot LayoutSlot "{C4B9000000001033}" { HorizontalAlign 3 Padding 16 0 16 3 } style blank { OverlayWidgetClass "{C4B9000000001034}" { Slot ButtonWidgetSlot "{C4B9000000001035}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{C4B9000000001036}" { Slot OverlayWidgetSlot "{C4B9000000001037}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.30 } ImageWidgetClass "{C4B9000000001038}" { Name "DCO_CompositionRow5_Bg" Slot OverlayWidgetSlot "{C4B9000000001039}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.11 0.12 0.14 0.98 } TextWidgetClass "{C4B900000000103A}" { Name "DCO_CompositionRow5_Label" Slot OverlayWidgetSlot "{C4B900000000103B}" { HorizontalAlign 3 VerticalAlign 1 Padding 13 6 13 6 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 16 "Min Font Size" 10 } } } }
+      }
+      ButtonWidgetClass "{C4B900000000103C}" { Name "DCO_CompositionRow6" Slot LayoutSlot "{C4B900000000103D}" { HorizontalAlign 3 Padding 16 0 16 3 } style blank { OverlayWidgetClass "{C4B900000000103E}" { Slot ButtonWidgetSlot "{C4B900000000103F}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{C4B9000000001040}" { Slot OverlayWidgetSlot "{C4B9000000001041}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.30 } ImageWidgetClass "{C4B9000000001042}" { Name "DCO_CompositionRow6_Bg" Slot OverlayWidgetSlot "{C4B9000000001043}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.11 0.12 0.14 0.98 } TextWidgetClass "{C4B9000000001044}" { Name "DCO_CompositionRow6_Label" Slot OverlayWidgetSlot "{C4B9000000001045}" { HorizontalAlign 3 VerticalAlign 1 Padding 13 6 13 6 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 16 "Min Font Size" 10 } } } }
+      }
+      ButtonWidgetClass "{C4B9000000001046}" { Name "DCO_CompositionRow7" Slot LayoutSlot "{C4B9000000001047}" { HorizontalAlign 3 Padding 16 0 16 3 } style blank { OverlayWidgetClass "{C4B9000000001048}" { Slot ButtonWidgetSlot "{C4B9000000001049}" { HorizontalAlign 3 VerticalAlign 3 } { ImageWidgetClass "{C4B900000000104A}" { Slot OverlayWidgetSlot "{C4B900000000104B}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.30 } ImageWidgetClass "{C4B900000000104C}" { Name "DCO_CompositionRow7_Bg" Slot OverlayWidgetSlot "{C4B900000000104D}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 } Color 0.11 0.12 0.14 0.98 } TextWidgetClass "{C4B900000000104E}" { Name "DCO_CompositionRow7_Label" Slot OverlayWidgetSlot "{C4B900000000104F}" { HorizontalAlign 3 VerticalAlign 1 Padding 13 6 13 6 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 16 "Min Font Size" 10 } } } }
+      }
+      HorizontalLayoutWidgetClass "{C4B9000000000050}" {
+       Name "DCO_CompositionPagination"
+       Slot LayoutSlot "{C4B9000000000051}" { HorizontalAlign 3 Padding 16 2 16 5 }
+       {
+        ButtonWidgetClass "{C4B9000000000052}" { Name "DCO_CompositionPrev" Slot LayoutSlot "{C4B9000000000053}" { FillWeight 1 } style blank { TextWidgetClass "{C4B9000000000054}" { Slot ButtonWidgetSlot "{C4B9000000000055}" { HorizontalAlign 0 Padding 6 4 6 4 } Text "< PREVIOUS" Color 0.80 0.84 0.88 1 "Font Size" 15 } } }
+        TextWidgetClass "{C4B9000000000056}" { Name "DCO_CompositionPage" Slot LayoutSlot "{C4B9000000000057}" { FillWeight 1 HorizontalAlign 1 VerticalAlign 1 } Text "1 / 1" "Horizontal Alignment" Center Color 0.66 0.70 0.74 1 "Font Size" 15 }
+        ButtonWidgetClass "{C4B9000000000058}" { Name "DCO_CompositionNext" Slot LayoutSlot "{C4B9000000000059}" { FillWeight 1 } style blank { TextWidgetClass "{C4B900000000005A}" { Slot ButtonWidgetSlot "{C4B900000000005B}" { HorizontalAlign 2 Padding 6 4 6 4 } Text "NEXT >" Color 0.80 0.84 0.88 1 "Font Size" 15 } } }
+       }
+      }
+      HorizontalLayoutWidgetClass "{C4B900000000005C}" {
+       Slot LayoutSlot "{C4B900000000005D}" { HorizontalAlign 3 Padding 16 7 16 3 }
+       {
+        TextWidgetClass "{C4B900000000005E}" { Slot LayoutSlot "{C4B900000000005F}" { FillWeight 1 VerticalAlign 1 } Text "3  PLACE OR MANAGE" Color 0.90 0.93 0.95 1 "Font Size" 18 "Min Font Size" 12 }
+        TextWidgetClass "{C4B9000000000060}" { Name "DCO_CompositionPosition" Slot LayoutSlot "{C4B9000000000061}" { FillWeight 2 HorizontalAlign 2 VerticalAlign 1 } Text "PLACEMENT" "Horizontal Alignment" Right Color 0.66 0.70 0.74 1 "Font Size" 14 "Min Font Size" 10 }
+       }
+      }
+      HorizontalLayoutWidgetClass "{C4B9000000000062}" {
+       Slot LayoutSlot "{C4B9000000000063}" { HorizontalAlign 3 Padding 14 1 14 5 }
+       {
+        ButtonWidgetClass "{C4B9000000000064}" { Name "DCO_CompositionPlace" Slot LayoutSlot "{C4B9000000000065}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{C4B9000000000066}" { Slot ButtonWidgetSlot "{C4B9000000000067}" { HorizontalAlign 1 Padding 9 6 9 6 } Text "PLACE IN WORLD" "Horizontal Alignment" Center Color 0.851 0.537 0.169 1 "Font Size" 16 } } }
+        ButtonWidgetClass "{C4B9000000000068}" { Name "DCO_CompositionUndo" Slot LayoutSlot "{C4B9000000000069}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{C4B900000000006A}" { Slot ButtonWidgetSlot "{C4B900000000006B}" { HorizontalAlign 1 Padding 9 6 9 6 } Text "UNDO LAST PLACE" "Horizontal Alignment" Center Color 0.90 0.93 0.95 1 "Font Size" 16 } } }
+        ButtonWidgetClass "{C4B900000000006C}" { Name "DCO_CompositionDelete" Slot LayoutSlot "{C4B900000000006D}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{C4B900000000006E}" { Slot ButtonWidgetSlot "{C4B900000000006F}" { HorizontalAlign 1 Padding 9 6 9 6 } Text "DELETE SAVED ENTRY" "Horizontal Alignment" Center Color 0.88 0.34 0.32 1 "Font Size" 16 } } }
+       }
+      }
+      OverlayWidgetClass "{C4B9000000000070}" {
+       Slot LayoutSlot "{C4B9000000000071}" { HorizontalAlign 3 Padding 16 2 16 5 }
+       {
+        ImageWidgetClass "{C4B9000000000072}" { Slot OverlayWidgetSlot "{C4B9000000000073}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.12 }
+        TextWidgetClass "{C4B9000000000074}" { Name "DCO_CompositionStatus" Slot OverlayWidgetSlot "{C4B9000000000075}" { HorizontalAlign 3 VerticalAlign 1 Padding 12 7 12 7 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 14 "Min Font Size" 10 Wrap 1 }
+       }
+      }
+      ImageWidgetClass "{C4B9000000000076}" { Slot LayoutSlot "{C4B9000000000077}" { HorizontalAlign 3 Padding 16 3 16 5 } Color 0.851 0.537 0.169 0.45 Size 0 1 }
+      TextWidgetClass "{C4B9000000000078}" { Slot LayoutSlot "{C4B9000000000079}" { HorizontalAlign 3 Padding 16 0 16 2 } Text "HOW TO USE COMPOSITIONS" Color 0.851 0.537 0.169 1 "Font Size" 16 "Min Font Size" 11 }
+      TextWidgetClass "{C4B900000000007A}" { Slot LayoutSlot "{C4B900000000007B}" { HorizontalAlign 3 Padding 16 1 16 0 } Text "1. Select editable objects in GM.  2. Name and capture them.  3. Select the saved entry and choose PLACE IN WORLD.  4. Click terrain to place; Escape cancels. Missing prefabs abort atomically." Color 0.80 0.84 0.88 1 "Font Size" 14 "Min Font Size" 10 Wrap 1 }
+      TextWidgetClass "{C4B900000000007C}" { Slot LayoutSlot "{C4B900000000007D}" { HorizontalAlign 3 Padding 16 3 16 9 } Text "To reuse on another server: copy BifrostGM_compositions.json into that server profile and load the same addons." Color 0.66 0.70 0.74 1 "Font Size" 13 "Min Font Size" 9 Wrap 1 }
+     }
+    }
+   }
+  }
+ }
+}

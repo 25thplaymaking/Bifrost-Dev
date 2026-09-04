@@ -1,4 +1,5 @@
 modded enum ChimeraMenuPreset
 {
-	GRSA_ArmoryV2
+	GRSA_ArmoryV2,
+	DCO_VehicleService
 }

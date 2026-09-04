@@ -351,7 +351,11 @@ class GRSA_CatalogService
 			if (!entry)
 				entry = catalogManager.GetEntryWithPrefabFromAnyCatalog(EEntityCatalogType.ITEM, prefab);
 			if (entry)
-				name = WidgetManager.Translate(entry.GetEntityName());
+			{
+				string nameId = entry.GetEntityName();
+				if (!HasKnownMissingBaseName(nameId))
+					name = WidgetManager.Translate(nameId);
+			}
 		}
 
 		if (name.IsEmpty())
@@ -361,6 +365,15 @@ class GRSA_CatalogService
 
 		s_mDisplayNameCache.Insert(prefab, name);
 		return name;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected static bool HasKnownMissingBaseName(string nameId)
+	{
+		nameId.Replace("#", string.Empty);
+		return nameId == "AR-Weapon_ExplosiveCharge_M112_Name"
+			|| nameId == "AR-Weapon_ExplosiveCharge_TNT400g_Name"
+			|| nameId == "AR-AmmunitionID_556x45";
 	}
 
 	//------------------------------------------------------------------------------------------------

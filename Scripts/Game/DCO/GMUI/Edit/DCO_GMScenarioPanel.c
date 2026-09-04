@@ -1305,6 +1305,12 @@ class DCO_GMScenarioPanel
 	protected Widget m_wPlaceholder;
 	protected TextWidget m_wTitle;
 	protected TextWidget m_wCloseLabel;
+	protected SizeLayoutWidget m_wBriefingHost;
+	protected TextWidget m_wBriefingSection;
+	protected MultilineEditBoxWidget m_wBriefingEdit;
+	protected ButtonWidget m_btnBriefingPrev;
+	protected ButtonWidget m_btnBriefingNext;
+	protected ButtonWidget m_btnBriefingSave;
 	protected ScrollLayoutWidget m_wScroll;
 	protected SizeLayoutWidget m_wSizeBox;
 	protected ButtonWidget m_btnCog;
@@ -1338,6 +1344,8 @@ class DCO_GMScenarioPanel
 	protected bool m_bCategoryRefreshQueued;
 	protected ref DCO_ScenarioPresetStore m_PresetStore;
 	protected int m_iPresetSlot;
+	protected int m_iBriefingIndex;
+	protected int m_iMissionCategory = -1;
 
 	protected int m_ActiveCat;
 	protected int m_CategoryCount;
@@ -1371,6 +1379,12 @@ class DCO_GMScenarioPanel
 		m_wPlaceholder = root.FindAnyWidget("DCO_ScenarioPlaceholder");
 		m_wTitle       = TextWidget.Cast(root.FindAnyWidget("DCO_ScenarioTitle"));
 		m_wCloseLabel  = TextWidget.Cast(root.FindAnyWidget("DCO_ScenarioClose_Label"));
+		m_wBriefingHost = SizeLayoutWidget.Cast(root.FindAnyWidget("DCO_ScenarioBriefingHost"));
+		m_wBriefingSection = TextWidget.Cast(root.FindAnyWidget("DCO_ScenarioBriefingSection"));
+		m_wBriefingEdit = MultilineEditBoxWidget.Cast(root.FindAnyWidget("DCO_ScenarioBriefingEdit"));
+		m_btnBriefingPrev = ButtonWidget.Cast(root.FindAnyWidget("DCO_ScenarioBriefingPrev"));
+		m_btnBriefingNext = ButtonWidget.Cast(root.FindAnyWidget("DCO_ScenarioBriefingNext"));
+		m_btnBriefingSave = ButtonWidget.Cast(root.FindAnyWidget("DCO_ScenarioBriefingSave"));
 		m_wScroll      = ScrollLayoutWidget.Cast(root.FindAnyWidget("DCO_ScenarioScroll"));
 		m_wSizeBox     = SizeLayoutWidget.Cast(root.FindAnyWidget("DCO_ScenarioScrollHost"));
 		m_wPresetBar   = root.FindAnyWidget("DCO_ScenarioPresetBar");
@@ -1406,6 +1420,12 @@ class DCO_GMScenarioPanel
 			m_btnPresetLoad.AddHandler(m_Handler);
 		if (m_btnPresetSave)
 			m_btnPresetSave.AddHandler(m_Handler);
+		if (m_btnBriefingPrev)
+			m_btnBriefingPrev.AddHandler(m_Handler);
+		if (m_btnBriefingNext)
+			m_btnBriefingNext.AddHandler(m_Handler);
+		if (m_btnBriefingSave)
+			m_btnBriefingSave.AddHandler(m_Handler);
 		for (int presetIndex = 0; presetIndex < PRESET_SLOT_COUNT; presetIndex++)
 		{
 			ButtonWidget slotButton = ButtonWidget.Cast(root.FindAnyWidget("DCO_ScenarioPresetSlot" + presetIndex.ToString()));
@@ -1447,6 +1467,8 @@ class DCO_GMScenarioPanel
 
 		if (m_wPanel)
 			m_wPanel.SetVisible(false);	// hidden until the cog is clicked or an entity edit-properties fires.
+		if (m_wBriefingHost)
+			m_wBriefingHost.SetVisible(false);
 		if (m_wBackdrop)
 		{
 			m_BackdropHandler = new DCO_ScenarioBackdropHandler();
@@ -1556,6 +1578,27 @@ class DCO_GMScenarioPanel
 			SaveSelectedPreset();
 			return true;
 		}
+		if (w == m_btnBriefingPrev && m_bCogSession)
+		{
+			m_iBriefingIndex--;
+			if (m_iBriefingIndex < 0)
+				m_iBriefingIndex = 4;
+			RefreshBriefingEditor();
+			return true;
+		}
+		if (w == m_btnBriefingNext && m_bCogSession)
+		{
+			m_iBriefingIndex = (m_iBriefingIndex + 1) % 5;
+			RefreshBriefingEditor();
+			return true;
+		}
+		if (w == m_btnBriefingSave && m_bCogSession)
+		{
+			SCR_PlayerController controller = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+			if (controller && m_wBriefingEdit)
+				controller.DCO_SendGMBriefing(BriefingEntryId(), m_wBriefingEdit.GetText());
+			return true;
+		}
 		for (int presetIndex = 0; presetIndex < m_PresetSlotBtns.Count(); presetIndex++)
 		{
 			if (w != m_PresetSlotBtns[presetIndex])
@@ -1584,7 +1627,6 @@ class DCO_GMScenarioPanel
 			QueueCategoryRefresh();
 			return true;
 		}
-
 		int categoryIndex = m_CategoryPage * pageSize + index;
 		if (categoryIndex < 0 || categoryIndex >= m_CategoryCount)
 			return false;
@@ -1729,6 +1771,7 @@ class DCO_GMScenarioPanel
 				m_wTitle.SetText("SCENARIO SETTINGS");
 			ApplyDefaultGeometry();	// always open at the known-good size/pos.
 			UpdatePresetControls();
+			RefreshBriefingEditor();
 			BeginEditing();
 		}
 		else
@@ -1774,6 +1817,50 @@ class DCO_GMScenarioPanel
 			m_wSizeBox.EnableHeightOverride(true);
 			m_wSizeBox.SetHeightOverride(Math.Max(360, panelHeight - 216));
 		}
+		if (m_wBriefingHost)
+		{
+			m_wBriefingHost.EnableHeightOverride(true);
+			m_wBriefingHost.SetHeightOverride(Math.Max(360, panelHeight - 216));
+		}
+	}
+
+	protected int BriefingEntryId()
+	{
+		switch (m_iBriefingIndex)
+		{
+			case 1: return DCO_GMBriefing.ENTRY_MISSION;
+			case 2: return DCO_GMBriefing.ENTRY_EXECUTION;
+			case 3: return DCO_GMBriefing.ENTRY_SIGNAL;
+			case 4: return DCO_GMBriefing.ENTRY_INTEL;
+		}
+		return DCO_GMBriefing.ENTRY_SITUATION;
+	}
+
+	protected string BriefingEntryName()
+	{
+		switch (m_iBriefingIndex)
+		{
+			case 1: return "MISSION";
+			case 2: return "EXECUTION";
+			case 3: return "SIGNAL";
+			case 4: return "INTELLIGENCE";
+		}
+		return "SITUATION";
+	}
+
+	protected void RefreshBriefingEditor()
+	{
+		bool visible = m_bCogSession && m_iMissionCategory >= 0 && m_ActiveCat == m_iMissionCategory;
+		if (m_wBriefingHost)
+			m_wBriefingHost.SetVisible(visible);
+		if (m_wSizeBox)
+			m_wSizeBox.SetVisible(!visible);
+		if (!visible)
+			return;
+		if (m_wBriefingSection)
+			m_wBriefingSection.SetText("MISSION INFORMATION  ·  " + BriefingEntryName());
+		if (m_wBriefingEdit)
+			m_wBriefingEdit.SetText(DCO_GMBriefing.Read(BriefingEntryId()));
 	}
 
 	protected SCR_AttributesManagerEditorComponent GetManager()
@@ -1818,6 +1905,8 @@ class DCO_GMScenarioPanel
 		// Mark the old session closed before asking the manager to finish it.
 		m_bEditing = false;
 		m_bCogSession = false;
+		m_iMissionCategory = -1;
+		RefreshBriefingEditor();
 		UpdatePresetControls();
 		if (mgr && wasEditing)
 		{
@@ -1851,6 +1940,8 @@ class DCO_GMScenarioPanel
 			m_bOpen = false;
 			m_bEditing = false;
 			m_bCogSession = false;
+			m_iMissionCategory = -1;
+			RefreshBriefingEditor();
 			m_aSessionAttributes = null;
 			if (m_wBackdrop)
 				m_wBackdrop.SetVisible(false);
@@ -1968,6 +2059,12 @@ class DCO_GMScenarioPanel
 		int tabCount = categoryConfigs.Count();
 		if (hasOther)
 			tabCount++;
+		m_iMissionCategory = -1;
+		if (m_bCogSession)
+		{
+			m_iMissionCategory = tabCount;
+			tabCount++;
+		}
 		if (m_ActiveCat >= tabCount)
 			m_ActiveCat = 0;
 		if (m_bTriggerSession && m_ActiveCat < categoryConfigs.Count())
@@ -1983,6 +2080,10 @@ class DCO_GMScenarioPanel
 		Color accent = DCO_GMTheme.Get().m_AccentColor;
 		UpdateCategoryNavigation(categoryConfigs, categories, hasOther, accent);
 		UpdateTriggerChrome();
+		RefreshBriefingEditor();
+
+		if (m_ActiveCat == m_iMissionCategory)
+			return;
 
 		if (m_ActiveCat < categoryConfigs.Count())
 		{
@@ -2027,6 +2128,8 @@ class DCO_GMScenarioPanel
 		int tabCount = categoryConfigs.Count();
 		if (hasOther)
 			tabCount++;
+		if (m_iMissionCategory >= 0)
+			tabCount++;
 		m_CategoryCount = tabCount;
 		m_CategoryPage = Math.Clamp(m_CategoryPage, 0, CategoryPageCount() - 1);
 		int pageSize = CategoryPageSize();
@@ -2053,7 +2156,11 @@ class DCO_GMScenarioPanel
 			}
 
 			string name = "OTHER";
-			if (categoryIndex < categoryConfigs.Count())
+			if (categoryIndex == m_iMissionCategory)
+			{
+				name = "MISSION INFO";
+			}
+			else if (categoryIndex < categoryConfigs.Count())
 			{
 				name = "ATTRIBUTES";
 				SCR_UIInfo info = categories[categoryIndex].GetInfo();

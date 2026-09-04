@@ -2,13 +2,14 @@
 class DCO_GMRenderManager
 {
 	static const int MAX_COMMANDS = 4096;
-	static const int UPDATE_MS = 33;
+	static const int UPDATE_MS = 16;
 	static const int SELECTION_REFRESH_MS = 100;
 
 	protected CanvasWidget m_wCanvas;
 	protected ref array<ref CanvasWidgetCommand> m_DrawCommands = {};
 	protected ref ScriptInvoker m_OnRender = new ScriptInvoker();
 	protected ref array<SCR_EditableEntityComponent> m_SelectedUnits = {};
+	protected SCR_PreviewEntityEditorComponent m_Preview;
 	protected bool m_bActive;
 	protected bool m_bCommandCapLogged;
 	protected int m_iLastSelectionRefreshAt;
@@ -44,6 +45,7 @@ class DCO_GMRenderManager
 		GetGame().GetCallqueue().Remove(Update);
 		m_DrawCommands.Clear();
 		m_SelectedUnits.Clear();
+		m_Preview = null;
 		if (m_wCanvas)
 		{
 			m_wCanvas.SetDrawCommands(m_DrawCommands);
@@ -55,14 +57,23 @@ class DCO_GMRenderManager
 	{
 		m_DrawCommands.Clear();
 		m_bCommandCapLogged = false;
-		if (!m_bActive || !m_wCanvas || DCO_GMTheme.Get().IsMasterHidden())
+		if (!m_bActive || !m_wCanvas)
 		{
 			if (m_wCanvas)
 				m_wCanvas.SetDrawCommands(m_DrawCommands);
 			return;
 		}
+		if (DCO_GMTheme.Get().IsMasterHidden())
+		{
+			m_OnRender.Invoke(this);
+			m_DrawCommands.Clear();
+			m_wCanvas.SetDrawCommands(m_DrawCommands);
+			return;
+		}
 
 		m_OnRender.Invoke(this);
+		DrawPlacementHelpers();
+		DCO_GMAttach.DrawHoverHighlight(this);
 		RefreshSelectionIfNeeded();
 		DrawSelectionBoxes();
 		m_wCanvas.SetDrawCommands(m_DrawCommands);
@@ -209,6 +220,30 @@ class DCO_GMRenderManager
 		DrawLine(c0, c4, colorARGB); DrawLine(c1, c5, colorARGB); DrawLine(c2, c6, colorARGB); DrawLine(c3, c7, colorARGB);
 	}
 
+	void DrawLocalBox(IEntity owner, vector mn, vector mx, int colorARGB)
+	{
+		if (!owner)
+			return;
+		vector transform[4];
+		owner.GetWorldTransform(transform);
+		vector c0 = LocalToWorld(Vector(mn[0], mn[1], mn[2]), transform);
+		vector c1 = LocalToWorld(Vector(mx[0], mn[1], mn[2]), transform);
+		vector c2 = LocalToWorld(Vector(mx[0], mn[1], mx[2]), transform);
+		vector c3 = LocalToWorld(Vector(mn[0], mn[1], mx[2]), transform);
+		vector c4 = LocalToWorld(Vector(mn[0], mx[1], mn[2]), transform);
+		vector c5 = LocalToWorld(Vector(mx[0], mx[1], mn[2]), transform);
+		vector c6 = LocalToWorld(Vector(mx[0], mx[1], mx[2]), transform);
+		vector c7 = LocalToWorld(Vector(mn[0], mx[1], mx[2]), transform);
+		DrawLine(c0, c1, colorARGB); DrawLine(c1, c2, colorARGB); DrawLine(c2, c3, colorARGB); DrawLine(c3, c0, colorARGB);
+		DrawLine(c4, c5, colorARGB); DrawLine(c5, c6, colorARGB); DrawLine(c6, c7, colorARGB); DrawLine(c7, c4, colorARGB);
+		DrawLine(c0, c4, colorARGB); DrawLine(c1, c5, colorARGB); DrawLine(c2, c6, colorARGB); DrawLine(c3, c7, colorARGB);
+	}
+
+	protected vector LocalToWorld(vector localPosition, vector transform[4])
+	{
+		return transform[3] + transform[0] * localPosition[0] + transform[1] * localPosition[1] + transform[2] * localPosition[2];
+	}
+
 	void DrawQuad(vector p0, vector p1, vector p2, vector p3, int colorARGB)
 	{
 		DrawLine(p0, p1, colorARGB);
@@ -242,6 +277,36 @@ class DCO_GMRenderManager
 		return ((alpha & 0xFF) << 24) | (r << 16) | (g << 8) | b;
 	}
 
+	protected void DrawPlacementHelpers()
+	{
+		if (!m_Preview)
+			m_Preview = SCR_PreviewEntityEditorComponent.Cast(SCR_PreviewEntityEditorComponent.GetInstance(SCR_PreviewEntityEditorComponent, false, true));
+		if (!m_Preview || !m_Preview.IsEditing() || !m_Preview.IsChange())
+			return;
+
+		vector transform[4];
+		if (!m_Preview.GetPreviewTransform(transform))
+			return;
+		float heightAboveTerrain = m_Preview.GetPreviewHeightAboveTerrain();
+		vector localOffset = m_Preview.GetLocalOffset();
+		float height = heightAboveTerrain - localOffset[1];
+		if (height > 0.025)
+		{
+			vector ground = transform[3] - Vector(0, heightAboveTerrain, 0);
+			int helperColor = AccentARGB(220);
+			DrawStick(ground, height, helperColor);
+			DrawRing(ground + Vector(0, 0.02, 0), Vector(1, 0, 0), Vector(0, 0, 1), 0.25, helperColor);
+		}
+
+		SCR_EditablePreviewEntity previewEntity = m_Preview.GetPreviewEntity();
+		if (!previewEntity)
+			return;
+		vector minimum;
+		vector maximum;
+		previewEntity.GetPreviewBounds(minimum, maximum);
+		DrawLocalBox(previewEntity, minimum, maximum, AccentARGB(180));
+	}
+
 	protected void DrawSelectionBoxes()
 	{
 		int boxColor = AccentARGB(255);
@@ -255,19 +320,16 @@ class DCO_GMRenderManager
 			vector minimum;
 			vector maximum;
 			owner.GetBounds(minimum, maximum);
-			vector origin = owner.GetOrigin();
-			minimum = origin + minimum;
-			maximum = origin + maximum;
 			if (maximum[1] - minimum[1] < 0.2)
 			{
-				minimum = origin + Vector(-0.4, 0, -0.4);
-				maximum = origin + Vector(0.4, 1.8, 0.4);
+				minimum = Vector(-0.4, 0, -0.4);
+				maximum = Vector(0.4, 1.8, 0.4);
 			}
 			float cx = (minimum[0] + maximum[0]) * 0.5;
 			float cz = (minimum[2] + maximum[2]) * 0.5;
 			float halfW = Math.Max(1.0, (maximum[0] - minimum[0]) * 0.5 + 0.2);
 			float halfD = Math.Max(1.0, (maximum[2] - minimum[2]) * 0.5 + 0.2);
-			DrawBox(Vector(cx - halfW, minimum[1], cz - halfD), Vector(cx + halfW, Math.Max(minimum[1] + 2.2, maximum[1] + 0.25), cz + halfD), boxColor);
+			DrawLocalBox(owner, Vector(cx - halfW, minimum[1], cz - halfD), Vector(cx + halfW, Math.Max(minimum[1] + 2.2, maximum[1] + 0.25), cz + halfD), boxColor);
 		}
 	}
 

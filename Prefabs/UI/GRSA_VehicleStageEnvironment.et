@@ -1,0 +1,457 @@
+GenericWorldEntity {
+ ID "E8B3A9A26F4D1C71"
+ coords 0 0 0
+ boundMins 0 0 0
+ boundMaxs 0 0 0
+ blockSize 200 1500 200
+ SkyPreset "{4B7788810A110A83}UI/Materials/GRSA_StageVoid.emat"
+ PlanetPreset {
+  "" "" ""
+ }
+ CloudsRenderer SkyVolCloudsRenderer
+ CloudsPreset "{D3683C927920C51D}Terrains/Common/Sky/Clouds/Clouds_Volumetric.emat"
+ ShadowPreset Custom
+ CustomShadowPreset "ItemPreview"
+ DisableDistantShadows 1
+ {
+  $grp GenericEntity {
+   {
+    ID "6A44357634C92CB3"
+    components {
+     MeshObject "{6A4435763EA1AAEC}" {
+      Object "{331CF5273A04AF9A}Assets/Structures/BuildingsParts/Windows/win_garage_e_02_4400x1100_88_B.xob"
+     }
+    }
+    coords -3.314 4.214 16.592
+   }
+   {
+    ID "6A44357634C94B3E"
+    components {
+     MeshObject "{6A4435763EA1AAEC}" {
+      Object "{331CF5273A04AF9A}Assets/Structures/BuildingsParts/Windows/win_garage_e_02_4400x1100_88_B.xob"
+     }
+    }
+    coords -3.314 4.214 16.592
+   }
+   {
+    ID "6A44357634C9974A"
+    components {
+     MeshObject "{6A44357624ADCFFA}" {
+      Object "{331CF5273A04AF9A}Assets/Structures/BuildingsParts/Windows/win_garage_e_02_4400x1100_88_B.xob"
+     }
+    }
+    coords 9.504 4.2 16.6
+   }
+   {
+    ID "E8B3A9A26F4D1C85"
+    components {
+     MeshObject "{E8B3A9A26F4D1C86}" {
+      Object "{FB6ADFEFFECA181D}Assets/Props/Crates/CrateWooden_02/CrateWooden_02_1x1x2.xob"
+     }
+    }
+    coords -3.8 0 7.5
+    angles 0 8 0
+   }
+   {
+    ID "E8B3A9A26F4D1C87"
+    components {
+     MeshObject "{E8B3A9A26F4D1C88}" {
+      Object "{569C9B8C543D3020}Assets/Props/Crates/CrateWooden_02/CrateWooden_02_1x1x1.xob"
+     }
+    }
+    coords -2.7 0 7.55
+    angles 0 -12 0
+   }
+   {
+    ID "E8B3A9A26F4D1C89"
+    components {
+     MeshObject "{E8B3A9A26F4D1C8A}" {
+      Object "{CEC8A3DF893B9C96}Assets/Props/Crates/BoxWooden_01.xob"
+     }
+    }
+    coords 8.55 0.02 7.8
+    angles 0 -18 0
+   }
+   {
+    ID "E8B3A9A26F4D1C8B"
+    components {
+     MeshObject "{E8B3A9A26F4D1C8C}" {
+      Object "{DBEAA3CD4B3B08DF}Assets/Props/Industrial/ToolBox_01/ToolBox_01.xob"
+     }
+    }
+    coords 8.641 0.027 7.163
+    angles 0 -18 0
+   }
+   {
+    ID "E8B3A9A26F4D1C8F"
+    components {
+     MeshObject "{E8B3A9A26F4D1C90}" {
+      Object "{516F33579E693014}Assets/Props/Industrial/Repair/VehicleGarbage_01/VehicleGarbage_01_pile_medium.xob"
+     }
+    }
+    coords -2.425 0 5.877
+    angles 0 32 0
+   }
+   {
+    ID "E8B3A9A26F4D1C91"
+    components {
+     MeshObject "{E8B3A9A26F4D1C92}" {
+      Object "{BBA28BAD291974D4}Assets/Props/Industrial/Repair/VehicleGarbage_01/VehicleGarbage_01_pile_large.xob"
+     }
+    }
+    coords -3.6 0 8.8
+    angles 0 -18 0
+   }
+   {
+    ID "E8B3A9A26F4D1C93"
+    components {
+     MeshObject "{E8B3A9A26F4D1C94}" {
+      Object "{48D7C217AEEB8389}Assets/Props/Crates/CardboardBoxStack_01.xob"
+     }
+    }
+    coords 8.7 0 8.9
+    angles 0 12 0
+   }
+  }
+  $grp LightEntity {
+   {
+    ID "6A4742582D2792FF"
+    coords 12.542 3.628 15.962
+    angles -4.51 -143.104 0
+    Color 1 0.9787 0.624 1
+    LV 5.47
+    Type Spot
+    Radius 40.57
+   }
+   {
+    ID "6A47425865E78E5A"
+    coords -12.878 4.486 16.023
+    angles -3.262 128.079 -175.846
+    Color 1 0.9935 0.6514 1
+    LV 4.94
+    Type Spot
+    Radius 30.19
+    NearPlane 0.01
+   }
+   {
+    ID "6A474258C35DA2D9"
+    coords 1.791 4.828 15.634
+    angles -14.231 -180 180
+    Color 0.989 1 0.7011 1
+    LV 7.32
+    Type Spot
+    Radius 47.17
+   }
+  }
+  ParticleEffectEntity {
+   ID "6A435EB5BA226F63"
+   coords -8.374 1.189 2.536
+   EffectPath "{2AEA0DCC3EDDCCFB}Particles/Vehicle/Vehicle_smoke_damaged_low_01.ptc"
+  }
+  GenericEntity : "{0692BB439764BB1E}Prefabs/Props/Civilian/Notebook_01_base.et" {
+   ID "6A435EB5BA226F41"
+   coords -2.65 1.367 7.554
+  }
+  GameEntity : "{0E94F28FD722B1D8}Prefabs/Props/Military/Generators/GeneratorFloodlight_US_01.et" {
+   ID "E8B3A9A26F4D1C84"
+   components {
+    RigidBody "{5872F0EB7DFB5A9D}" {
+     SimState None
+     ResponseIndex "NoCollision"
+    }
+    SCR_BaseInteractiveLightComponent "{587E9C1D47ACAF0D}" {
+     m_aLightData {
+      SCR_BaseLightData "{58CF01D19C208FF6}" {
+       m_eLightType AMBIENT
+       m_fRadius 12.9
+       m_eLightFlags 1
+      }
+     }
+     m_fLV 14.5
+    }
+   }
+   coords 6.241 0 13.227
+   angles 0 -150.01 0
+  }
+  GenericEntity : "{174E332EF84362B2}Prefabs/Props/Industrial/ToolBox_01/ToolBox_01_base.et" {
+   ID "6A435EB5BA226E94"
+   coords -7.414 0.023 11.971
+   angles 0 -57.842 0
+  }
+  GenericEntity : "{24F9FA667DE0B56E}Prefabs/Props/Military/Camps/BoxMRE_01.et" {
+   ID "6A435EB5BA225CA8"
+   coords -3.782 2.069 7.536
+  }
+  GenericEntity : "{2B1D0128ED660BE9}Prefabs/Props/Crates/BoxWooden_01.et" {
+   ID "6A435EB5BA226EF8"
+   coords 12.956 0.023 0.874
+  }
+  GenericEntity : "{31A8E00E47A1AA25}Prefabs/Props/Remains/SkeletonRemains/SkeletonRemains_01_V2.et" {
+   ID "6A435EB5BA22535A"
+   coords -11.596 3.232 11.741
+   angles 0 148.925 0
+  }
+  GenericEntity : "{33B2DFDCD0EBA3DB}Prefabs/Items/Equipment/Kits/RepairKit_01/RepairKit_01_wrench.et" {
+   ID "6A435EB5BA225C9F"
+   coords 12.892 1.042 5.635
+   angles 0 48.023 0
+  }
+  GenericEntity : "{3AEDDB9D34C1DE3B}Prefabs/Props/Military/Furniture/AnimationProp_ChairMilitary_US_01.et" {
+   ID "6A4338ABA6E55C67"
+   coords 8.018 0.023 6.213
+   angles 0 95.552 0
+  }
+  GenericEntity : "{3B880FF4DEAE544C}Prefabs/Props/Military/Posters/PosterSingle_USSR_A1_soldier.et" {
+   ID "6A435EB5BA225CEC"
+   coords 13.477 2.22 6.248
+   angles 0 -89.985 0
+  }
+  GenericEntity : "{3D1D82C62D2ECC0D}Prefabs/Props/Military/Posters/Poster_UncleSam_01.et" {
+   ID "6A435EB5BA225316"
+   coords 5.494 1.196 12.925
+   angles 19.052 -149.544 0
+  }
+  GenericEntity : "{3DBE841160EBB22A}Prefabs/MP/Campaign/Bases/CampaignVehicleDepotEntity.et" {
+   ID "E8B3A9A26F4D1C78"
+   coords 0 -0.05 8
+   angles 0 180 0
+  }
+  GameEntity : "{40BA5347716E1E1C}Prefabs/Props/Military/Misc/GroundCrew_01_Trolley/GroundCrew_01_Trolley_base.et" {
+   ID "6A435EB5BA225CCC"
+   coords 6.953 0.012 5.535
+  }
+  $grp GenericEntity : "{47C44913D72B5AE3}Prefabs/Props/Military/Misc/GroundCrew_01_Trolley/Parts/GroundCrew_01_Trolley_holders_grey.et" {
+   {
+    ID "6A435EB5BA225C69"
+    coords 12.879 1.04 5.113
+   }
+   {
+    ID "6A435EB5BA225C93"
+    coords 12.882 1.046 4.56
+   }
+  }
+  GenericEntity : "{50A752B7D5E679A2}Prefabs/Props/Industrial/Repair/GasWelder_01.et" {
+   ID "E8B3A9A26F4D1C83"
+   coords -3.9 0 6.1
+   angles 0 105 0
+  }
+  GameEntity : "{50E6A3845C9F20FD}Prefabs/Props/Military/Camps/LanternMilitary_US_01.et" {
+   ID "6A435EB5BA225C8D"
+   coords 12.854 1.029 6.169
+  }
+  GenericEntity : "{58485E7EA60D0F2F}PrefabsEditable/Auto/Structures/Signs/Military/E_Sign_MaterialDepot_US_01.et" {
+   ID "6A435EB5BA225307"
+   coords -12.251 3.232 12.955
+   angles 0 127.177 0
+  }
+  $grp GenericEntity : "{5D31850B326BA246}Prefabs/Props/Industrial/AirCompressor_01/AirCompressor_01.et" {
+   {
+    ID "6A435EB5BA226EC4"
+    coords 11.672 0.012 10.161
+    angles 0 -8.969 0
+   }
+   {
+    ID "E8B3A9A26F4D1C82"
+    coords 8.8 0 5.1
+    angles 0 -70 0
+   }
+  }
+  $grp GenericEntity : "{65FBBAE477AD3969}Prefabs/Structures/BuildingParts/Doors/DoorSet_Garage_E_02_EXT.et" {
+   {
+    ID "6A4435769F697C2B"
+    coords -3.311 0.023 -1.151
+   }
+   {
+    ID "6A4435769F697C37"
+    coords -9.832 0.023 -1.165
+   }
+   {
+    ID "6A4435769F697C5C"
+    coords 9.512 0.023 -1.176
+   }
+   {
+    ID "6A4435769F697C96"
+    coords 3.127 0.023 -1.163
+   }
+  }
+  GenericEntity : "{66C6CD1240D39509}Prefabs/Props/Industrial/ToolBox_02/ToolBox_02_base.et" {
+   ID "6A435EB5BA226EF2"
+   coords 13.147 1.034 5.871
+  }
+  GenericEntity : "{6A4338ABF0010001}Prefabs/UI/GRSA_VehiclePreviewAnchor.et" {
+   ID "6A4338ABF0010005"
+   coords 3.18 0.023 6.241
+   angles 0 180 0
+  }
+  GenericEntity : "{6A4338ABF0012001}Prefabs/UI/GRSA_VehicleStageVehicleMarker.et" {
+   ID "6A435EB5B7D38B76"
+   components {
+    DCO_VehicleStageVehicleMarkerComponent "{6A4338ABF0012003}" {
+     m_VehiclePrefab "{27E2E58E734A80EC}Prefabs/Vehicles/Wheeled/M998/M1025_MERDC.et"
+    }
+   }
+   coords -8.049 0.023 4.286
+   angles -0.017 -167.579 0
+  }
+  GenericEntity : "{6AF7D89FDEFDA604}Prefabs/Props/Military/Posters/PosterSingle_USSR_A1_gooner.et" {
+   ID "6A435EB5BA225CE2"
+   coords 13.482 2.604 5.572
+   angles 0 -90.091 0
+  }
+  $grp GenericEntity : "{7007B975BEC018D9}Prefabs/Props/Military/AmmoBoxes/AmmoBox_50cal_100rnd.et" {
+   {
+    ID "6A435EB10EA0700A"
+    coords -2.691 1.171 7.58
+    angles 0 75.465 0
+   }
+   {
+    ID "6A435EB10EA07029"
+    coords -2.689 0.961 7.688
+    angles 0 -45.19 0
+   }
+   {
+    ID "6A435EB10EA0703A"
+    coords -2.655 0.986 7.408
+    angles 0 0 0
+   }
+  }
+  $grp GenericEntity : "{7376D9FB3E343A9C}Prefabs/Structures/BuildingParts/Doors/DoorSet_Village_E_01_L_EXT_COV_B.et" {
+   {
+    ID "6A435EB18B0E119F"
+    coords 13.603 0.023 14.157
+    angles 0 90.023 0
+   }
+   {
+    ID "6A435EB18B0E11F9"
+    coords -4.799 0.023 16.5
+    angles 0 0.067 0
+   }
+  }
+  GenericEntity : "{7E5A4578657283E6}Prefabs/Props/Industrial/GasTank_02_red.et" {
+   ID "6A4338AB46535426"
+   coords 13.108 0.023 6.748
+  }
+  GenericEntity : "{7F59A8D992FBF5CA}Prefabs/Props/Military/MilitaryCrates/CrateStack_01/CrateStack_01_base.et" {
+   ID "6A435EB5BA226E89"
+   coords -8.502 0.023 14.051
+  }
+  GenericEntity : "{814C842990C8569A}Prefabs/Props/Civilian/StepladderWooden_01_Open.et" {
+   ID "6A435EB5BA226EAC"
+   coords 0.76 -0.028 15.292
+   angles 0 -35.69 0
+  }
+  $grp GenericEntity : "{82DDDA574CB4F0D9}Prefabs/Props/Industrial/BarrelFuel_01_Base.et" {
+   {
+    ID "6A4338AB46535449"
+    coords 7.985 0.023 3.564
+   }
+   {
+    ID "6A4338AB4653549D"
+    coords 8.638 0.023 4.002
+   }
+  }
+  GenericEntity : "{84B029EBE9BD61C8}Prefabs/Props/Industrial/Pallets/MarsBoxContainer_01.et" {
+   ID "6A435EB5BA226EBF"
+   coords 2.66 -0.02 15.321
+   angles 0 -178.673 0
+  }
+  GenericEntity : "{90A74133C1DC6226}Prefabs/Props/Industrial/Repair/EngineCrane_01.et" {
+   ID "E8B3A9A26F4D1C80"
+   coords -3.8 0 4.1
+   angles 0 78 0
+  }
+  GenericEntity : "{95D947E744336F78}Prefabs/Props/Industrial/Workbench_01.et" {
+   ID "6A4338AB4653542F"
+   coords 12.947 0.023 5.188
+   angles 0 -89.992 0
+  }
+  GenericEntity : "{98F0826907882AF8}Prefabs/Weapons/MachineGuns/M240/MG_M240_coax.et" {
+   ID "6A435EB5BA225C62"
+   coords 12.813 1.288 4.58
+  }
+  GenericEntity : "{A5E64994411BA6A0}Prefabs/Props/Civilian/Pen_01/Pen_01_base.et" {
+   ID "6A435EB5BA226F57"
+   coords -2.668 1.39 7.575
+   angles 0 47.346 0
+  }
+  GenericEntity : "{AA1E1DD1D69055EC}Prefabs/Props/Military/MilitaryCrates/CrateStack_01/CrateStack_01_green.et" {
+   ID "6A435EB5BA226E9E"
+   coords -8.108 0.023 12.511
+   angles 0 -39.753 0
+  }
+  $grp GenericEntity : "{AE0FFC699F429214}Prefabs/Props/Military/Camps/PalletAmmo_01_US.et" {
+   {
+    ID "6A435EB5BA225CB6"
+    coords 10.219 0.023 14.574
+    angles 0 -36.912 0
+   }
+   {
+    ID "6A435EB5BA226ECA"
+    coords 11.251 0.11 12.656
+    angles 0 -36.912 0
+   }
+  }
+  GenericEntity : "{B3283803059E2750}Prefabs/Props/Crates/CrateWooden_01_plain.et" {
+   ID "6A435EB5BA226EE4"
+   coords -8.583 0.023 8.831
+   angles 0 1.758 0
+  }
+  GenericEntity : "{B557358F8F64AE31}Prefabs/Props/Industrial/Repair/HydraulicCarJack_01.et" {
+   ID "E8B3A9A26F4D1C81"
+   coords 8.7 0 3.1
+   angles 0 -50 0
+  }
+  GenericEntity : "{BE7B5BAFE1A16A50}Prefabs/Props/Military/Fortification/BarbedTape_Coil.et" {
+   ID "6A435EB5BA226EB6"
+   coords -8.651 0.023 15.47
+  }
+  $grp GenericEntity : "{C40714A42EA1BD4F}Prefabs/Props/Military/Misc/GroundCrew_01_Trolley/Parts/GroundCrew_01_Trolley_holders_base.et" {
+   {
+    ID "6A435EB5BA225CAF"
+    coords 6.5 0.023 7.168
+   }
+   {
+    ID "6A435EB5BA225CD8"
+    coords 6.506 0.023 7.418
+   }
+  }
+  $grp GenericEntity : "{C76C3AF337109066}Prefabs/Props/Crates/CardboardBoxStack_01.et" {
+   {
+    ID "6A435EB10EA07064"
+    coords 12.891 0.023 7.478
+    angles 0 -159.343 0
+   }
+   {
+    ID "6A435EB5BA226EED"
+    coords -8.365 0.023 10.518
+    angles 0 32.113 0
+   }
+  }
+  GenericEntity : "{C94927591FBC6B54}Prefabs/Props/Industrial/BenchDrill_01_set.et" {
+   ID "6A4338AB46535459"
+   coords 12.851 0.023 -0.001
+  }
+  GenericEntity : "{D74AF3B338ED494C}Prefabs/Props/Industrial/Lathe_01.et" {
+   ID "6A435EB5BA226EA4"
+   coords -2.137 0.162 15.756
+   angles 0 179.336 0
+  }
+  GenericEntity : "{DB4F61D5F37432F7}Prefabs/Props/Military/Camps/PalletFuel_01.et" {
+   ID "6A435EB5BA225CBE"
+   coords 8.837 0.032 14.617
+  }
+  GenericEntity : "{E139195E3A6231D9}Prefabs/Props/Signs/Industrial/SignIndustrial_30x20_1_NoSmoking.et" {
+   ID "6A435EB5BA226F79"
+   coords -3.868 1.394 7.018
+   angles 0 -170.796 0
+  }
+  GenericEntity : "{F401D58CD490C872}Prefabs/Props/Civilian/BeerBottle_01_slava.et" {
+   ID "6A435EB5BA226F48"
+   coords -2.348 0.986 7.337
+  }
+  Building : "{FA6DE318CF32058F}Prefabs/Structures/BuildingParts/Windows/Win_Garage_E/win_garage_e_02_4400x1100_0_B_base.et" {
+   ID "6A4435760F6CF063"
+   coords 3.09 4.217 16.637
+  }
+ }
+}

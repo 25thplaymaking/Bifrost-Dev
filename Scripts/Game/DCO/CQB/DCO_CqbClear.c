@@ -1,13 +1,33 @@
+class DCO_CqbClearSettings
+{
+	protected static ref DCO_CqbClearSettings s_Instance;
+
+	bool m_bDebug;
+	bool m_bDebugCqbClear;
+	float m_fCqbClearRadius = 80.0;
+	float m_fCqbNodeDwellSec = 3.0;
+	float m_fCqbClearCheckSec = 2.0;
+	float m_fCqbApproachTimeoutSec = 30.0;
+	float m_fCqbPerceptionBoost = 2.0;
+
+	static DCO_CqbClearSettings Get()
+	{
+		if (!s_Instance)
+			s_Instance = new DCO_CqbClearSettings();
+		return s_Instance;
+	}
+}
+
 // Directed CQB building clear.
 modded class SCR_AIGroupUtilityComponent
 {
-	protected bool				m_bDCO_IsCqbClearer;	// Preserves waypoint-driven CQB state for compatible group controls.
 	protected EDCO_CqbState		m_eDCO_CqbState = EDCO_CqbState.IDLE;
 	protected ref DCO_CqbJob	m_DCO_CqbJob;
 	protected float				m_fDCO_LastCqbClearTime = -1;
 	protected bool				m_bDCO_CqbOwnsMove = false;
 	protected ref array<ref Shape>	m_aDCO_CqbDebugShapes;
 	protected ref array<ref Shape>	m_aDCO_CqbHighlightShapes;
+	protected ref array<IEntity> m_aDCO_CqbBuildings;
 
 	protected static const float DCO_CQB_CELL_ARRIVE_M = 1.5;
 	protected static const float DCO_CQB_COMPLETED_NEAR_M = 2.25;
@@ -35,17 +55,16 @@ modded class SCR_AIGroupUtilityComponent
 	protected static const float DCO_CQB_DWELL_NEAR_M = 3.0;
 	protected static const float DCO_CQB_DWELL_FORCE_MS = 45000.0;	// quiet-sector watchdog: resolve a DWELL nobody can physically reach.
 	protected static const int DCO_CQB_MAX_RECOVERY_PASSES = 5;
+	protected static const float DCO_CQB_MIN_BUILDING_HEIGHT_M = 2.2;
+	protected static const float DCO_CQB_MIN_BUILDING_SPAN_M = 3.0;
+	protected static const float DCO_CQB_MIN_BUILDING_VOLUME_M3 = 25.0;
 
-// Keeps CQB logs useful by gating flow diagnostics behind debug while always reporting completion and failures.
+	// Keeps detailed CQB flow diagnostics behind the debug setting.
 	protected void DCO_CqbLog(string msg)
 	{
-		if (DCO_MoraleSettings.Get().m_bDebugCqbClear)
+		if (DCO_CqbClearSettings.Get().m_bDebugCqbClear)
 			Print(msg, LogLevel.NORMAL);
 	}
-
-// Preserves attribute compatibility by exposing the existing role and per-group settings.
-	bool DCO_IsCqbClearer() { return m_bDCO_IsCqbClearer; }
-	void DCO_SetCqbClearer(bool enable) { m_bDCO_IsCqbClearer = enable; }
 
 	// True while this state machine owns group movement, so the reactive CQB push yields.
 	bool DCO_CqbIsClearingActive()
@@ -59,7 +78,7 @@ modded class SCR_AIGroupUtilityComponent
 		return DCO_WaypointIntentUtil.IsCqbDirected(this);
 	}
 
-	protected bool DCO_CqbApplies(DCO_MoraleSettings cfg)
+	protected bool DCO_CqbApplies(DCO_CqbClearSettings cfg)
 	{
 		if (!DCO_CqbDirected())
 			return false;
@@ -75,7 +94,7 @@ modded class SCR_AIGroupUtilityComponent
 		if (!Replication.IsServer())
 			return;
 
-		DCO_MoraleSettings cfg = DCO_MoraleSettings.Get();
+		DCO_CqbClearSettings cfg = DCO_CqbClearSettings.Get();
 		if (!DCO_CqbApplies(cfg))
 		{
 			DCO_CqbAbort();
@@ -136,7 +155,61 @@ modded class SCR_AIGroupUtilityComponent
 		return pf;
 	}
 
-	protected void DCO_CqbSelect(BaseWorld world, IEntity leader, vector lead, DCO_MoraleSettings cfg, float now)
+	protected IEntity DCO_CqbFindBuildingNear(BaseWorld world, vector pos, float radius)
+	{
+		m_aDCO_CqbBuildings = {};
+		world.QueryEntitiesBySphere(pos, radius, DCO_CqbCollectBuilding);
+
+		IEntity bestContain;
+		float bestContainVolume;
+		IEntity bestNear;
+		float bestNearSq = radius * radius + 1;
+		foreach (IEntity building : m_aDCO_CqbBuildings)
+		{
+			if (!building)
+				continue;
+			vector minimum;
+			vector maximum;
+			building.GetBounds(minimum, maximum);
+			float sizeX = Math.AbsFloat(maximum[0] - minimum[0]);
+			float sizeY = Math.AbsFloat(maximum[1] - minimum[1]);
+			float sizeZ = Math.AbsFloat(maximum[2] - minimum[2]);
+			float volume = sizeX * sizeY * sizeZ;
+			if (sizeY < DCO_CQB_MIN_BUILDING_HEIGHT_M || Math.Max(sizeX, sizeZ) < DCO_CQB_MIN_BUILDING_SPAN_M
+				|| volume < DCO_CQB_MIN_BUILDING_VOLUME_M3)
+				continue;
+
+			vector local = building.CoordToLocal(pos);
+			bool contains = local[0] >= minimum[0] - 0.5 && local[0] <= maximum[0] + 0.5
+				&& local[2] >= minimum[2] - 0.5 && local[2] <= maximum[2] + 0.5
+				&& local[1] >= minimum[1] - 2.0 && local[1] <= maximum[1] + 2.0;
+			if (contains && volume > bestContainVolume)
+			{
+				bestContain = building;
+				bestContainVolume = volume;
+			}
+			float distanceSq = vector.DistanceSq(building.GetOrigin(), pos);
+			if (distanceSq < bestNearSq)
+			{
+				bestNearSq = distanceSq;
+				bestNear = building;
+			}
+		}
+		if (bestContain)
+			return bestContain;
+		return bestNear;
+	}
+
+	protected bool DCO_CqbCollectBuilding(IEntity entity)
+	{
+		if (!entity)
+			return true;
+		if (Building.Cast(entity) || entity.FindComponent(SCR_DestructibleBuildingComponent))
+			m_aDCO_CqbBuildings.Insert(entity);
+		return true;
+	}
+
+	protected void DCO_CqbSelect(BaseWorld world, IEntity leader, vector lead, DCO_CqbClearSettings cfg, float now)
 	{
 		vector wpPos = DCO_WaypointIntentUtil.GetIntentPos(this);
 		IEntity building = DCO_CqbFindBuildingNear(world, wpPos, cfg.m_fCqbClearRadius);
@@ -145,13 +218,14 @@ modded class SCR_AIGroupUtilityComponent
 			int collected = 0;
 			if (m_aDCO_CqbBuildings)
 				collected = m_aDCO_CqbBuildings.Count();
-			Print(string.Format("[DCO-WPI] CQB select: NO building within %1m of %2 (sphere query collected %3) - completing",
+			Print(string.Format("[DCO-GM] CQB clear failed: no building within %1m of waypoint %2 (candidates=%3)",
 				cfg.m_fCqbClearRadius, wpPos, collected), LogLevel.WARNING);
 			DCO_WaypointIntentUtil.Complete(this);
 			m_DCO_CqbJob = null;
 			m_eDCO_CqbState = EDCO_CqbState.IDLE;
 			return;
 		}
+		Print(string.Format("[DCO-GM] CQB clear engaged: group=%1 waypoint=%2 building=%3", m_Owner, wpPos, building.GetOrigin()), LogLevel.NORMAL);
 
 		DCO_CqbRegistry.Get().Claim(building, m_Owner);
 		m_DCO_CqbJob = new DCO_CqbJob();
@@ -190,7 +264,7 @@ modded class SCR_AIGroupUtilityComponent
 	}
 
 	// SURVEY: wait for the navmesh tiles, then build the sector plan, cache it, and immediately issue the first sector.
-	protected void DCO_CqbSurvey(IEntity leader, vector lead, DCO_MoraleSettings cfg, float now)
+	protected void DCO_CqbSurvey(IEntity leader, vector lead, DCO_CqbClearSettings cfg, float now)
 	{
 		if (!m_DCO_CqbJob || !m_DCO_CqbJob.m_Building)
 		{
@@ -251,7 +325,7 @@ modded class SCR_AIGroupUtilityComponent
 	{
 		if (!m_DCO_CqbJob || !m_DCO_CqbJob.m_Building)
 			return;
-		Print(string.Format("[DCO-WPI] CQB: %1 at building %2 - no reachable interior to clear; completing marker",
+		Print(string.Format("[DCO-GM] CQB clear failed: %1 at building %2",
 			reason, m_DCO_CqbJob.m_Building.GetOrigin()), LogLevel.WARNING);
 		DCO_CqbSetPerception(1.0);
 		DCO_CqbRegistry.Get().Release(m_DCO_CqbJob.m_Building);
@@ -348,7 +422,7 @@ modded class SCR_AIGroupUtilityComponent
 			m_Mailbox.RequestBroadcast(msg, agent);
 	}
 
-	// CQB is a deliberate combat movement state: stand unless an explicit GM stance lock says otherwise, and keep the weapon raised.
+	// CQB is a deliberate combat movement state: stand and keep the weapon raised.
 	protected void DCO_CqbReadyMember(AIAgent agent)
 	{
 		if (!agent)
@@ -356,11 +430,13 @@ modded class SCR_AIGroupUtilityComponent
 		IEntity entity = agent.GetControlledEntity();
 		if (!entity || DCO_PlayerUtil.IsPlayer(entity))
 			return;
-		DCO_StanceUtil.TrySetStance(entity, ECharacterStance.STAND, 750.0);
 		SCR_CharacterControllerComponent controller = SCR_CharacterControllerComponent.Cast(
 			entity.FindComponent(SCR_CharacterControllerComponent));
 		if (controller)
+		{
+			SCR_AIStanceHandling.SetStance(controller, ECharacterStance.STAND);
 			controller.SetWeaponRaised(true);
+		}
 	}
 
 	protected bool DCO_CqbHasLiveContact()
@@ -406,7 +482,7 @@ modded class SCR_AIGroupUtilityComponent
 					continue;
 				IEntity entity = agent.GetControlledEntity();
 				SCR_AICombatComponent combat = SCR_AICombatComponent.Cast(entity.FindComponent(SCR_AICombatComponent));
-				if (!combat || combat.DCO_GetUnitOverride())
+				if (!combat)
 					continue;
 				combat.SetPerceptionFactor(factor);
 			}
@@ -544,7 +620,7 @@ modded class SCR_AIGroupUtilityComponent
 		// No free cell: the member holds as in-room cover; smart looks pick him up.
 	}
 
-	protected bool DCO_CqbIssueSector(BaseWorld world, int sectorIdx, DCO_MoraleSettings cfg, float now)
+	protected bool DCO_CqbIssueSector(BaseWorld world, int sectorIdx, DCO_CqbClearSettings cfg, float now)
 	{
 		DCO_CqbPlan plan = m_DCO_CqbJob.m_Plan;
 		DCO_CqbSector sector = plan.m_aSectors[sectorIdx];
@@ -680,7 +756,7 @@ modded class SCR_AIGroupUtilityComponent
 	}
 
 	// One member's cell leg: progress, arrival, stall -> door assist -> one retry -> skip.
-	protected void DCO_CqbUpdateCell(BaseWorld world, DCO_CqbSector sector, int cellIdx, DCO_MoraleSettings cfg, float now)
+	protected void DCO_CqbUpdateCell(BaseWorld world, DCO_CqbSector sector, int cellIdx, DCO_CqbClearSettings cfg, float now)
 	{
 		DCO_CqbPlan plan = m_DCO_CqbJob.m_Plan;
 		DCO_CqbCell cell = plan.m_aCells[cellIdx];
@@ -758,7 +834,7 @@ modded class SCR_AIGroupUtilityComponent
 		}
 	}
 
-	protected void DCO_CqbSmartLooks(DCO_CqbSector sector, DCO_MoraleSettings cfg, float now)
+	protected void DCO_CqbSmartLooks(DCO_CqbSector sector, DCO_CqbClearSettings cfg, float now)
 	{
 		DCO_CqbPlan plan = m_DCO_CqbJob.m_Plan;
 		float duration = cfg.m_fCqbClearCheckSec + 0.35;
@@ -823,7 +899,7 @@ modded class SCR_AIGroupUtilityComponent
 		sector.m_iScanStep++;
 	}
 
-	protected void DCO_CqbUpdateSector(BaseWorld world, DCO_MoraleSettings cfg, float now)
+	protected void DCO_CqbUpdateSector(BaseWorld world, DCO_CqbClearSettings cfg, float now)
 	{
 		DCO_CqbPlan plan = m_DCO_CqbJob.m_Plan;
 		DCO_CqbSector sector = DCO_CqbActiveSector();
@@ -872,7 +948,7 @@ modded class SCR_AIGroupUtilityComponent
 			DCO_CqbUpdateDwell(cfg, now, plan, sector, sectorIdx, sectorThreat);
 	}
 
-	protected void DCO_CqbUpdateStack(BaseWorld world, DCO_MoraleSettings cfg, float now,
+	protected void DCO_CqbUpdateStack(BaseWorld world, DCO_CqbClearSettings cfg, float now,
 		DCO_CqbPlan plan, DCO_CqbSector sector, int sectorIdx)
 		{
 			foreach (AIAgent stacked : m_DCO_CqbJob.m_aActiveEntry)
@@ -918,7 +994,7 @@ modded class SCR_AIGroupUtilityComponent
 			return;
 		}
 
-	protected void DCO_CqbUpdateFlow(BaseWorld world, DCO_MoraleSettings cfg, float now,
+	protected void DCO_CqbUpdateFlow(BaseWorld world, DCO_CqbClearSettings cfg, float now,
 		DCO_CqbPlan plan, DCO_CqbSector sector, int sectorIdx, bool sectorThreat)
 		{
 			vector portalPos = vector.Zero;
@@ -1048,7 +1124,7 @@ modded class SCR_AIGroupUtilityComponent
 			return;
 		}
 
-	protected void DCO_CqbUpdateDwell(DCO_MoraleSettings cfg, float now,
+	protected void DCO_CqbUpdateDwell(DCO_CqbClearSettings cfg, float now,
 		DCO_CqbPlan plan, DCO_CqbSector sector, int sectorIdx, bool sectorThreat)
 		{
 			if (sectorThreat)
@@ -1119,7 +1195,7 @@ modded class SCR_AIGroupUtilityComponent
 		}
 
 	// CLEAR: keep the boost asserted, drive the active sector, and issue the next one only when nothing is active.
-	protected void DCO_CqbClearStep(BaseWorld world, IEntity leader, DCO_MoraleSettings cfg, float now)
+	protected void DCO_CqbClearStep(BaseWorld world, IEntity leader, DCO_CqbClearSettings cfg, float now)
 	{
 		if (!m_DCO_CqbJob || !m_DCO_CqbJob.m_Building || !m_DCO_CqbJob.m_Plan
 			|| m_DCO_CqbJob.m_Plan.m_aSectors.IsEmpty())
@@ -1153,7 +1229,7 @@ modded class SCR_AIGroupUtilityComponent
 	}
 
 	// All sectors are resolved.
-	protected void DCO_CqbFinishCoverage(IEntity leader, DCO_MoraleSettings cfg, float now)
+	protected void DCO_CqbFinishCoverage(IEntity leader, DCO_CqbClearSettings cfg, float now)
 	{
 		DCO_CqbPlan plan = m_DCO_CqbJob.m_Plan;
 		vector threatPos;
@@ -1209,13 +1285,11 @@ modded class SCR_AIGroupUtilityComponent
 		}
 
 		IEntity building = m_DCO_CqbJob.m_Building;
-		Print(string.Format("[DCO-WPI] CQB: building CLEAR - total coverage %1 pct, %2 unreachable cell(s), %3 recovery pass(es); completing marker",
-			DCO_CqbCoveragePercent(), m_DCO_CqbJob.m_iSkipped, m_DCO_CqbJob.m_iRecoveryPasses), LogLevel.NORMAL);
+		Print(string.Format("[DCO-GM] CQB clear complete: building=%1 coverage=%2 pct unreachable=%3 recoveryPasses=%4",
+			building.GetOrigin(), DCO_CqbCoveragePercent(), m_DCO_CqbJob.m_iSkipped, m_DCO_CqbJob.m_iRecoveryPasses), LogLevel.NORMAL);
 		DCO_CqbReportClear();
 		DCO_CqbSetPerception(1.0);
 		DCO_CqbRegistry.Get().MarkCleared(building);
-		if (cfg.m_bDebug)
-			DCO_Debug.LogGroup("CQBCLEAR", leader, string.Format("cleared building at %1", building.GetOrigin()));
 		DCO_WaypointIntentUtil.Complete(this);
 		m_DCO_CqbJob = null;
 		m_eDCO_CqbState = EDCO_CqbState.IDLE;

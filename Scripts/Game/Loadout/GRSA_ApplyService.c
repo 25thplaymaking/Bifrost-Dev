@@ -346,9 +346,10 @@ class GRSA_ApplyService
 	//------------------------------------------------------------------------------------------------
 	//! Pair-aware top-up: container-routed entries top up against what that container already holds,
 	//! automatic entries net against whatever existing stock the routed entries did not claim, so a
-	//! re-applied kit never duplicates loose items.
+	//! re-applied kit never duplicates loose items. Surplus loose cargo is removed before top-up.
 	protected static void ApplyExtras(notnull GameEntity character, notnull GRSA_KitFile kit, notnull InventoryStorageManagerComponent storageManager, GRSA_ApplyGate gate, notnull GRSA_ApplyStats stats)
 	{
+		PruneExtras(character, kit, storageManager, stats);
 		if (kit.m_aExtras.IsEmpty())
 			return;
 
@@ -398,6 +399,72 @@ class GRSA_ApplyService
 	}
 
 	//------------------------------------------------------------------------------------------------
+	protected static void PruneExtras(notnull GameEntity character, notnull GRSA_KitFile kit, notnull InventoryStorageManagerComponent storageManager, notnull GRSA_ApplyStats stats)
+	{
+		map<string, int> routedRemaining = new map<string, int>();
+		map<ResourceName, int> automaticRemaining = new map<ResourceName, int>();
+		foreach (GRSA_KitExtra extra : kit.m_aExtras)
+		{
+			if (extra.m_iCount <= 0)
+				continue;
+
+			if (extra.m_Container.IsEmpty())
+			{
+				int automaticCount = 0;
+				automaticRemaining.Find(extra.m_Prefab, automaticCount);
+				automaticRemaining.Set(extra.m_Prefab, automaticCount + extra.m_iCount);
+				continue;
+			}
+
+			string pairKey = extra.m_Prefab + "|" + extra.m_Container;
+			int routedCount = 0;
+			routedRemaining.Find(pairKey, routedCount);
+			routedRemaining.Set(pairKey, routedCount + extra.m_iCount);
+		}
+
+		array<IEntity> items = {};
+		array<ResourceName> prefabs = {};
+		array<ResourceName> containers = {};
+		GRSA_KitCapture.CollectExtraEntities(character, items, prefabs, containers);
+		foreach (int i, IEntity item : items)
+		{
+			ResourceName prefabName = prefabs[i];
+			ResourceName containerPrefab = containers[i];
+			bool keep = false;
+			if (!containerPrefab.IsEmpty())
+			{
+				string pairKey = prefabName + "|" + containerPrefab;
+				int routedCount = 0;
+				routedRemaining.Find(pairKey, routedCount);
+				if (routedCount > 0)
+				{
+					routedRemaining.Set(pairKey, routedCount - 1);
+					keep = true;
+				}
+			}
+
+			if (!keep)
+			{
+				int automaticCount = 0;
+				automaticRemaining.Find(prefabName, automaticCount);
+				if (automaticCount > 0)
+				{
+					automaticRemaining.Set(prefabName, automaticCount - 1);
+					keep = true;
+				}
+			}
+
+			if (keep)
+				continue;
+
+			if (storageManager.TryDeleteItem(item))
+				stats.m_iApplied++;
+			else
+				stats.RecordSkip(prefabName);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	protected static void SpawnExtraCount(notnull GameEntity character, notnull InventoryStorageManagerComponent storageManager, GRSA_ApplyGate gate, notnull GRSA_ApplyStats stats, notnull GRSA_KitExtra extra, int spawnCount)
 	{
 		for (int n = 0; n < spawnCount; ++n)
@@ -416,10 +483,17 @@ class GRSA_ApplyService
 			}
 
 			bool spawned = false;
-			BaseInventoryStorageComponent targetStorage = FindContainerStorage(character, extra.m_Container);
-			if (targetStorage)
-				spawned = storageManager.TrySpawnPrefabToStorage(extra.m_Prefab, targetStorage, -1, EStoragePurpose.PURPOSE_DEPOSIT);
-			if (!spawned)
+			array<BaseInventoryStorageComponent> targetStorages = {};
+			FindContainerStorages(character, extra.m_Container, targetStorages);
+			foreach (BaseInventoryStorageComponent targetStorage : targetStorages)
+			{
+				if (storageManager.TrySpawnPrefabToStorage(extra.m_Prefab, targetStorage, -1, EStoragePurpose.PURPOSE_DEPOSIT))
+				{
+					spawned = true;
+					break;
+				}
+			}
+			if (!spawned && extra.m_Container.IsEmpty())
 				spawned = storageManager.TrySpawnPrefabToStorage(extra.m_Prefab, purpose: EStoragePurpose.PURPOSE_DEPOSIT);
 
 			if (spawned)
@@ -430,15 +504,16 @@ class GRSA_ApplyService
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Worn container matching the requested prefab, so targeted extras land where the player chose.
-	protected static BaseInventoryStorageComponent FindContainerStorage(notnull GameEntity character, ResourceName containerPrefab)
+	//! Cargo stores beneath the requested worn prefab, in their authored order.
+	protected static void FindContainerStorages(notnull GameEntity character, ResourceName containerPrefab, notnull array<BaseInventoryStorageComponent> outStorages)
 	{
+		outStorages.Clear();
 		if (containerPrefab.IsEmpty())
-			return null;
+			return;
 
 		EquipedLoadoutStorageComponent loadoutStorage = EquipedLoadoutStorageComponent.Cast(character.FindComponent(EquipedLoadoutStorageComponent));
 		if (!loadoutStorage)
-			return null;
+			return;
 
 		int slotsCount = loadoutStorage.GetSlotsCount();
 		for (int i = 0; i < slotsCount; ++i)
@@ -451,9 +526,9 @@ class GRSA_ApplyService
 			if (!worn || SCR_ResourceNameUtils.GetPrefabName(worn) != containerPrefab)
 				continue;
 
-			return SCR_UniversalInventoryStorageComponent.Cast(worn.FindComponent(SCR_UniversalInventoryStorageComponent));
+			GRSA_ItemIntel.CollectContainerStorages(worn, outStorages);
+			return;
 		}
-		return null;
 	}
 
 	//------------------------------------------------------------------------------------------------

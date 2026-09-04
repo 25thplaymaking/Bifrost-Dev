@@ -50,6 +50,17 @@ ButtonWidgetClass {
        Color 0.851 0.537 0.169 1
        style outline_1px
       }
+      PanelWidgetClass "{A003000000000060}" {
+       Name "CalloutBorder"
+       Slot OverlayWidgetSlot "{A003000000000061}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Is Visible" 0
+       "Ignore Cursor" 1
+       Color 0.851 0.537 0.169 0.7
+       style outline_1px
+      }
       ImageWidgetClass "{A00300000000000B}" {
        Name "SelectStripe"
        Slot OverlayWidgetSlot "{A00300000000000C}" {
@@ -67,7 +78,7 @@ ButtonWidgetClass {
         VerticalAlign 3
        }
        {
-        SizeLayoutWidgetClass "{A003000000000020}" {
+	        SizeLayoutWidgetClass "{A003000000000020}" {
          Name "ThumbSize"
          Slot LayoutSlot "{A003000000000021}" {
           VerticalAlign 1
@@ -75,23 +86,33 @@ ButtonWidgetClass {
          }
          AllowWidthOverride 1
           WidthOverride 60
-         {
-          ItemPreviewWidgetClass "{A003000000000022}" {
-           Name "RowThumb"
-           Slot LayoutSlot "{A003000000000023}" {
-            HorizontalAlign 3
-            VerticalAlign 3
-           }
-           "Use Engine Scale" 0
-           xscale 1
-           yscale 1
-           Filter Bilinear
-           Format LDR
-           "Use clear color" 1
-           "Clear Color" 0 0 0 0
-           "Blend mode" Blend
-          }
-         }
+	         {
+	          OverlayWidgetClass "{A003000000000070}" {
+	           Name "ThumbOverlay"
+	           Slot LayoutSlot "{A003000000000071}" { HorizontalAlign 3 VerticalAlign 3 }
+	           {
+	            ItemPreviewWidgetClass "{A003000000000022}" {
+	             Name "RowThumb"
+	             Slot OverlayWidgetSlot "{A003000000000023}" { HorizontalAlign 3 VerticalAlign 3 }
+	             "Use Engine Scale" 0
+	             xscale 1
+	             yscale 1
+	             Filter Bilinear
+	             Format LDR
+	             "Use clear color" 1
+	             "Clear Color" 0 0 0 0
+	            }
+	            ImageWidgetClass "{A003000000000072}" {
+	             Name "RowIcon"
+	             Slot OverlayWidgetSlot "{A003000000000073}" { HorizontalAlign 1 VerticalAlign 1 }
+	             "Is Visible" 0
+	             "Ignore Cursor" 1
+	             Color 0.88 0.91 0.94 1
+	             Size 34 34
+	            }
+	           }
+	          }
+	         }
         }
         OverlayWidgetClass "{A003000000000057}" {
          Name "NameClip"
@@ -171,6 +192,58 @@ ButtonWidgetClass {
           }
          }
         }
+        SizeLayoutWidgetClass "{A003000000000062}" {
+         Name "RowContextHintSize"
+         Slot LayoutSlot "{A003000000000063}" {
+          VerticalAlign 1
+          Padding 0 0 8 0
+         }
+         "Is Visible" 0
+         AllowWidthOverride 1
+         WidthOverride 36
+         {
+          ButtonWidgetClass "{A003000000000064}" {
+           Name "RowContextHint"
+           Slot LayoutSlot "{A003000000000065}" {
+            HorizontalAlign 3
+            VerticalAlign 1
+           }
+           "Ignore Cursor" 1
+           "no focus" 1
+           style blank
+           components {
+            SCR_InputButtonComponent "{A003000000000066}" {
+             m_sActionName "MapContextualMenu"
+             m_iHeightInPixel 26
+             m_bDisableClickSound 1
+             m_sButtonWidgetName "InputButtonDisplayRoot"
+             m_sHorizontalLayoutWidget "HorizontalLayout0"
+            }
+           }
+           {
+            HorizontalLayoutWidgetClass "{A003000000000067}" {
+             Name "HorizontalLayout0"
+             Slot ButtonWidgetSlot "{A003000000000068}" {
+              HorizontalAlign 1
+              VerticalAlign 1
+             }
+             {
+              SizeLayoutWidgetClass "{A003000000000069}" : "{B7C8B633428B153D}UI/layouts/WidgetLibrary/Buttons/WLib_InputButtonDisplay.layout" {
+               Name "InputButtonDisplayRoot"
+               Slot LayoutSlot "{A00300000000006A}" {
+                VerticalAlign 1
+               }
+               components {
+                SCR_InputButtonDisplay "{A00300000000006B}" {
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
        }
       }
       SizeLayoutWidgetClass "{A003000000000030}" {
@@ -178,7 +251,7 @@ ButtonWidgetClass {
        Slot OverlayWidgetSlot "{A003000000000031}" {
         HorizontalAlign 2
         VerticalAlign 1
-        Padding 0 0 84 0
+	        Padding 0 0 74 0
        }
        "Is Visible" 0
        AllowHeightOverride 1
@@ -285,23 +358,38 @@ ButtonWidgetClass {
               VerticalAlign 3
              }
              AllowWidthOverride 1
-             WidthOverride 34
-             {
-              TextWidgetClass "{A003000000000048}" {
-               Name "QtyValue"
-               Slot LayoutSlot "{A003000000000049}" {
-                HorizontalAlign 1
-                VerticalAlign 1
-               }
-               Color 0.88 0.91 0.94 1
-               Text "1"
-               "Font Size" 14
-               "Min Font Size" 12
-               FontProperties FontProperties "{A00300000000004A}" {
-                Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
-               }
-              }
-             }
+	             WidthOverride 52
+	             {
+	              OverlayWidgetClass "{A003000000000074}" {
+	               Name "QtyValueOverlay"
+	               Slot LayoutSlot "{A003000000000075}" { HorizontalAlign 3 VerticalAlign 3 }
+	               {
+	                TextWidgetClass "{A003000000000048}" {
+	                 Name "QtyValue"
+	                 Slot OverlayWidgetSlot "{A003000000000049}" { HorizontalAlign 1 VerticalAlign 1 }
+	                 Color 0.88 0.91 0.94 1
+	                 Text "1"
+	                 "Font Size" 14
+	                 "Min Font Size" 12
+	                 FontProperties FontProperties "{A00300000000004A}" {
+	                  Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+	                 }
+	                }
+	                EditBoxWidgetClass "{A003000000000076}" {
+	                 Name "QtyEntry"
+	                 Slot OverlayWidgetSlot "{A003000000000077}" { HorizontalAlign 3 VerticalAlign 3 Padding 4 0 4 0 }
+	                 "Is Visible" 0
+	                 Color 0.88 0.91 0.94 1
+	                 "Font Size" 14
+	                 "Use placeholder text" 0
+	                 style blank
+	                 FontProperties FontProperties "{A003000000000079}" {
+	                  Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+	                 }
+	                }
+	               }
+	              }
+	             }
             }
             ButtonWidgetClass "{A00300000000004B}" {
              Name "QtyPlus"

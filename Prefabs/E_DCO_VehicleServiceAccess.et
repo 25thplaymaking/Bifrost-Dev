@@ -1,0 +1,60 @@
+GenericEntity {
+ ID "A4E68C3D90B17F26"
+ components {
+  DCO_VehicleServiceAccessComponent "{A4E68C3D90B17F27}" {
+  }
+  SCR_EditableEntityVisibilityChildComponent "{A4E68C3D90B17F28}" {
+   m_State 96
+  }
+  SCR_EditableSystemComponent "{A4E68C3D90B17F29}" {
+   m_EntityType GENERIC
+   m_UIInfo SCR_EditableEntityUIInfo "{A4E68C3D90B17F2A}" {
+    Name "Vehicle Service Access Point"
+    Description "Move this marker within the service circle to change where players open Vehicle Service."
+    Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
+    m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
+    m_EntityBudgetCost {
+     SCR_EntityBudgetValue "{A4E68C3D90B17F2B}" {
+      m_BudgetType SYSTEMS
+     }
+    }
+   }
+   m_bAutoRegister ALWAYS
+   m_bStatic 1
+   m_Flags 67
+  }
+  ActionsManagerComponent "{A4E68C3D90B17F2C}" {
+   Enabled 1
+   ActionContexts {
+    UserActionContext "{A4E68C3D90B17F2D}" {
+     UIInfo SCR_ActionContextUIInfo "{A4E68C3D90B17F2E}" : "{7CD00B230573CAC6}Prefabs/Vehicles/Core/Configs/Actions/ActionUIInfo/SCR_ActionContextUIInfo.conf" {
+     }
+     ContextName "default"
+     Position PointInfo "{A4E68C3D90B17F2F}" {
+     }
+     Radius 1.5
+    }
+   }
+   additionalActions {
+    DCO_OpenVehicleServiceAction "{A4E68C3D90B17F30}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{A4E68C3D90B17F31}" {
+      Name "Open Vehicle Service"
+      Description "Inspect, service, rearm, and load stopped vehicles parked inside the service circle."
+     }
+    }
+   }
+  }
+  RplComponent "{A4E68C3D90B17F32}" {
+   Enabled 1
+   "Rpl State Override" Runtime
+   Streamable Disabled
+  }
+  Hierarchy "{A4E68C3D90B17F33}" {
+   Enabled 1
+  }
+ }
+ Flags 0x403 0
+}

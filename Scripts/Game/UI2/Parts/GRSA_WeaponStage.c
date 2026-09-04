@@ -44,6 +44,7 @@ class GRSA_WeaponStage
 	protected IEntity m_Pooled;
 	protected IEntity m_SlotSource;
 	protected ResourceName m_WeaponPrefab;
+	protected int m_iDraftClothingSlot = -1;
 	protected string m_sSyncedSignature;
 	protected vector m_vRestCenter;
 	protected vector m_vRestCenterLocal;
@@ -167,6 +168,13 @@ class GRSA_WeaponStage
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Tracks a clothing draft slot while that item is staged on the bench.
+	void SetDraftClothingSlot(int clothingSlot)
+	{
+		m_iDraftClothingSlot = clothingSlot;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Applies the draft's attachment set: mutate the pooled source (the render clone strips its
 	//! storages), then re-clone so the stage shows the new build. Returns the fresh slot source
 	//! for the callout rebuild, null when nothing is staged. pins runs parallel to attachments
@@ -238,6 +246,20 @@ class GRSA_WeaponStage
 		GRSA_DraftService service = GRSA_DraftService.Get();
 		if (!service || !service.m_Draft)
 			return;
+
+		if (m_iDraftClothingSlot >= 0)
+		{
+			GRSA_KitClothing clothing = service.m_Draft.FindClothing(m_iDraftClothingSlot);
+			if (!clothing || clothing.m_Prefab != m_WeaponPrefab)
+			{
+				ClearStage();
+				return;
+			}
+
+			clothing.EnsurePins();
+			SyncAttachments(clothing.m_aAttachments, clothing.m_aAttachmentSlots);
+			return;
+		}
 
 		GRSA_KitWeapon match;
 		foreach (GRSA_KitWeapon weapon : service.m_Draft.m_aWeapons)
@@ -514,6 +536,7 @@ class GRSA_WeaponStage
 			m_Core.m_OnSubjectSpin.Remove(OnSubjectSpin);
 
 		ReleaseWeapon();
+		m_iDraftClothingSlot = -1;
 		m_Core = null;
 	}
 }

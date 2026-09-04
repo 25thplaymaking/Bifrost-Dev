@@ -7,79 +7,6 @@ SCR_EditorModeEntity : "{E56F54E533ACE527}Prefabs/Editor/Modes/EditorModeBase.et
     }
     SCR_EditorAttributeList "{0B5E100D00000001}" {
      m_aAttributes {
-      DCO_GroupOverrideEditorAttribute "{0B5E100BA0000001}" {
-       m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100BA0000002}" {
-        Name "Override Base Settings (this group)"
-        Description "When ON, this group uses its own skill/perception/reaction/fire-rate below instead of the global DCO Base Settings. AI only."
-       }
-       m_bIsServer 1
-       m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
-       m_Layout "{D0F3CE0C63A5AEBB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Checkbox.layout"
-      }
-      DCO_GroupSkillEditorAttribute "{0B5E100BA0000003}" {
-       m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100BA0000004}" {
-        Name "Group: AI Skill"
-        Description "0-100. Used only when Override Base Settings (this group) is ON."
-       }
-       m_bIsServer 1
-       m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
-       m_Layout "{680E4985E42137FB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Slider.layout"
-       m_baseValues SCR_EditorAttributeBaseValues "{0B5E100BA0000005}" {
-        m_sSliderValueFormating "%1"
-        m_fMin 0
-        m_fMax 100
-        m_fStep 1
-        m_iDecimals 0
-       }
-      }
-      DCO_GroupPerceptionEditorAttribute "{0B5E100BA0000006}" {
-       m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100BA0000007}" {
-        Name "Group: Perception"
-        Description "0-100. Used only when Override Base Settings (this group) is ON."
-       }
-       m_bIsServer 1
-       m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
-       m_Layout "{680E4985E42137FB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Slider.layout"
-       m_baseValues SCR_EditorAttributeBaseValues "{0B5E100BA0000008}" {
-        m_sSliderValueFormating "%1"
-        m_fMin 0
-        m_fMax 100
-        m_fStep 1
-        m_iDecimals 0
-       }
-      }
-      DCO_GroupReactionEditorAttribute "{0B5E100BA0000009}" {
-       m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100BA000000A}" {
-        Name "Group: Reaction Speed"
-        Description "0-100. Used only when Override Base Settings (this group) is ON."
-       }
-       m_bIsServer 1
-       m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
-       m_Layout "{680E4985E42137FB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Slider.layout"
-       m_baseValues SCR_EditorAttributeBaseValues "{0B5E100BA000000B}" {
-        m_sSliderValueFormating "%1"
-        m_fMin 0
-        m_fMax 100
-        m_fStep 1
-        m_iDecimals 0
-       }
-      }
-      DCO_GroupFireRateEditorAttribute "{0B5E100BA000000C}" {
-       m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100BA000000D}" {
-        Name "Group: Fire-rate"
-        Description "0-100. Used only when Override Base Settings (this group) is ON."
-       }
-       m_bIsServer 1
-       m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
-       m_Layout "{680E4985E42137FB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Slider.layout"
-       m_baseValues SCR_EditorAttributeBaseValues "{0B5E100BA000000E}" {
-        m_sSliderValueFormating "%1"
-        m_fMin 0
-        m_fMax 100
-        m_fStep 1
-        m_iDecimals 0
-       }
-      }
       DCO_FpsMonitorEditorAttribute "{0B5E100EA0000001}" {
        m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100EA0000002}" {
         Name "Player FPS Monitor"
@@ -95,79 +22,6 @@ SCR_EditorModeEntity : "{E56F54E533ACE527}Prefabs/Editor/Modes/EditorModeBase.et
        }
        m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
        m_Layout "{D0F3CE0C63A5AEBB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Checkbox.layout"
-      }
-      DCO_UnitOverrideEditorAttribute "{0B5E100EA0000005}" {
-       m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100EA0000006}" {
-        Name "Override Base Settings (this unit)"
-        Description "When ON, this AI character uses its own skill/perception/reaction/fire-rate below - outranking the global Base Settings AND its group's override. Applies immediately. AI characters only."
-       }
-       m_bIsServer 1
-       m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
-       m_Layout "{D0F3CE0C63A5AEBB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Checkbox.layout"
-      }
-      DCO_UnitSkillEditorAttribute "{0B5E100EA0000007}" {
-       m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100EA0000008}" {
-        Name "Unit: AI Skill"
-        Description "0-100. Used only when Override Base Settings (this unit) is ON."
-       }
-       m_bIsServer 1
-       m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
-       m_Layout "{680E4985E42137FB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Slider.layout"
-       m_baseValues SCR_EditorAttributeBaseValues "{0B5E100EA0000009}" {
-        m_sSliderValueFormating "%1"
-        m_fMin 0
-        m_fMax 100
-        m_fStep 1
-        m_iDecimals 0
-       }
-      }
-      DCO_UnitPerceptionEditorAttribute "{0B5E100EA000000A}" {
-       m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100EA000000B}" {
-        Name "Unit: Perception"
-        Description "0-100. Used only when Override Base Settings (this unit) is ON."
-       }
-       m_bIsServer 1
-       m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
-       m_Layout "{680E4985E42137FB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Slider.layout"
-       m_baseValues SCR_EditorAttributeBaseValues "{0B5E100EA000000C}" {
-        m_sSliderValueFormating "%1"
-        m_fMin 0
-        m_fMax 100
-        m_fStep 1
-        m_iDecimals 0
-       }
-      }
-      DCO_UnitReactionEditorAttribute "{0B5E100EA000000D}" {
-       m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100EA000000E}" {
-        Name "Unit: Reaction Speed"
-        Description "0-100. Used only when Override Base Settings (this unit) is ON. Takes effect at the group's next contact (requires Enable Base Settings for the contact-hold mechanism)."
-       }
-       m_bIsServer 1
-       m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
-       m_Layout "{680E4985E42137FB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Slider.layout"
-       m_baseValues SCR_EditorAttributeBaseValues "{0B5E100EA000000F}" {
-        m_sSliderValueFormating "%1"
-        m_fMin 0
-        m_fMax 100
-        m_fStep 1
-        m_iDecimals 0
-       }
-      }
-      DCO_UnitFireRateEditorAttribute "{0B5E100EA0000010}" {
-       m_UIInfo SCR_EditorAttributeUIInfo "{0B5E100EA0000011}" {
-        Name "Unit: Fire-rate"
-        Description "0-100. Used only when Override Base Settings (this unit) is ON."
-       }
-       m_bIsServer 1
-       m_CategoryConfig "{5DC0DC0C0F1ACE02}Configs/Editor/AttributeCategories/DCO_QRF.conf"
-       m_Layout "{680E4985E42137FB}UI/layouts/Editor/Attributes/AttributePrefabs/AttributePrefab_Slider.layout"
-       m_baseValues SCR_EditorAttributeBaseValues "{0B5E100EA0000012}" {
-        m_sSliderValueFormating "%1"
-        m_fMin 0
-        m_fMax 100
-        m_fStep 1
-        m_iDecimals 0
-       }
       }
      }
     }
@@ -205,17 +59,10 @@ SCR_EditorModeEntity : "{E56F54E533ACE527}Prefabs/Editor/Modes/EditorModeBase.et
        }
        m_iOrder 203
       }
-      DCO_CqbClearContextAction "{0B5E100CA0000009}" {
-       m_Info SCR_UIInfo "{0B5E100CA000000A}" {
-        Name "DCO: CQB Clear"
-        Description "Designate the selected AI group(s) as DCO CQB clearers (methodical building / room clearing)."
-       }
-       m_iOrder 204
-      }
       DCO_QrfStageContextAction "{0B5E100CA000000B}" {
        m_Info SCR_UIInfo "{0B5E100CA000000C}" {
-        Name "DCO: QRF Stage"
-        Description "Designate the selected AI group(s) as DCO QRF responders (react to nearby contacts)."
+        Name "DCO: Enable QRF Response"
+        Description "Designate the selected AI group(s) as QRF responders from their current position. Use Bifrost Tactics to place a rally area."
        }
        m_iOrder 205
       }

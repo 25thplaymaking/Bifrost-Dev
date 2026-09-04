@@ -8,6 +8,9 @@ class DCO_GMAIOverlaySample
 	float m_fTraceFraction;
 	vector m_vTargetPosition;
 	string m_sTargetEntityId;
+	bool m_bHasDestination;
+	vector m_vDestination;
+	string m_sActionIcon;
 	ref array<vector> m_aPath = {};
 }
 
@@ -48,7 +51,7 @@ class DCO_GMAIOverlaySnapshot
 		return s_State;
 	}
 
-	static void BuildChunks(vector cameraPosition, int requestMask, string selectedIds, int serial, notnull array<string> chunks)
+	static void BuildChunks(vector cameraPosition, int requestMask, string selectedIds, string pathIds, string groupPathIds, int serial, notnull array<string> chunks)
 	{
 		chunks.Clear();
 		SCR_EditableEntityCore core = SCR_EditableEntityCore.Cast(SCR_EditableEntityCore.GetInstance(SCR_EditableEntityCore));
@@ -76,9 +79,12 @@ class DCO_GMAIOverlaySnapshot
 
 				string entityId = rpl.Id().AsString();
 				bool selected = selectedIds.Contains("|" + entityId + "|");
-				if ((pass == 0) != selected)
+				bool pathSelected = pathIds.Contains("|" + entityId + "|");
+				bool groupPathSelected = groupPathIds.Contains("|" + entityId + "|");
+				if ((pass == 0) != (selected || pathSelected))
 					continue;
-				bool wantsPath = (requestMask & PATH_ALL) != 0 || (selected && (requestMask & PATH_SELECTED) != 0);
+				bool wantsPath = ((requestMask & PATH_ALL) != 0 && DCO_GMAwarenessCue.IsGroupRouteOwner(owner))
+					|| (pathSelected && (requestMask & PATH_SELECTED) != 0);
 				bool wantsVision = (requestMask & VISION_ALL) != 0 || (selected && (requestMask & VISION_SELECTED) != 0);
 				if (!wantsPath && !wantsVision)
 					continue;
@@ -86,10 +92,14 @@ class DCO_GMAIOverlaySnapshot
 				DCO_GMAIOverlaySample sample = new DCO_GMAIOverlaySample();
 				sample.m_sEntityId = entityId;
 				if (wantsPath)
-					ReadPath(owner, sample.m_aPath);
+				{
+					bool groupRoute = ((requestMask & PATH_ALL) != 0 && DCO_GMAwarenessCue.IsGroupRouteOwner(owner)) || groupPathSelected;
+					ReadPath(owner, sample.m_aPath, groupRoute);
+					ReadOrder(owner, sample);
+				}
 				if (wantsVision)
 					ReadTarget(owner, sample);
-				if (sample.m_aPath.Count() < 2 && !sample.m_bHasTarget)
+				if (sample.m_aPath.Count() < 2 && !sample.m_bHasDestination && !sample.m_bHasTarget)
 					continue;
 
 				pending.Insert(sample);
@@ -123,20 +133,47 @@ class DCO_GMAIOverlaySnapshot
 		}
 	}
 
-	protected static void ReadPath(IEntity owner, notnull array<vector> output)
+	protected static void ReadPath(IEntity owner, notnull array<vector> output, bool groupRoute)
 	{
-		AIBaseMovementComponent movement = DCO_GMAwarenessCue.GetMovement(owner);
+		AIBaseMovementComponent movement;
+		if (groupRoute)
+			movement = DCO_GMAwarenessCue.GetGroupMovement(owner);
+		if (!movement)
+			movement = DCO_GMAwarenessCue.GetMovement(owner);
 		if (!movement)
 			return;
 		array<vector> source = {};
 		movement.GetCurrentPath(source);
-		if (source.Count() < 2)
+		if (source.IsEmpty())
 			return;
-		int copyCount = Math.Min(source.Count(), MAX_PATH_POINTS);
+		output.Insert(owner.GetOrigin());
+		bool reverse = vector.DistanceSq(source[source.Count() - 1], owner.GetOrigin()) < vector.DistanceSq(source[0], owner.GetOrigin());
+		int copyCount = Math.Min(source.Count(), MAX_PATH_POINTS - 1);
 		for (int i = 0; i < copyCount; i++)
-			output.Insert(source[i]);
-		if (source.Count() > MAX_PATH_POINTS)
-			output[MAX_PATH_POINTS - 1] = source[source.Count() - 1];
+		{
+			int sourceIndex = i;
+			if (reverse)
+				sourceIndex = source.Count() - 1 - i;
+			output.Insert(source[sourceIndex]);
+		}
+		if (source.Count() >= MAX_PATH_POINTS)
+		{
+			if (reverse)
+				output[MAX_PATH_POINTS - 1] = source[0];
+			else
+				output[MAX_PATH_POINTS - 1] = source[source.Count() - 1];
+		}
+	}
+
+	protected static void ReadOrder(IEntity owner, DCO_GMAIOverlaySample sample)
+	{
+		AIWaypoint waypoint;
+		ResourceName icon;
+		if (!DCO_GMAwarenessCue.GetCurrentOrder(owner, waypoint, icon))
+			return;
+		sample.m_bHasDestination = true;
+		sample.m_vDestination = waypoint.GetOrigin();
+		sample.m_sActionIcon = icon;
 	}
 
 	protected static void ReadTarget(IEntity owner, DCO_GMAIOverlaySample sample)
@@ -238,10 +275,13 @@ class DCO_GMAwarenessCue
 	static const float CULL_MARKERS = 1600.0;
 	static const int CAP = 140;
 	static const int MARKER_POOL = 64;
+	static const int DESTINATION_MARKER_POOL = 48;
 	static const int PATH_LEG_CAP = 24;
 	static const float MOVE_MIN = 0.06;
 	static const float MARKER_HEAD_H = 2.15;
 	static const float MARKER_SIZE = 32.0;
+	static const float DESTINATION_MARKER_SIZE = 24.0;
+	static const float DESTINATION_MARKER_LIFT = 0.4;
 	static const float MARKER_GAP = 30.0;
 	static const int SNAPSHOT_REQUEST_MS = 250;
 	static const int SELECTION_REFRESH_MS = 100;
@@ -258,6 +298,7 @@ class DCO_GMAwarenessCue
 	static const int TARGET_MEMORY = 0xE6FF8B3D;
 	static const int MOVE_COLOR = 0xE63DEB72;
 	static const int DEST_COLOR = 0xFF7CFF9D;
+	static const ResourceName DEFAULT_ORDER_ICON = "{2006D8738EA93571}UI/Textures/Editor/Toolbar/Commanding/Toolbar_Commanding_Waypoint_Move.edds";
 
 	protected DCO_GMRenderManager m_Render;
 	protected SCR_EditableEntityCore m_Core;
@@ -271,13 +312,21 @@ class DCO_GMAwarenessCue
 	protected ref map<string, IEntity> m_EntityByRplId = new map<string, IEntity>();
 	protected ref array<ImageWidget> m_MarkerWidgets = {};
 	protected ref array<ResourceName> m_MarkerTextures = {};
+	protected ref array<ImageWidget> m_DestinationMarkerWidgets = {};
+	protected ref array<ResourceName> m_DestinationMarkerTextures = {};
 	protected ref set<int> m_UsedMarkerCells = new set<int>();
 	protected ref set<SCR_EditableEntityComponent> m_SelectedUnits = new set<SCR_EditableEntityComponent>();
+	protected ref set<SCR_EditableEntityComponent> m_SelectedPathUnits = new set<SCR_EditableEntityComponent>();
+	protected ref set<SCR_EditableEntityComponent> m_SelectedGroupPathUnits = new set<SCR_EditableEntityComponent>();
+	protected ref array<IEntity> m_CqbCueBuildings = {};
+	protected ref array<IEntity> m_CqbQueryBuildings = {};
 	protected int m_iLastRefreshAt;
 	protected int m_iLastSelectionRefreshAt;
 	protected int m_iLastSnapshotRequestAt;
 	protected int m_iLastVisibleMarkers = -1;
+	protected int m_iDestinationMarkerCount;
 	protected int m_iLastRenderAt;
+	protected int m_iLastCqbCueRefreshAt;
 
 	void Start(DCO_GMRenderManager render, Widget shellRoot)
 	{
@@ -303,8 +352,19 @@ class DCO_GMAwarenessCue
 		}
 		m_MarkerWidgets.Clear();
 		m_MarkerTextures.Clear();
+		foreach (ImageWidget destinationMarker : m_DestinationMarkerWidgets)
+		{
+			if (destinationMarker)
+				destinationMarker.RemoveFromHierarchy();
+		}
+		m_DestinationMarkerWidgets.Clear();
+		m_DestinationMarkerTextures.Clear();
 		m_UsedMarkerCells.Clear();
 		m_SelectedUnits.Clear();
+		m_SelectedPathUnits.Clear();
+		m_SelectedGroupPathUnits.Clear();
+		m_CqbCueBuildings.Clear();
+		m_CqbQueryBuildings.Clear();
 		m_Chars.Clear();
 		m_PrevPos.Clear();
 		m_CharIcons.Clear();
@@ -338,6 +398,17 @@ class DCO_GMAwarenessCue
 			m_MarkerWidgets.Insert(marker);
 			m_MarkerTextures.Insert(ResourceName.Empty);
 		}
+		for (int j = 0; j < DESTINATION_MARKER_POOL; j++)
+		{
+			ImageWidget destinationMarker = ImageWidget.Cast(workspace.CreateWidget(WidgetType.ImageWidgetTypeID, flags, Color.White, 0, m_wMarkerLayer));
+			if (!destinationMarker)
+				break;
+			FrameSlot.SetAlignment(destinationMarker, 0.5, 0.5);
+			FrameSlot.SetSize(destinationMarker, DESTINATION_MARKER_SIZE, DESTINATION_MARKER_SIZE);
+			destinationMarker.SetVisible(false);
+			m_DestinationMarkerWidgets.Insert(destinationMarker);
+			m_DestinationMarkerTextures.Insert(ResourceName.Empty);
+		}
 	}
 
 	protected void OnRender(DCO_GMRenderManager render)
@@ -346,13 +417,23 @@ class DCO_GMAwarenessCue
 			return;
 		RefreshIfNeeded();
 		RefreshSelectedUnitsIfNeeded();
+		m_iDestinationMarkerCount = 0;
 		UpdateMarkers();
+		if (DCO_GMTheme.Get().IsMasterHidden())
+		{
+			FinishDestinationMarkers();
+			return;
+		}
+		DrawCqbBuildingCues(render);
 		int now = System.GetTickCount();
 		float frameSeconds = Math.Clamp((now - m_iLastRenderAt) * 0.001, 0.01, 0.2);
 		m_iLastRenderAt = now;
 		DCO_GMOverlayState state = DCO_GMOverlayState.Get();
 		if (!state.m_bViewCones && !state.m_bMovement)
+		{
+			FinishDestinationMarkers();
 			return;
+		}
 
 		BaseWorld world = GetGame().GetWorld();
 		vector cameraPos;
@@ -373,8 +454,13 @@ class DCO_GMAwarenessCue
 			if (haveCamera && vector.DistanceSq(position, cameraPos) > CULL_CUES * CULL_CUES)
 				continue;
 
-			if (state.m_bMovement && IsInScope(editable, state.GetScope(DCO_GMOverlayState.OV_MOVEMENT)))
-				DrawMovement(render, world, owner, position, m_PrevPos[i], frameSeconds);
+			int movementScope = state.GetScope(DCO_GMOverlayState.OV_MOVEMENT);
+			if (state.m_bMovement && IsMovementInScope(editable, movementScope))
+			{
+				bool groupRoute = movementScope == EDCO_OverlayScope.ALL || m_SelectedGroupPathUnits.Contains(editable);
+				DrawMovement(render, world, owner, position, m_PrevPos[i], frameSeconds, groupRoute);
+				DrawDestinationMarker(world, owner);
+			}
 			m_PrevPos[i] = position;
 
 			if (state.m_bViewCones && IsInScope(editable, state.GetScope(DCO_GMOverlayState.OV_CONES)))
@@ -387,6 +473,98 @@ class DCO_GMAwarenessCue
 				DrawPerceivedTarget(render, owner, eye);
 			}
 		}
+		FinishDestinationMarkers();
+	}
+
+	protected void DrawCqbBuildingCues(DCO_GMRenderManager render)
+	{
+		int now = System.GetTickCount();
+		if (now - m_iLastCqbCueRefreshAt >= 500)
+		{
+			RefreshCqbBuildingCues();
+			m_iLastCqbCueRefreshAt = now;
+		}
+		foreach (IEntity building : m_CqbCueBuildings)
+		{
+			if (!building)
+				continue;
+			vector minimum;
+			vector maximum;
+			building.GetBounds(minimum, maximum);
+			render.DrawLocalBox(building, minimum, maximum, 0xFFFFFFFF);
+		}
+	}
+
+	protected void RefreshCqbBuildingCues()
+	{
+		m_CqbCueBuildings.Clear();
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return;
+		set<AIWaypoint> seenWaypoints = new set<AIWaypoint>();
+		foreach (SCR_EditableEntityComponent editable : m_Chars)
+		{
+			if (!editable || !editable.GetOwner() || !IsGroupRouteOwner(editable.GetOwner()))
+				continue;
+			AIWaypoint waypoint;
+			ResourceName icon;
+			if (!GetCurrentOrder(editable.GetOwner(), waypoint, icon) || seenWaypoints.Contains(waypoint))
+				continue;
+			DCO_IntentWaypoint intent = DCO_IntentWaypoint.Cast(waypoint);
+			if (!intent || intent.DCO_GetIntentType() != EDCO_WaypointIntentType.CQB_CLEAR)
+				continue;
+			seenWaypoints.Insert(waypoint);
+			IEntity building = FindCqbCueBuilding(world, waypoint.GetOrigin(), DCO_CqbClearSettings.Get().m_fCqbClearRadius);
+			if (building && m_CqbCueBuildings.Find(building) < 0)
+				m_CqbCueBuildings.Insert(building);
+		}
+	}
+
+	protected IEntity FindCqbCueBuilding(BaseWorld world, vector position, float radius)
+	{
+		m_CqbQueryBuildings.Clear();
+		world.QueryEntitiesBySphere(position, radius, CollectCqbCueBuilding);
+		IEntity contained;
+		float containedVolume;
+		IEntity nearest;
+		float nearestSq = radius * radius + 1;
+		foreach (IEntity building : m_CqbQueryBuildings)
+		{
+			vector minimum;
+			vector maximum;
+			building.GetBounds(minimum, maximum);
+			float sizeX = Math.AbsFloat(maximum[0] - minimum[0]);
+			float sizeY = Math.AbsFloat(maximum[1] - minimum[1]);
+			float sizeZ = Math.AbsFloat(maximum[2] - minimum[2]);
+			float volume = sizeX * sizeY * sizeZ;
+			if (sizeY < 2.2 || Math.Max(sizeX, sizeZ) < 3.0 || volume < 25.0)
+				continue;
+			vector local = building.CoordToLocal(position);
+			bool contains = local[0] >= minimum[0] - 0.5 && local[0] <= maximum[0] + 0.5
+				&& local[2] >= minimum[2] - 0.5 && local[2] <= maximum[2] + 0.5
+				&& local[1] >= minimum[1] - 2.0 && local[1] <= maximum[1] + 2.0;
+			if (contains && volume > containedVolume)
+			{
+				contained = building;
+				containedVolume = volume;
+			}
+			float distanceSq = vector.DistanceSq(building.GetOrigin(), position);
+			if (distanceSq < nearestSq)
+			{
+				nearest = building;
+				nearestSq = distanceSq;
+			}
+		}
+		if (contained)
+			return contained;
+		return nearest;
+	}
+
+	protected bool CollectCqbCueBuilding(IEntity entity)
+	{
+		if (entity && (Building.Cast(entity) || entity.FindComponent(SCR_DestructibleBuildingComponent)))
+			m_CqbQueryBuildings.Insert(entity);
+		return true;
 	}
 
 	protected void RequestAuthoritySnapshot(DCO_GMOverlayState state, vector cameraPosition, bool haveCamera)
@@ -423,15 +601,33 @@ class DCO_GMAwarenessCue
 			if (rpl && rpl.Id().IsValid())
 				selectedIds += rpl.Id().AsString() + "|";
 		}
+		string pathIds = "|";
+		foreach (SCR_EditableEntityComponent pathEditable : m_SelectedPathUnits)
+		{
+			if (!pathEditable || !pathEditable.GetOwner())
+				continue;
+			RplComponent pathRpl = RplComponent.Cast(pathEditable.GetOwner().FindComponent(RplComponent));
+			if (pathRpl && pathRpl.Id().IsValid())
+				pathIds += pathRpl.Id().AsString() + "|";
+		}
+		string groupPathIds = "|";
+		foreach (SCR_EditableEntityComponent groupPathEditable : m_SelectedGroupPathUnits)
+		{
+			if (!groupPathEditable || !groupPathEditable.GetOwner())
+				continue;
+			RplComponent groupPathRpl = RplComponent.Cast(groupPathEditable.GetOwner().FindComponent(RplComponent));
+			if (groupPathRpl && groupPathRpl.Id().IsValid())
+				groupPathIds += groupPathRpl.Id().AsString() + "|";
+		}
 		SCR_PlayerController pc = SCR_PlayerController.Cast(GetGame().GetPlayerController());
 		if (pc)
 		{
-			pc.DCO_RequestGMAIOverlay(cameraPosition, requestMask, selectedIds);
+			pc.DCO_RequestGMAIOverlay(cameraPosition, requestMask, selectedIds, pathIds, groupPathIds);
 			m_iLastSnapshotRequestAt = now;
 		}
 	}
 
-	// Expands selected groups to their member characters.
+	// Keeps all selected members for markers/cones and one leader per group for movement paths.
 	protected void RefreshSelectedUnitsIfNeeded()
 	{
 		int now = System.GetTickCount();
@@ -439,6 +635,8 @@ class DCO_GMAwarenessCue
 			return;
 		m_iLastSelectionRefreshAt = now;
 		m_SelectedUnits.Clear();
+		m_SelectedPathUnits.Clear();
+		m_SelectedGroupPathUnits.Clear();
 		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
 		SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
 		foreach (SCR_EditableEntityComponent editable : selected)
@@ -448,18 +646,55 @@ class DCO_GMAwarenessCue
 			if (editable.GetEntityType() == EEditableEntityType.CHARACTER)
 			{
 				m_SelectedUnits.Insert(editable);
+				m_SelectedPathUnits.Insert(editable);
 				continue;
 			}
 			if (editable.GetEntityType() != EEditableEntityType.GROUP)
 				continue;
+			SCR_EditableEntityComponent fallbackPathUnit;
+			bool pathUnitAdded;
+			SCR_AIGroup group = SCR_AIGroup.Cast(editable.GetOwner());
+			if (group && group.GetLeaderEntity())
+			{
+				SCR_EditableEntityComponent leader = SCR_EditableEntityComponent.GetEditableEntity(group.GetLeaderEntity());
+				if (leader)
+				{
+					m_SelectedPathUnits.Insert(leader);
+					m_SelectedGroupPathUnits.Insert(leader);
+					pathUnitAdded = true;
+				}
+			}
 			set<SCR_EditableEntityComponent> members = new set<SCR_EditableEntityComponent>();
 			editable.GetChildren(members, true);
 			foreach (SCR_EditableEntityComponent member : members)
 			{
 				if (member && member.GetEntityType() == EEditableEntityType.CHARACTER)
+				{
 					m_SelectedUnits.Insert(member);
+					if (!fallbackPathUnit)
+						fallbackPathUnit = member;
+				}
+			}
+			if (!pathUnitAdded && fallbackPathUnit)
+			{
+				m_SelectedPathUnits.Insert(fallbackPathUnit);
+				m_SelectedGroupPathUnits.Insert(fallbackPathUnit);
 			}
 		}
+	}
+
+	protected bool IsMovementInScope(SCR_EditableEntityComponent editable, int scope)
+	{
+		if (scope == EDCO_OverlayScope.ALL)
+			return IsGroupRouteUnit(editable);
+		return editable && m_SelectedPathUnits.Contains(editable);
+	}
+
+	protected bool IsGroupRouteUnit(SCR_EditableEntityComponent editable)
+	{
+		if (!editable || !editable.GetOwner())
+			return false;
+		return IsGroupRouteOwner(editable.GetOwner());
 	}
 
 	protected bool IsInScope(SCR_EditableEntityComponent editable, int scope)
@@ -524,7 +759,19 @@ class DCO_GMAwarenessCue
 				continue;
 			m_Chars.Insert(editable);
 			m_PrevPos.Insert(position);
-			m_CharIcons.Insert(DCO_App6Icons.ForEntity(editable));
+			ResourceName markerIcon = DCO_App6Icons.ForEntity(editable);
+			SCR_EditableGroupComponent editableGroup = SCR_EditableGroupComponent.Cast(editable.GetAIGroup());
+			if (editableGroup)
+			{
+				SCR_AIGroup group = SCR_AIGroup.Cast(editableGroup.GetOwner());
+				if (group && group.GetLeaderEntity() == owner)
+				{
+					ResourceName groupIcon = DCO_App6Icons.ForEntity(editableGroup);
+					if (!groupIcon.IsEmpty())
+						markerIcon = groupIcon;
+				}
+			}
+			m_CharIcons.Insert(markerIcon);
 			DCO_GMConeTraceCache coneTrace = new DCO_GMConeTraceCache();
 			coneTrace.m_iLastTraceAt = System.GetTickCount() - CONE_TRACE_MS + (m_Chars.Count() % 5) * 30;
 			m_ConeTraces.Insert(coneTrace);
@@ -547,6 +794,55 @@ class DCO_GMAwarenessCue
 		return agent.GetMovementComponent();
 	}
 
+	static SCR_AIGroup GetGroup(IEntity owner)
+	{
+		if (!owner)
+			return null;
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.GetEditableEntity(owner);
+		if (!editable)
+			return null;
+		SCR_EditableGroupComponent editableGroup = SCR_EditableGroupComponent.Cast(editable.GetAIGroup());
+		if (!editableGroup)
+			return null;
+		return SCR_AIGroup.Cast(editableGroup.GetOwner());
+	}
+
+	static bool IsGroupRouteOwner(IEntity owner)
+	{
+		SCR_AIGroup group = GetGroup(owner);
+		if (!group)
+			return true;
+		return group.GetLeaderEntity() == owner;
+	}
+
+	static AIBaseMovementComponent GetGroupMovement(IEntity owner)
+	{
+		SCR_AIGroup group = GetGroup(owner);
+		if (!group)
+			return null;
+		return group.GetMovementComponent();
+	}
+
+	static bool GetCurrentOrder(IEntity owner, out AIWaypoint waypoint, out ResourceName icon)
+	{
+		if (!owner)
+			return false;
+		SCR_AIGroup group = GetGroup(owner);
+		if (!group)
+			return false;
+		waypoint = group.GetCurrentWaypoint();
+		if (!waypoint)
+			return false;
+		SCR_EditableEntityComponent waypointEditable = SCR_EditableEntityComponent.GetEditableEntity(waypoint);
+		if (waypointEditable)
+		{
+			SCR_EditableEntityUIInfo info = SCR_EditableEntityUIInfo.Cast(waypointEditable.GetInfo());
+			if (info)
+				icon = info.GetIconPath();
+		}
+		return true;
+	}
+
 	static SCR_AICombatComponent GetCombat(IEntity owner)
 	{
 		SCR_AICombatComponent combat = SCR_AICombatComponent.Cast(owner.FindComponent(SCR_AICombatComponent));
@@ -564,12 +860,23 @@ class DCO_GMAwarenessCue
 		return SCR_AICombatComponent.Cast(agent.FindComponent(SCR_AICombatComponent));
 	}
 
-	protected void DrawMovement(DCO_GMRenderManager render, BaseWorld world, IEntity owner, vector current, vector previous, float frameSeconds)
+	protected void DrawMovement(DCO_GMRenderManager render, BaseWorld world, IEntity owner, vector current, vector previous, float frameSeconds, bool groupRoute)
 	{
-		AIBaseMovementComponent movement = GetMovement(owner);
+		AIBaseMovementComponent movement;
+		if (groupRoute)
+			movement = GetGroupMovement(owner);
+		if (!movement)
+			movement = GetMovement(owner);
 		array<vector> path = {};
 		if (movement)
 			movement.GetCurrentPath(path);
+		if (path.Count() == 1)
+		{
+			vector nextPoint = path[0];
+			path.Clear();
+			path.Insert(current);
+			path.Insert(nextPoint);
+		}
 		if (path.Count() < 2)
 		{
 			DCO_GMAIOverlaySample sample = DCO_GMAIOverlaySnapshot.Find(owner);
@@ -579,18 +886,59 @@ class DCO_GMAwarenessCue
 
 		if (path.Count() >= 2)
 		{
-			int last = Math.Min(path.Count() - 1, PATH_LEG_CAP);
+			vector destination;
+			bool hasDestination = GetDestination(owner, destination);
+			bool reverse = vector.DistanceSq(path[path.Count() - 1], current) < vector.DistanceSq(path[0], current);
+			int pointCount = Math.Min(path.Count(), PATH_LEG_CAP + 1);
 			vector from = GroundRoutePoint(world, current);
-			for (int i = 1; i <= last; i++)
+			int drawn;
+			for (int i = 0; i < pointCount; i++)
 			{
-				vector to = GroundRoutePoint(world, path[i]);
-				if (i == last)
+				int pathIndex = i;
+				if (reverse)
+					pathIndex = path.Count() - 1 - i;
+				if (i == pointCount - 1 && path.Count() > pointCount)
+				{
+					if (reverse)
+						pathIndex = 0;
+					else
+						pathIndex = path.Count() - 1;
+				}
+				vector to = GroundRoutePoint(world, path[pathIndex]);
+				if (vector.DistanceSq(from, to) < 0.04)
+					continue;
+				drawn++;
+				if (i == pointCount - 1 && !hasDestination)
 					render.DrawArrow(from, to, 0.24, DEST_COLOR);
 				else
 					render.DrawLine(from, to, MOVE_COLOR, 3.0);
 				from = to;
 			}
-			DrawRouteDestination(render, from);
+			if (hasDestination)
+			{
+				vector destinationGround = GroundRoutePoint(world, destination);
+				if (vector.DistanceSq(from, destinationGround) >= 0.04)
+				{
+					render.DrawArrow(from, destinationGround, 0.24, DEST_COLOR);
+					from = destinationGround;
+					drawn++;
+				}
+			}
+			if (drawn > 0)
+				DrawRouteDestination(render, from);
+			return;
+		}
+
+		vector orderedDestination;
+		if (GetDestination(owner, orderedDestination))
+		{
+			vector orderedFrom = GroundRoutePoint(world, current);
+			vector orderedTo = GroundRoutePoint(world, orderedDestination);
+			if (vector.DistanceSq(orderedFrom, orderedTo) >= 0.04)
+			{
+				render.DrawArrow(orderedFrom, orderedTo, 0.24, DEST_COLOR);
+				DrawRouteDestination(render, orderedTo);
+			}
 			return;
 		}
 
@@ -605,6 +953,73 @@ class DCO_GMAwarenessCue
 		vector ground = GroundRoutePoint(world, current);
 		vector projected = GroundRoutePoint(world, current + direction * length);
 		render.DrawArrow(ground, projected, 0.25, MOVE_COLOR);
+	}
+
+	protected void DrawDestinationMarker(BaseWorld world, IEntity owner)
+	{
+		if (!world || !owner || m_iDestinationMarkerCount >= m_DestinationMarkerWidgets.Count())
+			return;
+		ResourceName texture;
+		vector destination;
+		if (!GetDestination(owner, destination, texture))
+			return;
+		if (texture.IsEmpty())
+			texture = DEFAULT_ORDER_ICON;
+
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (!workspace)
+			return;
+		vector screen = workspace.ProjWorldToScreen(destination + Vector(0, DESTINATION_MARKER_LIFT, 0), world);
+		if (screen[2] < 0 || screen[0] < -DESTINATION_MARKER_SIZE || screen[1] < -DESTINATION_MARKER_SIZE
+			|| screen[0] > workspace.GetWidth() + DESTINATION_MARKER_SIZE || screen[1] > workspace.GetHeight() + DESTINATION_MARKER_SIZE)
+			return;
+
+		ImageWidget marker = m_DestinationMarkerWidgets[m_iDestinationMarkerCount];
+		if (m_DestinationMarkerTextures[m_iDestinationMarkerCount] != texture)
+		{
+			bool loaded = marker.LoadImageTexture(0, texture);
+			if (!loaded && texture != DEFAULT_ORDER_ICON)
+			{
+				texture = DEFAULT_ORDER_ICON;
+				loaded = marker.LoadImageTexture(0, texture);
+			}
+			if (!loaded)
+				return;
+			m_DestinationMarkerTextures[m_iDestinationMarkerCount] = texture;
+		}
+		FrameSlot.SetPos(marker, screen[0], screen[1]);
+		marker.SetOpacity(0.94);
+		marker.SetVisible(true);
+		m_iDestinationMarkerCount++;
+	}
+
+	protected bool GetDestination(IEntity owner, out vector destination)
+	{
+		ResourceName texture;
+		return GetDestination(owner, destination, texture);
+	}
+
+	protected bool GetDestination(IEntity owner, out vector destination, out ResourceName texture)
+	{
+		AIWaypoint waypoint;
+		if (GetCurrentOrder(owner, waypoint, texture))
+		{
+			destination = waypoint.GetOrigin();
+			return true;
+		}
+
+		DCO_GMAIOverlaySample sample = DCO_GMAIOverlaySnapshot.Find(owner);
+		if (!sample || !sample.m_bHasDestination)
+			return false;
+		destination = sample.m_vDestination;
+		texture = sample.m_sActionIcon;
+		return true;
+	}
+
+	protected void FinishDestinationMarkers()
+	{
+		for (int i = m_iDestinationMarkerCount; i < m_DestinationMarkerWidgets.Count(); i++)
+			m_DestinationMarkerWidgets[i].SetVisible(false);
 	}
 
 	protected vector GroundRoutePoint(BaseWorld world, vector position)
@@ -747,15 +1162,12 @@ class DCO_GMAwarenessCue
 		vector minimum;
 		vector maximum;
 		target.GetBounds(minimum, maximum);
-		vector origin = target.GetOrigin();
-		minimum = origin + minimum;
-		maximum = origin + maximum;
 		if (maximum[1] - minimum[1] < 0.2)
 		{
-			minimum = origin + Vector(-0.4, 0, -0.4);
-			maximum = origin + Vector(0.4, 1.9, 0.4);
+			minimum = Vector(-0.4, 0, -0.4);
+			maximum = Vector(0.4, 1.9, 0.4);
 		}
-		render.DrawBox(minimum, maximum, color);
+		render.DrawLocalBox(target, minimum, maximum, color);
 	}
 
 	protected void UpdateMarkers()

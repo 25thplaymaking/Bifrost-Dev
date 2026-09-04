@@ -81,15 +81,6 @@ class DCO_CancelAmbushContextAction : DCO_GroupContextActionBase
 }
 
 [BaseContainerProps()]
-class DCO_CqbClearContextAction : DCO_GroupContextActionBase
-{
-	override void DCO_ApplyToGroup(SCR_AIGroupUtilityComponent util)
-	{
-		util.DCO_SetCqbClearer(true);
-	}
-}
-
-[BaseContainerProps()]
 class DCO_QrfStageContextAction : DCO_GroupContextActionBase
 {
 	override void DCO_ApplyToGroup(SCR_AIGroupUtilityComponent util)

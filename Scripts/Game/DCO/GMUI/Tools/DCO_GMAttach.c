@@ -10,7 +10,7 @@ class DCO_GMAttachLink
 class DCO_GMAttachState
 {
 	ref array<ref DCO_GMAttachLink> m_Links = {};
-	ref array<ref Shape> m_HoverShapes = {};
+	IEntity m_HoverEntity;
 }
 
 class DCO_GMAttach
@@ -319,38 +319,21 @@ class DCO_GMAttach
 
 	static void UpdateHoverHighlight(IEntity child, vector ro, vector rd)
 	{
-		State().m_HoverShapes.Clear();
-		IEntity hover = RayPickEntity(child, ro, rd);
-		if (!hover)
-			return;
-		vector mins, maxs;
-		hover.GetBounds(mins, maxs);
-		array<vector> c = {};
-		c.Insert(Vector(mins[0], mins[1], mins[2]));
-		c.Insert(Vector(maxs[0], mins[1], mins[2]));
-		c.Insert(Vector(maxs[0], mins[1], maxs[2]));
-		c.Insert(Vector(mins[0], mins[1], maxs[2]));
-		c.Insert(Vector(mins[0], maxs[1], mins[2]));
-		c.Insert(Vector(maxs[0], maxs[1], mins[2]));
-		c.Insert(Vector(maxs[0], maxs[1], maxs[2]));
-		c.Insert(Vector(mins[0], maxs[1], maxs[2]));
-		for (int i = 0; i < 8; i++)
-			c[i] = hover.CoordToParent(c[i]);
-		ShapeFlags fl = ShapeFlags.VISIBLE | ShapeFlags.NOZBUFFER;
-		Edge(c, 0, 1, fl); Edge(c, 1, 2, fl); Edge(c, 2, 3, fl); Edge(c, 3, 0, fl);
-		Edge(c, 4, 5, fl); Edge(c, 5, 6, fl); Edge(c, 6, 7, fl); Edge(c, 7, 4, fl);
-		Edge(c, 0, 4, fl); Edge(c, 1, 5, fl); Edge(c, 2, 6, fl); Edge(c, 3, 7, fl);
+		State().m_HoverEntity = RayPickEntity(child, ro, rd);
 	}
 
-	protected static void Edge(array<vector> c, int a, int b, ShapeFlags fl)
+	static void DrawHoverHighlight(DCO_GMRenderManager render)
 	{
-		Shape s = Shape.Create(ShapeType.LINE, HOVER_COLOR, fl, c[a], c[b]);
-		if (s)
-			State().m_HoverShapes.Insert(s);
+		if (!render || !s_bArmed || !State().m_HoverEntity)
+			return;
+		vector minimum;
+		vector maximum;
+		State().m_HoverEntity.GetBounds(minimum, maximum);
+		render.DrawLocalBox(State().m_HoverEntity, minimum, maximum, HOVER_COLOR);
 	}
 
 	static void ClearHighlight()
 	{
-		State().m_HoverShapes.Clear();
+		State().m_HoverEntity = null;
 	}
 }

@@ -1,0 +1,26 @@
+GenericEntity : "{1D7174C97DF571DC}PrefabsEditable/SupportStationSystems/E_SupportStationSystem_Base.et" {
+ ID "5B2AD5B9801EB74E"
+ components {
+  DCO_VehicleServiceZoneComponent "{C6A1000000000001}" {
+  }
+  SCR_EditableDescriptorComponent "{5B2AD5BA907797AD}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{5B2AD5BA8B7D34AD}" {
+    Name "Bifrost Vehicle Service Bay"
+    Description "Park inside the circle and exit. Right-click the bay to move its access point, then use that marker to inspect, service, rearm, and edit cargo."
+    Icon "{03406DAD80009A4F}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_Repairing_Station.edds"
+    m_Image "{88CDC2FC3360A3C4}UI/Textures/EditorPreviews/Auto/Systems/Stations/E_Station_Repair.edds"
+    m_aAuthoredLabels {
+     ENTITYTYPE_SYSTEM TRAIT_REPAIRING TRAIT_REFUELING TRAIT_SERVICE TRAIT_VEHICLE_REARMING SERVICE_FUEL
+    }
+    m_bFullBackgroundAssetCard 0
+   }
+  }
+  SCR_ServicePointComponent "{5C8CAE44023804D5}" {
+   m_eType REPAIR_DEPOT
+   m_eBuildingLabel SERVICE_REPAIR
+  }
+  SCR_SupportStationAreaMeshComponent "{5B2AD5B869A9C26D}" {
+   m_fRadius 9
+  }
+ }
+}

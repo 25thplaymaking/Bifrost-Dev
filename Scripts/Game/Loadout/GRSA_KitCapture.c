@@ -46,6 +46,9 @@ class GRSA_KitCapture
 				continue;
 
 			kit.SetClothing(i, prefabName);
+			GRSA_KitClothing kitClothing = kit.FindClothing(i);
+			if (kitClothing)
+				CaptureAttachments(attachedEntity, kitClothing.m_aAttachments, kitClothing.m_aAttachmentSlots);
 		}
 	}
 
@@ -76,21 +79,51 @@ class GRSA_KitCapture
 			if (!kitWeapon)
 				continue;
 
-			WeaponAttachmentsStorageComponent attachmentsStorage = WeaponAttachmentsStorageComponent.Cast(attachedEntity.FindComponent(WeaponAttachmentsStorageComponent));
-			if (!attachmentsStorage)
+			CaptureAttachments(attachedEntity, kitWeapon.m_aAttachments, kitWeapon.m_aAttachmentSlots);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Captures the complete attachment subtree and preserves exact top-level hardpoints.
+	protected static void CaptureAttachments(notnull IEntity owner, notnull array<ResourceName> outAttachments, notnull array<int> outPins)
+	{
+		outAttachments.Clear();
+		outPins.Clear();
+
+		WeaponAttachmentsStorageComponent storage = WeaponAttachmentsStorageComponent.Cast(owner.FindComponent(WeaponAttachmentsStorageComponent));
+		if (!storage)
+		{
+			GRSA_ItemIntel.CollectSubtreeAttachments(owner, outAttachments);
+			for (int i = 0; i < outAttachments.Count(); ++i)
+				outPins.Insert(-1);
+			return;
+		}
+
+		int slotsCount = storage.GetSlotsCount();
+		for (int slotIdx = 0; slotIdx < slotsCount; ++slotIdx)
+		{
+			IEntity attachment = storage.Get(slotIdx);
+			if (!attachment)
 				continue;
 
-			int attachmentSlots = attachmentsStorage.GetSlotsCount();
-			for (int nSlot = 0; nSlot < attachmentSlots; ++nSlot)
-			{
-				IEntity attachment = attachmentsStorage.Get(nSlot);
-				if (!attachment)
-					continue;
+			ResourceName prefab = SCR_ResourceNameUtils.GetPrefabName(attachment);
+			if (prefab.IsEmpty())
+				continue;
 
-				ResourceName attachmentPrefab = SCR_ResourceNameUtils.GetPrefabName(attachment);
-				if (!attachmentPrefab.IsEmpty())
-					kitWeapon.m_aAttachments.Insert(attachmentPrefab);
-			}
+			outAttachments.Insert(prefab);
+			outPins.Insert(slotIdx);
+		}
+
+		for (int slotIdx = 0; slotIdx < slotsCount; ++slotIdx)
+		{
+			IEntity attachment = storage.Get(slotIdx);
+			if (!attachment)
+				continue;
+
+			int nestedStart = outAttachments.Count();
+			GRSA_ItemIntel.CollectSubtreeAttachments(attachment, outAttachments);
+			for (int nestedIdx = nestedStart; nestedIdx < outAttachments.Count(); ++nestedIdx)
+				outPins.Insert(-1);
 		}
 	}
 
@@ -100,12 +133,57 @@ class GRSA_KitCapture
 	//! character's own pockets land in the automatic bucket (empty container).
 	protected static void CaptureExtras(notnull GameEntity character, notnull GRSA_Kit kit)
 	{
+		map<string, int> counts = new map<string, int>();
+		map<string, ResourceName> pairPrefabs = new map<string, ResourceName>();
+		map<string, ResourceName> pairContainers = new map<string, ResourceName>();
+		array<IEntity> items = {};
+		array<ResourceName> prefabs = {};
+		array<ResourceName> containers = {};
+		CollectExtraEntities(character, items, prefabs, containers);
+		for (int i = 0; i < items.Count(); ++i)
+		{
+			ResourceName prefabName = prefabs[i];
+			ResourceName containerPrefab = containers[i];
+			string pairKey = prefabName + "|" + containerPrefab;
+			int current = 0;
+			counts.Find(pairKey, current);
+			counts.Set(pairKey, current + 1);
+			pairPrefabs.Set(pairKey, prefabName);
+			pairContainers.Set(pairKey, containerPrefab);
+		}
+
+		foreach (string pairKey, int count : counts)
+		{
+			kit.SetExtra(pairPrefabs.Get(pairKey), count, pairContainers.Get(pairKey));
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Enumerates only loose cargo that the kit can add or remove.
+	static void CollectExtraEntities(
+		notnull GameEntity character,
+		notnull array<IEntity> outItems,
+		notnull array<ResourceName> outPrefabs,
+		notnull array<ResourceName> outContainers)
+	{
+		outItems.Clear();
+		outPrefabs.Clear();
+		outContainers.Clear();
+
 		SCR_InventoryStorageManagerComponent storageManager = SCR_InventoryStorageManagerComponent.Cast(character.FindComponent(SCR_InventoryStorageManagerComponent));
 		if (!storageManager)
 			return;
 
 		set<IEntity> wornEntities = new set<IEntity>();
 		CollectSlotEntities(EquipedLoadoutStorageComponent.Cast(character.FindComponent(EquipedLoadoutStorageComponent)), wornEntities);
+		set<BaseInventoryStorageComponent> wornCargoStorages = new set<BaseInventoryStorageComponent>();
+		foreach (IEntity worn : wornEntities)
+		{
+			array<BaseInventoryStorageComponent> cargoStorages = {};
+			GRSA_ItemIntel.CollectContainerStorages(worn, cargoStorages);
+			foreach (BaseInventoryStorageComponent cargoStorage : cargoStorages)
+				wornCargoStorages.Insert(cargoStorage);
+		}
 
 		set<IEntity> equippedEntities = new set<IEntity>();
 		foreach (IEntity worn : wornEntities)
@@ -116,10 +194,6 @@ class GRSA_KitCapture
 
 		array<IEntity> items = {};
 		storageManager.GetItems(items);
-
-		map<string, int> counts = new map<string, int>();
-		map<string, ResourceName> pairPrefabs = new map<string, ResourceName>();
-		map<string, ResourceName> pairContainers = new map<string, ResourceName>();
 		foreach (IEntity item : items)
 		{
 			if (!item || equippedEntities.Contains(item))
@@ -137,27 +211,27 @@ class GRSA_KitCapture
 			if (prefabName.IsEmpty())
 				continue;
 
-			ResourceName containerPrefab = ResolveRootContainerPrefab(itemComponent, wornEntities);
+			bool insideCargo;
+			ResourceName containerPrefab = ResolveRootContainerPrefab(itemComponent, wornEntities, wornCargoStorages, insideCargo);
+			if (!containerPrefab.IsEmpty() && !insideCargo)
+				continue;
 
-			string pairKey = prefabName + "|" + containerPrefab;
-			int current = 0;
-			counts.Find(pairKey, current);
-			counts.Set(pairKey, current + 1);
-			pairPrefabs.Set(pairKey, prefabName);
-			pairContainers.Set(pairKey, containerPrefab);
-		}
-
-		foreach (string pairKey, int count : counts)
-		{
-			kit.SetExtra(pairPrefabs.Get(pairKey), count, pairContainers.Get(pairKey));
+			outItems.Insert(item);
+			outPrefabs.Insert(prefabName);
+			outContainers.Insert(containerPrefab);
 		}
 	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Walks the item's parent chain outward until it reaches a worn container (its prefab is the
 	//! attribution) or the character's own storage (empty = automatic bucket).
-	protected static ResourceName ResolveRootContainerPrefab(notnull InventoryItemComponent itemComponent, notnull set<IEntity> wornEntities)
+	protected static ResourceName ResolveRootContainerPrefab(
+		notnull InventoryItemComponent itemComponent,
+		notnull set<IEntity> wornEntities,
+		notnull set<BaseInventoryStorageComponent> wornCargoStorages,
+		out bool insideCargo)
 	{
+		insideCargo = false;
 		InventoryStorageSlot slot = itemComponent.GetParentSlot();
 		int depth = 0;
 		while (slot && depth < 6)
@@ -165,6 +239,8 @@ class GRSA_KitCapture
 			BaseInventoryStorageComponent storage = slot.GetStorage();
 			if (!storage)
 				break;
+			if (wornCargoStorages.Contains(storage))
+				insideCargo = true;
 
 			IEntity owner = storage.GetOwner();
 			if (!owner)
@@ -237,7 +313,11 @@ class GRSA_KitCapture
 
 		array<ResourceName> prefabs = {};
 		foreach (GRSA_KitClothing clothing : kit.m_aClothings)
+		{
 			prefabs.Insert(clothing.m_Prefab);
+			foreach (ResourceName attachment : clothing.m_aAttachments)
+				prefabs.Insert(attachment);
+		}
 		foreach (GRSA_KitWeapon weapon : kit.m_aWeapons)
 		{
 			prefabs.Insert(weapon.m_Prefab);

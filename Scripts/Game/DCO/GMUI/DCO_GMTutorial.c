@@ -434,7 +434,7 @@ class DCO_GMTutorial
 		fx.Add("Trigger condition", "Who trips it: any character, players only, or one faction.");
 		fx.Add("Trigger action", "Notify, send QRF, spring an ambush, spawn a group, or fire a paired emitter.");
 		fx.Add("Trigger fire mode", "Once remains active after firing until Armed is toggled off. Repeat re-arms after the condition clears and its cooldown ends.");
-		fx.Add("RMB ground: Place Map Marker", "Drop a NATO map marker at the cursor.");
+		fx.Add("RMB ground: Markers & Intel", "Create or manage local and synchronized markers, areas, and notes.");
 
 		DCO_TutorialSection hud = AddSection("HUD & LAYOUT");
 		hud.Add("Options icon (bottom bar)", "Open the UI OPTIONS panel.");

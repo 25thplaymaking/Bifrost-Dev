@@ -265,13 +265,14 @@ class GRSA_KitFile
 	//! Top-level attachment prefabs for one slot, from the draft channel's bare list or the capture
 	//! channel's weapon attachment storage, so previews can dress variants with their parts.
 	//! outSlots (optional) receives the parallel pinned hardpoint indices, -1 = automatic.
-	void GetSlotAttachments(string slotKey, notnull array<ResourceName> outAttachments, array<int> outSlots = null)
+	//! Returns true when the slot carries authoritative attachment state, including an empty list.
+	bool GetSlotAttachments(string slotKey, notnull array<ResourceName> outAttachments, array<int> outSlots = null)
 	{
 		outAttachments.Clear();
 		if (outSlots)
 			outSlots.Clear();
 		if (slotKey.IsEmpty())
-			return;
+			return false;
 
 		int overrideIdx = m_aOverrideKeys.Find(slotKey);
 		if (overrideIdx >= 0)
@@ -288,19 +289,21 @@ class GRSA_KitFile
 						outSlots.Insert(-1);
 				}
 			}
-			return;
+			return true;
 		}
 
 		if (m_sRawJson.IsEmpty())
-			return;
+			return false;
 
 		JsonLoadContext ctx = new JsonLoadContext();
 		if (!ctx.LoadFromString(m_sRawJson))
-			return;
+			return false;
 
 		int slotCount = 0;
 		if (!ctx.StartMap("slotData", slotCount))
-			return;
+			return false;
+
+		bool found;
 
 		for (int i = 0; i < slotCount; i++)
 		{
@@ -311,11 +314,15 @@ class GRSA_KitFile
 				continue;
 
 			if (key == slotKey)
+			{
 				ReadNodeAttachments(ctx, outAttachments, outSlots);
+				found = true;
+			}
 
 			ctx.EndObject();
 		}
 		ctx.EndMap();
+		return found;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -501,19 +508,16 @@ class GRSA_KitFile
 			array<ResourceName> attachments = m_aOverrideAttachments[i];
 			array<int> attachmentSlots = m_aOverrideAttachmentSlots[i];
 			int attachmentCount = attachments.Count();
-			if (attachmentCount > 0)
+			ctx.StartArray("attachments", attachmentCount);
+			foreach (int aIdx, ResourceName attachment : attachments)
 			{
-				ctx.StartArray("attachments", attachmentCount);
-				foreach (int aIdx, ResourceName attachment : attachments)
-				{
-					ctx.StartObject();
-					ctx.WriteValue("prefab", attachment);
-					if (attachmentSlots && aIdx < attachmentSlots.Count() && attachmentSlots[aIdx] >= 0)
-						ctx.WriteValue("slot", attachmentSlots[aIdx]);
-					ctx.EndObject();
-				}
-				ctx.EndArray();
+				ctx.StartObject();
+				ctx.WriteValue("prefab", attachment);
+				if (attachmentSlots && aIdx < attachmentSlots.Count() && attachmentSlots[aIdx] >= 0)
+					ctx.WriteValue("slot", attachmentSlots[aIdx]);
+				ctx.EndObject();
 			}
+			ctx.EndArray();
 			ctx.EndObject();
 		}
 		ctx.EndMap();

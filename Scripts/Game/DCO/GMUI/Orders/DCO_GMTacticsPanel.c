@@ -124,7 +124,10 @@ class DCO_GMTacticsPanel
 			return;
 		ButtonWidget b = ButtonWidget.Cast(m_wRoot.FindAnyWidget(name));
 		if (!b)
+		{
+			Print("[DCO-GM] tactics UI binding missing: " + name, LogLevel.ERROR);
 			return;
+		}
 		DCO_TacBtnHandler h = new DCO_TacBtnHandler(this, id);
 		b.AddHandler(h);
 		m_Handlers.Insert(h);

@@ -156,6 +156,7 @@ class DCO_GMTacticsFlow
 		GetGame().GetCallqueue().Remove(TickPreview);
 		if (isZone)
 			GetGame().GetCallqueue().CallLater(TickPreview, PREVIEW_TICK_MS, true);	// waypoints keep their native preview.
+		Print(string.Format("[DCO-GM] tactics placement armed: action=%1 prefab=%2 groups=%3", tacId, prefab, pendingGroups.Count()), LogLevel.NORMAL);
 		return true;
 	}
 
@@ -214,6 +215,7 @@ class DCO_GMTacticsFlow
 		DCO_TaskZoneComponent zone = DCO_TaskZoneComponent.Cast(owner.FindComponent(DCO_TaskZoneComponent));
 		if (zone)
 		{
+			Print(string.Format("[DCO-GM] tactics zone placed: action=%1 role=%2 position=%3", m_iPendingTac, zone.DCO_GetRole(), owner.GetOrigin()), LogLevel.NORMAL);
 			m_PreviewCircle = null;	// the placed zone draws its own circle from here.
 			SCR_EditableEntityComponent grp;
 			array<SCR_EditableEntityComponent> grps;
@@ -230,6 +232,7 @@ class DCO_GMTacticsFlow
 
 		if (pendingClear && DCO_IntentWaypoint.Cast(owner))
 		{
+			Print(string.Format("[DCO-GM] CQB clear waypoint placed: position=%1 groups=%2", owner.GetOrigin(), m_PendingGroups.Count()), LogLevel.NORMAL);
 			DCO_GMTacticsPanel.Get().OpenForClearOrder(entity);
 			CancelPending();
 			return;

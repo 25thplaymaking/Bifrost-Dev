@@ -71,7 +71,7 @@ class DCO_WaypointIntentUtil
 			if (util.DCO_GetWaypointIntent() != EDCO_WaypointIntentType.NONE)
 			{
 				util.DCO_ClearWaypointIntent(util.DCO_GetWaypointIntentWaypoint());
-				if (DCO_MoraleSettings.Get().m_bDebugCqbClear)
+				if (DCO_CqbClearSettings.Get().m_bDebugCqbClear)
 					Print(string.Format("[DCO-WPI] intent CLEARED - current waypoint is %1", current), LogLevel.NORMAL);
 			}
 			return;
@@ -82,7 +82,7 @@ class DCO_WaypointIntentUtil
 			return;
 		}
 		util.DCO_SetWaypointIntent(intentWp.DCO_GetIntentType(), intentWp.GetOrigin(), current);
-		if (DCO_MoraleSettings.Get().m_bDebugCqbClear)
+		if (DCO_CqbClearSettings.Get().m_bDebugCqbClear)
 			Print(string.Format("[DCO-WPI] intent ARMED type=%1 at %2", intentWp.DCO_GetIntentType(), intentWp.GetOrigin()), LogLevel.NORMAL);
 	}
 

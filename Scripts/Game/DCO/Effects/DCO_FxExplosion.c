@@ -830,6 +830,11 @@ class DCO_FxExplosionComponent : ScriptComponent
 			pass.m_fLifeSec += pass.m_fStationSec;
 		}
 		m_AircraftPasses.Insert(pass);
+		string passKind = "flyby";
+		if (loiter)
+			passKind = "loiter";
+		Print(string.Format("[DCO-FX] %1 started: armed=%2 live=%3 rounds=%4 station=%5s",
+			passKind, gunrun, m_bLive, pass.m_iRoundsLeft, pass.m_fStationSec), LogLevel.NORMAL);
 
 		// Crew is mission-ready at launch: ask engine to fill every PILOT and TURRET slot configured by the selected helicopter.
 		SCR_BaseCompartmentManagerComponent compartments = SCR_BaseCompartmentManagerComponent.Cast(aircraft.FindComponent(SCR_BaseCompartmentManagerComponent));
@@ -1192,11 +1197,19 @@ class DCO_FxExplosionComponent : ScriptComponent
 		if (!m_LoadedGunrunRound)
 			m_LoadedGunrunRound = Resource.Load(GUNRUN_ROUND);
 		if (!m_LoadedGunrunRound)
+		{
+			Print("[DCO-FX] gunrun round failed to load", LogLevel.WARNING);
 			return;
+		}
 
 		IEntity projectile = DCO_SpawnProjectile(m_LoadedGunrunRound, muzzle, direction);
 		if (!projectile)
+		{
+			Print("[DCO-FX] gunrun projectile spawn failed", LogLevel.WARNING);
 			return;
+		}
+		if (pass.m_iGunrunShotsFired == 1)
+			Print("[DCO-FX] armed loiter fired its first live round", LogLevel.NORMAL);
 		DCO_LaunchProjectile(projectile, direction, aircraftVelocity, pass.m_Aircraft);
 	}
 

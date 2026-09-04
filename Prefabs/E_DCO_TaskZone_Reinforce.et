@@ -12,7 +12,7 @@ GenericEntity {
    m_EntityType SYSTEM
    m_UIInfo SCR_EditableEntityUIInfo "{30D639399A7E0A01}" {
     Name "DCO Reinforce Pool"
-    Description "Reserve/reinforcement staging zone. Groups inside become QRF responders, stage at the circle, and deploy through the critical-contact/morale support gate to a distressed same-faction group. Vehicle-aware and AI-only; eligibility clears when the group leaves."
+    Description "Reserve/reinforcement staging zone. Groups inside become QRF responders, stage at the circle, and deploy to a nearby same-faction group in contact. Vehicle-aware and AI-only; eligibility clears when the group leaves."
     Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
     m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
     m_aAuthoredLabels {

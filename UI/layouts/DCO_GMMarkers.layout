@@ -1,0 +1,105 @@
+FrameWidgetClass "{D4C0000000000000}" {
+ Name "DCO_MarkersRoot"
+ Slot FrameWidgetSlot "{D4C0000000000001}" { Anchor 0 0 1 1 }
+ {
+  OverlayWidgetClass "{D4C0000000000002}" {
+   Name "DCO_MarkerPanel"
+   "Is Visible" 0
+   Slot FrameWidgetSlot "{D4C0000000000003}" { Anchor 0.5 0.5 0.5 0.5 }
+   {
+    ImageWidgetClass "{D4C0000000000004}" { Name "DCO_MarkerBorder" Slot OverlayWidgetSlot "{D4C0000000000005}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 1 }
+    ImageWidgetClass "{D4C0000000000006}" { Name "DCO_MarkerBg" Slot OverlayWidgetSlot "{D4C0000000000007}" { HorizontalAlign 3 VerticalAlign 3 Padding 2 2 2 2 } Color 0.043 0.050 0.063 0.96 }
+    VerticalLayoutWidgetClass "{D4C0000000000008}" {
+     Name "DCO_MarkerVBox"
+     Slot OverlayWidgetSlot "{D4C0000000000009}" { HorizontalAlign 3 VerticalAlign 0 Padding 2 2 2 2 }
+     {
+      OverlayWidgetClass "{D4C000000000000A}" {
+       Slot LayoutSlot "{D4C000000000000B}" { HorizontalAlign 3 }
+       {
+        ImageWidgetClass "{D4C000000000000C}" { Slot OverlayWidgetSlot "{D4C000000000000D}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.851 0.537 0.169 0.14 Size 0 34 }
+        TextWidgetClass "{D4C000000000000E}" { Slot OverlayWidgetSlot "{D4C000000000000F}" { HorizontalAlign 0 VerticalAlign 1 Padding 14 0 0 0 } Text "MARKERS & INTEL" Color 0.851 0.537 0.169 1 "Font Size" 22 }
+        ButtonWidgetClass "{D4C0000000000010}" { Name "DCO_MarkerClose" Slot OverlayWidgetSlot "{D4C0000000000011}" { HorizontalAlign 2 VerticalAlign 1 Padding 0 0 10 0 } style blank { TextWidgetClass "{D4C0000000000012}" { Slot ButtonWidgetSlot "{D4C0000000000013}" { Padding 9 5 9 5 } Text "CLOSE" Color 0.90 0.93 0.95 1 "Font Size" 17 } } }
+       }
+      }
+      TextWidgetClass "{D4C0000000000014}" { Name "DCO_MarkerPosition" Slot LayoutSlot "{D4C0000000000015}" { HorizontalAlign 3 Padding 14 5 14 3 } Text "POSITION" Color 0.66 0.70 0.74 1 "Font Size" 16 }
+      HorizontalLayoutWidgetClass "{D4C0000000000016}" {
+       Slot LayoutSlot "{D4C0000000000017}" { HorizontalAlign 3 Padding 12 1 12 3 }
+       {
+        ButtonWidgetClass "{D4C0000000000018}" { Name "DCO_MarkerScopeLocal" Slot LayoutSlot "{D4C0000000000019}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C000000000001A}" { Name "DCO_MarkerScopeLocal_Label" Slot ButtonWidgetSlot "{D4C000000000001B}" { HorizontalAlign 1 VerticalAlign 1 Padding 8 5 8 5 } Text "LOCAL" Color 0.851 0.537 0.169 1 "Font Size" 17 } } }
+        ButtonWidgetClass "{D4C000000000001C}" { Name "DCO_MarkerScopeServer" Slot LayoutSlot "{D4C000000000001D}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C000000000001E}" { Name "DCO_MarkerScopeServer_Label" Slot ButtonWidgetSlot "{D4C000000000001F}" { HorizontalAlign 1 VerticalAlign 1 Padding 8 5 8 5 } Text "SYNCED / SERVER" Color 0.66 0.70 0.74 1 "Font Size" 17 } } }
+       }
+      }
+      HorizontalLayoutWidgetClass "{D4C0000000000020}" {
+       Slot LayoutSlot "{D4C0000000000021}" { HorizontalAlign 3 Padding 12 1 12 2 }
+       {
+        ButtonWidgetClass "{D4C0000000000022}" { Name "DCO_MarkerKind0" Slot LayoutSlot "{D4C0000000000023}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000024}" { Name "DCO_MarkerKind0_Label" Slot ButtonWidgetSlot "{D4C0000000000025}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "POINT" Color 0.851 0.537 0.169 1 "Font Size" 15 } } }
+        ButtonWidgetClass "{D4C0000000000026}" { Name "DCO_MarkerKind1" Slot LayoutSlot "{D4C0000000000027}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000028}" { Name "DCO_MarkerKind1_Label" Slot ButtonWidgetSlot "{D4C0000000000029}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "LZ" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+        ButtonWidgetClass "{D4C000000000002A}" { Name "DCO_MarkerKind2" Slot LayoutSlot "{D4C000000000002B}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C000000000002C}" { Name "DCO_MarkerKind2_Label" Slot ButtonWidgetSlot "{D4C000000000002D}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "RP" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+        ButtonWidgetClass "{D4C000000000002E}" { Name "DCO_MarkerKind3" Slot LayoutSlot "{D4C000000000002F}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000030}" { Name "DCO_MarkerKind3_Label" Slot ButtonWidgetSlot "{D4C0000000000031}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "TARGET" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+       }
+      }
+      HorizontalLayoutWidgetClass "{D4C0000000000032}" {
+       Slot LayoutSlot "{D4C0000000000033}" { HorizontalAlign 3 Padding 12 0 12 4 }
+       {
+        ButtonWidgetClass "{D4C0000000000034}" { Name "DCO_MarkerKind4" Slot LayoutSlot "{D4C0000000000035}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000036}" { Name "DCO_MarkerKind4_Label" Slot ButtonWidgetSlot "{D4C0000000000037}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "INTEL" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+        ButtonWidgetClass "{D4C0000000000038}" { Name "DCO_MarkerKind5" Slot LayoutSlot "{D4C0000000000039}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C000000000003A}" { Name "DCO_MarkerKind5_Label" Slot ButtonWidgetSlot "{D4C000000000003B}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "CIRCLE" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+        ButtonWidgetClass "{D4C000000000003C}" { Name "DCO_MarkerKind6" Slot LayoutSlot "{D4C000000000003D}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C000000000003E}" { Name "DCO_MarkerKind6_Label" Slot ButtonWidgetSlot "{D4C000000000003F}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "RECT" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+        ButtonWidgetClass "{D4C0000000000040}" { Name "DCO_MarkerKind7" Slot LayoutSlot "{D4C0000000000041}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000042}" { Name "DCO_MarkerKind7_Label" Slot ButtonWidgetSlot "{D4C0000000000043}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "NOTE" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+       }
+      }
+      EditBoxWidgetClass "{D4C0000000000044}" { Name "DCO_MarkerName" Slot LayoutSlot "{D4C0000000000045}" { HorizontalAlign 3 Padding 14 1 14 3 } style blank Color 0.90 0.93 0.95 1 "Font Size" 18 "Use placeholder text" 1 "Placeholder text" "Marker / curator note name" }
+      HorizontalLayoutWidgetClass "{D4C0000000000046}" {
+       Slot LayoutSlot "{D4C0000000000047}" { HorizontalAlign 3 Padding 12 0 12 4 }
+       {
+        EditBoxWidgetClass "{D4C0000000000048}" { Name "DCO_MarkerSizeX" Slot LayoutSlot "{D4C0000000000049}" { FillWeight 1 Padding 2 0 2 0 } style blank Color 0.90 0.93 0.95 1 "Font Size" 17 "Use placeholder text" 1 "Placeholder text" "Radius / width (m)" }
+        EditBoxWidgetClass "{D4C000000000004A}" { Name "DCO_MarkerSizeZ" Slot LayoutSlot "{D4C000000000004B}" { FillWeight 1 Padding 2 0 2 0 } style blank Color 0.90 0.93 0.95 1 "Font Size" 17 "Use placeholder text" 1 "Placeholder text" "Depth (m)" }
+        EditBoxWidgetClass "{D4C000000000004C}" { Name "DCO_MarkerRotation" Slot LayoutSlot "{D4C000000000004D}" { FillWeight 1 Padding 2 0 2 0 } style blank Color 0.90 0.93 0.95 1 "Font Size" 17 "Use placeholder text" 1 "Placeholder text" "Rotation" }
+       }
+      }
+      HorizontalLayoutWidgetClass "{D4C000000000004E}" {
+       Slot LayoutSlot "{D4C000000000004F}" { HorizontalAlign 3 Padding 12 0 12 5 }
+       {
+        ButtonWidgetClass "{D4C0000000000050}" { Name "DCO_MarkerPlace" Slot LayoutSlot "{D4C0000000000051}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000052}" { Slot ButtonWidgetSlot "{D4C0000000000053}" { HorizontalAlign 1 Padding 7 5 7 5 } Text "PLACE" Color 0.851 0.537 0.169 1 "Font Size" 17 } } }
+        ButtonWidgetClass "{D4C0000000000054}" { Name "DCO_MarkerUpdate" Slot LayoutSlot "{D4C0000000000055}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000056}" { Slot ButtonWidgetSlot "{D4C0000000000057}" { HorizontalAlign 1 Padding 7 5 7 5 } Text "UPDATE" Color 0.90 0.93 0.95 1 "Font Size" 17 } } }
+        ButtonWidgetClass "{D4C0000000000058}" { Name "DCO_MarkerDelete" Slot LayoutSlot "{D4C0000000000059}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C000000000005A}" { Slot ButtonWidgetSlot "{D4C000000000005B}" { HorizontalAlign 1 Padding 7 5 7 5 } Text "DELETE" Color 0.88 0.34 0.32 1 "Font Size" 17 } } }
+       }
+      }
+      TextWidgetClass "{D4C000000000005C}" { Slot LayoutSlot "{D4C000000000005D}" { HorizontalAlign 3 Padding 14 2 14 2 } Text "REGISTRY  ·  LOCAL [L]  /  SYNCHRONIZED [S]" Color 0.851 0.537 0.169 1 "Font Size" 16 }
+      ButtonWidgetClass "{D4C0000000003000}" { Name "DCO_MarkerRow0" Slot LayoutSlot "{D4C0000000003001}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C0000000003002}" { Name "DCO_MarkerRow0_Label" Slot ButtonWidgetSlot "{D4C0000000003003}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C0000000003004}" { Name "DCO_MarkerRow1" Slot LayoutSlot "{D4C0000000003005}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C0000000003006}" { Name "DCO_MarkerRow1_Label" Slot ButtonWidgetSlot "{D4C0000000003007}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C0000000003008}" { Name "DCO_MarkerRow2" Slot LayoutSlot "{D4C0000000003009}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C000000000300A}" { Name "DCO_MarkerRow2_Label" Slot ButtonWidgetSlot "{D4C000000000300B}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C000000000300C}" { Name "DCO_MarkerRow3" Slot LayoutSlot "{D4C000000000300D}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C000000000300E}" { Name "DCO_MarkerRow3_Label" Slot ButtonWidgetSlot "{D4C000000000300F}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C0000000003010}" { Name "DCO_MarkerRow4" Slot LayoutSlot "{D4C0000000003011}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C0000000003012}" { Name "DCO_MarkerRow4_Label" Slot ButtonWidgetSlot "{D4C0000000003013}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C0000000003014}" { Name "DCO_MarkerRow5" Slot LayoutSlot "{D4C0000000003015}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C0000000003016}" { Name "DCO_MarkerRow5_Label" Slot ButtonWidgetSlot "{D4C0000000003017}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C0000000003018}" { Name "DCO_MarkerRow6" Slot LayoutSlot "{D4C0000000003019}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C000000000301A}" { Name "DCO_MarkerRow6_Label" Slot ButtonWidgetSlot "{D4C000000000301B}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C000000000301C}" { Name "DCO_MarkerRow7" Slot LayoutSlot "{D4C000000000301D}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C000000000301E}" { Name "DCO_MarkerRow7_Label" Slot ButtonWidgetSlot "{D4C000000000301F}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C0000000003020}" { Name "DCO_MarkerRow8" Slot LayoutSlot "{D4C0000000003021}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C0000000003022}" { Name "DCO_MarkerRow8_Label" Slot ButtonWidgetSlot "{D4C0000000003023}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C0000000003024}" { Name "DCO_MarkerRow9" Slot LayoutSlot "{D4C0000000003025}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C0000000003026}" { Name "DCO_MarkerRow9_Label" Slot ButtonWidgetSlot "{D4C0000000003027}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C0000000003028}" { Name "DCO_MarkerRow10" Slot LayoutSlot "{D4C0000000003029}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C000000000302A}" { Name "DCO_MarkerRow10_Label" Slot ButtonWidgetSlot "{D4C000000000302B}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C000000000302C}" { Name "DCO_MarkerRow11" Slot LayoutSlot "{D4C000000000302D}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C000000000302E}" { Name "DCO_MarkerRow11_Label" Slot ButtonWidgetSlot "{D4C000000000302F}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C0000000003030}" { Name "DCO_MarkerRow12" Slot LayoutSlot "{D4C0000000003031}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C0000000003032}" { Name "DCO_MarkerRow12_Label" Slot ButtonWidgetSlot "{D4C0000000003033}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      ButtonWidgetClass "{D4C0000000003034}" { Name "DCO_MarkerRow13" Slot LayoutSlot "{D4C0000000003035}" { HorizontalAlign 3 Padding 14 0 14 2 } style blank { TextWidgetClass "{D4C0000000003036}" { Name "DCO_MarkerRow13_Label" Slot ButtonWidgetSlot "{D4C0000000003037}" { HorizontalAlign 3 VerticalAlign 1 Padding 8 3 8 3 } Text "" Color 0.80 0.84 0.88 1 "Font Size" 17 "Min Font Size" 10 } } }
+      HorizontalLayoutWidgetClass "{D4C0000000000060}" {
+       Slot LayoutSlot "{D4C0000000000061}" { HorizontalAlign 3 Padding 14 2 14 3 }
+       {
+        ButtonWidgetClass "{D4C0000000000062}" { Name "DCO_MarkerPrev" Slot LayoutSlot "{D4C0000000000063}" { FillWeight 1 } style blank { TextWidgetClass "{D4C0000000000064}" { Slot ButtonWidgetSlot "{D4C0000000000065}" { HorizontalAlign 0 Padding 5 3 5 3 } Text "< PREV" Color 0.80 0.84 0.88 1 "Font Size" 16 } } }
+        TextWidgetClass "{D4C0000000000066}" { Name "DCO_MarkerPage" Slot LayoutSlot "{D4C0000000000067}" { FillWeight 1 HorizontalAlign 1 VerticalAlign 1 } Text "1 / 1" Color 0.66 0.70 0.74 1 "Font Size" 16 }
+        ButtonWidgetClass "{D4C0000000000068}" { Name "DCO_MarkerNext" Slot LayoutSlot "{D4C0000000000069}" { FillWeight 1 } style blank { TextWidgetClass "{D4C000000000006A}" { Slot ButtonWidgetSlot "{D4C000000000006B}" { HorizontalAlign 2 Padding 5 3 5 3 } Text "NEXT >" Color 0.80 0.84 0.88 1 "Font Size" 16 } } }
+       }
+      }
+      TextWidgetClass "{D4C000000000006C}" { Slot LayoutSlot "{D4C000000000006D}" { HorizontalAlign 3 Padding 14 3 14 1 } Text "PLAYER VISIBILITY  ·  SERVER LINE OF SIGHT" Color 0.851 0.537 0.169 1 "Font Size" 16 }
+      HorizontalLayoutWidgetClass "{D4C000000000006E}" {
+       Slot LayoutSlot "{D4C000000000006F}" { HorizontalAlign 3 Padding 12 1 12 7 }
+       {
+        ButtonWidgetClass "{D4C0000000000070}" { Name "DCO_MarkerVisToggle" Slot LayoutSlot "{D4C0000000000071}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000072}" { Name "DCO_MarkerVisToggle_Label" Slot ButtonWidgetSlot "{D4C0000000000073}" { HorizontalAlign 1 Padding 5 4 5 4 } Text "INDICATOR ON" Color 0.851 0.537 0.169 1 "Font Size" 15 } } }
+        ButtonWidgetClass "{D4C0000000000074}" { Name "DCO_MarkerVisPlacement" Slot LayoutSlot "{D4C0000000000075}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000076}" { Name "DCO_MarkerVisPlacement_Label" Slot ButtonWidgetSlot "{D4C0000000000077}" { HorizontalAlign 1 Padding 5 4 5 4 } Text "PLACEMENT ONLY" Color 0.851 0.537 0.169 1 "Font Size" 15 } } }
+        ButtonWidgetClass "{D4C0000000000078}" { Name "DCO_MarkerVisDistance" Slot LayoutSlot "{D4C0000000000079}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C000000000007A}" { Name "DCO_MarkerVisDistance_Label" Slot ButtonWidgetSlot "{D4C000000000007B}" { HorizontalAlign 1 Padding 5 4 5 4 } Text "RANGE 500 M" Color 0.851 0.537 0.169 1 "Font Size" 15 } } }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}
+

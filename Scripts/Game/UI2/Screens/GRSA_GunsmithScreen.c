@@ -8,6 +8,7 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 	protected static const int STRIP_HIDDEN = 0;
 	protected static const int STRIP_ATTACHMENTS = 1;
 	protected static const int STRIP_WEAPONS = 2;
+	protected static const int STRIP_MAGAZINES = 3;
 
 	protected RenderTargetWidget m_wStageWorld;
 	protected Widget m_wCalloutRoot;
@@ -27,17 +28,21 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 
 	protected ResourceName m_StagedPrefab;
 	protected int m_iStagedWeaponSlot = -1;
+	protected int m_iStagedClothingSlot = -1;
 	protected string m_sSyncedAttachments;
 	protected int m_iSelectedSlot = -1;
 	protected int m_iStripMode = STRIP_HIDDEN;
 	protected int m_iPreferredSlot = -1;
 	protected ref array<int> m_aSliderSlots = {};
+	protected ref array<ResourceName> m_aMagazineContainers = {};
 	protected bool m_bSyncingSlider;
 
 	//! After a position change the selection follows the moved item onto its new hardpoint.
 	protected ResourceName m_FollowAttachment;
 
 	protected static GRSA_GunsmithScreen s_ActiveInstance;
+	protected static bool s_bPendingClothingInspection;
+	protected static int s_iPendingClothingSlot;
 
 	//------------------------------------------------------------------------------------------------
 	//------------------------------------------------------------------------------------------------
@@ -97,6 +102,12 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 		super.OnTabShow();
 
 		s_ActiveInstance = this;
+		m_iStagedClothingSlot = -1;
+		if (s_bPendingClothingInspection)
+		{
+			m_iStagedClothingSlot = s_iPendingClothingSlot;
+			s_bPendingClothingInspection = false;
+		}
 
 		GRSA_DraftService service = GRSA_DraftService.Get();
 		if (service)
@@ -108,7 +119,10 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 		//! Front the shared studio through this tab's render node before any staging — an empty
 		//! bench is a valid scene — then glide the camera over to the bench station.
 		if (m_Stage && m_wStageWorld)
+		{
+			m_Stage.SetDraftClothingSlot(m_iStagedClothingSlot);
 			m_Stage.ShowOn(m_wStageWorld);
+		}
 		RefreshStage();
 		GRSA_Theme.Apply(m_wRoot);
 		if (m_Stage)
@@ -154,7 +168,14 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 	{
 		GRSA_GunsmithScreen screen = s_ActiveInstance;
 		return screen && screen.m_iStripMode == STRIP_ATTACHMENTS
-			&& screen.m_iSelectedSlot >= 0 && screen.m_iStagedWeaponSlot >= 0;
+			&& screen.m_iSelectedSlot >= 0 && screen.HasStagedDraftItem();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	static void QueueClothingInspection(int clothingSlot)
+	{
+		s_iPendingClothingSlot = clothingSlot;
+		s_bPendingClothingInspection = clothingSlot >= 0;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -211,11 +232,19 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 			m_Stats.Hide();
 		if (m_CalloutLayer)
 			m_CalloutLayer.Clear();
+		bool wasClothingInspection = m_iStagedClothingSlot >= 0;
+		if (m_Stage)
+		{
+			m_Stage.SetDraftClothingSlot(-1);
+			if (wasClothingInspection)
+				m_Stage.ClearStage();
+		}
 
 		//! The weapon stays on the bench — it reads as the backdrop from the soldier station; the
 		//! screen-side staging state resets so the next show rebuilds callouts and strips.
 		m_StagedPrefab = ResourceName.Empty;
 		m_iStagedWeaponSlot = -1;
+		m_iStagedClothingSlot = -1;
 		m_sSyncedAttachments = string.Empty;
 		m_iSelectedSlot = -1;
 		m_iPreferredSlot = -1;
@@ -240,8 +269,35 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 		//! change so a resident background host can never leave input bound to a hidden tab.
 		m_Stage.ShowOn(m_wStageWorld);
 
-		GRSA_KitWeapon draftWeapon = PreferredDraftWeapon(service);
-		if (!draftWeapon)
+		ResourceName draftPrefab;
+		array<ResourceName> draftAttachments;
+		array<int> draftPins;
+		int draftWeaponSlot = -1;
+		if (m_iStagedClothingSlot >= 0)
+		{
+			GRSA_KitClothing draftClothing = service.m_Draft.FindClothing(m_iStagedClothingSlot);
+			if (draftClothing)
+			{
+				draftClothing.EnsurePins();
+				draftPrefab = draftClothing.m_Prefab;
+				draftAttachments = draftClothing.m_aAttachments;
+				draftPins = draftClothing.m_aAttachmentSlots;
+			}
+		}
+		else
+		{
+			GRSA_KitWeapon draftWeapon = PreferredDraftWeapon(service);
+			if (draftWeapon)
+			{
+				draftWeapon.EnsurePins();
+				draftPrefab = draftWeapon.m_Prefab;
+				draftAttachments = draftWeapon.m_aAttachments;
+				draftPins = draftWeapon.m_aAttachmentSlots;
+				draftWeaponSlot = draftWeapon.m_iSlotIdx;
+			}
+		}
+
+		if (draftPrefab.IsEmpty() || !draftAttachments || !draftPins)
 		{
 			CloseStrip();
 			if (m_CalloutLayer)
@@ -260,36 +316,40 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 			return;
 		}
 
-		string attachmentsSignature = AttachmentsSignature(draftWeapon);
-		bool samePrefab = draftWeapon.m_Prefab == m_StagedPrefab && m_Stage.IsAlive();
+		string attachmentsSignature = BuildAttachmentsSignature(draftAttachments, draftPins);
+		bool samePrefab = draftPrefab == m_StagedPrefab && m_Stage.IsAlive();
 
 		if (samePrefab && attachmentsSignature == m_sSyncedAttachments)
+		{
+			if (m_iStagedClothingSlot < 0 && m_iStripMode == STRIP_MAGAZINES)
+				RefreshMagazineCounts(service);
 			return;
+		}
 
 		IEntity slotSource;
 		if (samePrefab)
 		{
-			//! Build change on the staged weapon: mutate the pooled source, re-clone, relabel.
-			slotSource = m_Stage.SyncAttachments(draftWeapon.m_aAttachments, draftWeapon.m_aAttachmentSlots);
+			//! Build change on the staged item: mutate the pooled source, re-clone, relabel.
+			slotSource = m_Stage.SyncAttachments(draftAttachments, draftPins);
 		}
 		else
 		{
-			slotSource = m_Stage.ShowWeapon(draftWeapon.m_Prefab, m_wStageWorld);
+			slotSource = m_Stage.ShowWeapon(draftPrefab, m_wStageWorld);
 			if (slotSource)
-				slotSource = m_Stage.SyncAttachments(draftWeapon.m_aAttachments, draftWeapon.m_aAttachmentSlots);
+				slotSource = m_Stage.SyncAttachments(draftAttachments, draftPins);
 			m_iSelectedSlot = -1;
-			//! An open weapon browser survives the swap; an attachment strip belonged to the old
-			//! weapon's hardpoints and folds.
+			//! An open receiver browser survives a weapon swap; every attachment strip belongs to
+			//! the old staged item's hardpoints and folds.
 			if (m_iStripMode != STRIP_WEAPONS)
 				CloseStrip();
-			GRSA_CatalogService.CollectTabItems(service.m_Config, GRSA_EArmoryTab.WEAPONS, service.GetBrowseFaction(), service.m_Arsenal, service.GetCostType(), m_aAttachmentPool);
+			RefreshAttachmentPool(service);
 		}
 
 		if (!slotSource)
 			return;
 
-		m_StagedPrefab = draftWeapon.m_Prefab;
-		m_iStagedWeaponSlot = draftWeapon.m_iSlotIdx;
+		m_StagedPrefab = draftPrefab;
+		m_iStagedWeaponSlot = draftWeaponSlot;
 		m_sSyncedAttachments = attachmentsSignature;
 
 		if (m_CalloutLayer)
@@ -297,11 +357,14 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 		RefreshCounter();
 		if (m_Receiver)
 		{
-			m_Receiver.SetStaged(m_StagedPrefab, m_iStagedWeaponSlot);
+			if (m_iStagedClothingSlot >= 0)
+				m_Receiver.SetStaged(ResourceName.Empty, -1);
+			else
+				m_Receiver.SetStaged(m_StagedPrefab, m_iStagedWeaponSlot);
 
 			//! Deferred: the pick that triggered this refresh is still walking the old tile's
 			//! click chain — rebuilding the tiles under it would tear the invoking row down.
-			if (m_iStripMode == STRIP_WEAPONS)
+			if (m_iStagedClothingSlot < 0 && m_iStripMode == STRIP_WEAPONS)
 			{
 				GetGame().GetCallqueue().Remove(RefreshOpenBrowser);
 				GetGame().GetCallqueue().CallLater(RefreshOpenBrowser, 50, false);
@@ -344,6 +407,38 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 	}
 
 	//------------------------------------------------------------------------------------------------
+	protected bool HasStagedDraftItem()
+	{
+		return m_iStagedWeaponSlot >= 0 || m_iStagedClothingSlot >= 0;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void RefreshAttachmentPool(notnull GRSA_DraftService service)
+	{
+		m_aAttachmentPool.Clear();
+		map<ResourceName, bool> seen = new map<ResourceName, bool>();
+		array<ref GRSA_ItemEntry> tabItems = {};
+
+		GRSA_CatalogService.CollectTabItems(service.m_Config, GRSA_EArmoryTab.GEAR, service.GetBrowseFaction(), service.m_Arsenal, service.GetCostType(), tabItems);
+		AppendAttachmentPool(tabItems, seen);
+		GRSA_CatalogService.CollectTabItems(service.m_Config, GRSA_EArmoryTab.WEAPONS, service.GetBrowseFaction(), service.m_Arsenal, service.GetCostType(), tabItems);
+		AppendAttachmentPool(tabItems, seen);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void AppendAttachmentPool(notnull array<ref GRSA_ItemEntry> source, notnull map<ResourceName, bool> seen)
+	{
+		foreach (GRSA_ItemEntry item : source)
+		{
+			if (!item || seen.Contains(item.m_Prefab))
+				continue;
+
+			seen.Insert(item.m_Prefab, true);
+			m_aAttachmentPool.Insert(item);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Chip toggle: select glides onto the mount and opens candidates, re-select glides home.
 	protected void OnSlotClicked(int index)
 	{
@@ -380,18 +475,39 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 		if (!entry)
 			return;
 
-		m_iStripMode = STRIP_ATTACHMENTS;
 		if (m_Receiver)
 			m_Receiver.CloseBrowser();
 		m_Strip.HideClasses();
 		HidePositionSlider();
 
-		if (entry.m_bMagazine)
+		GRSA_DraftService service = GRSA_DraftService.Get();
+		bool usesSupplies = service && service.UsesSupplies();
+
+		if (entry.m_bMagazine && m_iStagedClothingSlot < 0)
 		{
-			m_Strip.ShowMessage("Magazine: selected ammo is added to the player's gear.");
+			m_iStripMode = STRIP_MAGAZINES;
+			array<typename> wells = {};
+			if (m_Stage)
+				DCO_ArsenalCompat.GetWeaponMagWells(m_Stage.SlotSource(), wells);
+
+			array<GRSA_ItemEntry> compatibleMagazines = {};
+			foreach (GRSA_ItemEntry item : m_aAttachmentPool)
+			{
+				if (item && DCO_ArsenalCompat.IsMagazinePrefab(item.m_Prefab) && DCO_ArsenalCompat.MagazineFitsAny(item.m_Prefab, wells))
+					compatibleMagazines.Insert(item);
+			}
+
+			string title = "MAGAZINES";
+			if (service)
+				title += " - " + service.GetTargetContainerDisplayName();
+			m_Strip.ShowTiles(title, compatibleMagazines, ResourceName.Empty, string.Empty, usesSupplies);
+			BuildMagazineContainerChips(service);
+			RefreshMagazineCounts(service);
 			RefreshOverlayPanels();
 			return;
 		}
+
+		m_iStripMode = STRIP_ATTACHMENTS;
 
 		if (!entry.m_SlotTypename)
 		{
@@ -399,9 +515,6 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 			RefreshOverlayPanels();
 			return;
 		}
-
-		GRSA_DraftService service = GRSA_DraftService.Get();
-		bool usesSupplies = service && service.UsesSupplies();
 
 		array<GRSA_ItemEntry> compatible = {};
 		foreach (GRSA_ItemEntry item : m_aAttachmentPool)
@@ -413,6 +526,53 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 		m_Strip.ShowTiles(entry.m_sTypeLabel, compatible, entry.m_AttachedPrefab, "MOUNTED", usesSupplies);
 		RefreshPositionSlider(entry);
 		RefreshOverlayPanels();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void BuildMagazineContainerChips(GRSA_DraftService service)
+	{
+		m_aMagazineContainers.Clear();
+		m_aMagazineContainers.Insert(ResourceName.Empty);
+
+		array<string> labels = {};
+		labels.Insert("AUTO");
+		int selected = 0;
+		if (service)
+		{
+			array<ResourceName> containers = {};
+			service.GetDraftContainers(containers);
+			foreach (ResourceName container : containers)
+			{
+				m_aMagazineContainers.Insert(container);
+				string label = service.GetContainerDisplayName(container);
+				label.ToUpper();
+				labels.Insert(label);
+			}
+
+			selected = m_aMagazineContainers.Find(service.GetTargetContainer());
+			if (selected < 0)
+				selected = 0;
+		}
+
+		m_Strip.ShowClasses(labels, selected);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void RefreshMagazineCounts(GRSA_DraftService service)
+	{
+		if (!service || !service.m_Draft || !m_Strip)
+			return;
+
+		ResourceName target = service.GetTargetContainer();
+		map<ResourceName, int> counts = new map<ResourceName, int>();
+		foreach (GRSA_KitExtra extra : service.m_Draft.m_aExtras)
+		{
+			if (extra.m_Container == target)
+				counts.Set(extra.m_Prefab, extra.m_iCount);
+		}
+
+		m_Strip.SetCounts(counts);
+		m_Strip.SetTitle("MAGAZINES - " + service.GetTargetContainerDisplayName());
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -504,7 +664,7 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 	//------------------------------------------------------------------------------------------------
 	protected void OnPositionSliderChanged(SCR_SliderComponent slider, float value)
 	{
-		if (m_bSyncingSlider || m_iSelectedSlot < 0 || m_iStagedWeaponSlot < 0 || !m_CalloutLayer)
+		if (m_bSyncingSlider || m_iSelectedSlot < 0 || !HasStagedDraftItem() || !m_CalloutLayer)
 			return;
 
 		GRSA_CalloutEntry entry = m_CalloutLayer.GetEntry(m_iSelectedSlot);
@@ -524,7 +684,10 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 			return;
 
 		m_FollowAttachment = entry.m_AttachedPrefab;
-		service.SetDraftAttachmentPin(m_iStagedWeaponSlot, entry.m_AttachedPrefab, targetSlot);
+		if (m_iStagedClothingSlot >= 0)
+			service.SetDraftClothingAttachmentPin(m_iStagedClothingSlot, entry.m_AttachedPrefab, targetSlot, entry.m_iStorageSlot);
+		else
+			service.SetDraftAttachmentPin(m_iStagedWeaponSlot, entry.m_AttachedPrefab, targetSlot);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -549,6 +712,20 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 	//------------------------------------------------------------------------------------------------
 	protected void OnStripClassClicked(int index)
 	{
+		if (m_iStripMode == STRIP_MAGAZINES)
+		{
+			if (index < 0 || index >= m_aMagazineContainers.Count())
+				return;
+
+			GRSA_DraftService service = GRSA_DraftService.Get();
+			if (!service)
+				return;
+
+			service.SetTargetContainer(m_aMagazineContainers[index]);
+			ShowCandidates(m_iSelectedSlot);
+			return;
+		}
+
 		if (m_Receiver && m_iStripMode == STRIP_WEAPONS)
 			m_Receiver.ShowClass(index);
 	}
@@ -558,7 +735,7 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 	//! RefreshStage, which re-clones the stage and refreshes the strip.
 	protected void OnCandidateClicked(GRSA_ItemRowComponent row)
 	{
-		if (!row || !row.GetEntry() || m_iSelectedSlot < 0 || m_iStagedWeaponSlot < 0)
+		if (!row || !row.GetEntry() || m_iSelectedSlot < 0 || !HasStagedDraftItem())
 			return;
 
 		GRSA_DraftService service = GRSA_DraftService.Get();
@@ -570,20 +747,45 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 			return;
 
 		ResourceName clicked = row.GetEntry().m_Prefab;
+		if (entry.m_bMagazine && m_iStagedClothingSlot < 0)
+		{
+			ResourceName target = service.GetTargetContainer();
+			GRSA_EExtraChangeResult result = service.ChangeDraftExtraTo(clicked, 1, target);
+			if (result != GRSA_EExtraChangeResult.ADDED)
+			{
+				m_Strip.SetTitle("MAGAZINES - " + service.GetTargetContainerDisplayName() + " - " + ExtraRejectLabel(result));
+				SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK_FAIL);
+				return;
+			}
+
+			GRSA_ShellMenu.ShowStatus("ITEM ADDED", true);
+			RefreshMagazineCounts(service);
+			return;
+		}
+
 		if (clicked == entry.m_AttachedPrefab)
 		{
-			service.SwapDraftAttachment(m_iStagedWeaponSlot, clicked, ResourceName.Empty);
+			if (m_iStagedClothingSlot >= 0)
+				service.SwapDraftClothingAttachment(m_iStagedClothingSlot, clicked, ResourceName.Empty, entry.m_iStorageSlot);
+			else
+				service.SwapDraftAttachment(m_iStagedWeaponSlot, clicked, ResourceName.Empty);
 			return;
 		}
 
 		ResourceName previous = entry.m_AttachedPrefab;
-		service.SwapDraftAttachment(m_iStagedWeaponSlot, previous, clicked);
+		if (m_iStagedClothingSlot >= 0)
+			service.SwapDraftClothingAttachment(m_iStagedClothingSlot, previous, clicked, entry.m_iStorageSlot);
+		else
+			service.SwapDraftAttachment(m_iStagedWeaponSlot, previous, clicked);
 
 		//! The draft event resyncs the stage synchronously; when the engine refuses the mount,
 		//! undo the swap instead of leaving the slot stripped, and say so the base-game way.
 		if (m_Stage && m_Stage.GetUnplaced().Contains(clicked))
 		{
-			service.SwapDraftAttachment(m_iStagedWeaponSlot, clicked, previous);
+			if (m_iStagedClothingSlot >= 0)
+				service.SwapDraftClothingAttachment(m_iStagedClothingSlot, clicked, previous, entry.m_iStorageSlot);
+			else
+				service.SwapDraftAttachment(m_iStagedWeaponSlot, clicked, previous);
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK_FAIL);
 		}
 	}
@@ -592,7 +794,7 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 	//! Receiver card entry point: folds any hardpoint selection, hands the strip to the browser.
 	protected void OpenWeaponBrowser()
 	{
-		if (!m_Receiver)
+		if (!m_Receiver || m_iStagedClothingSlot >= 0)
 			return;
 
 		m_iSelectedSlot = -1;
@@ -634,6 +836,7 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 	protected void CloseStrip()
 	{
 		m_iStripMode = STRIP_HIDDEN;
+		m_aMagazineContainers.Clear();
 		if (m_Receiver)
 			m_Receiver.CloseBrowser();
 		if (m_Strip)
@@ -647,24 +850,25 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 	protected void RefreshOverlayPanels()
 	{
 		bool stripHidden = m_iStripMode == STRIP_HIDDEN;
+		bool clothingInspection = m_iStagedClothingSlot >= 0;
 
 		if (m_Stats)
 		{
-			if (stripHidden && !m_StagedPrefab.IsEmpty())
+			if (stripHidden && !clothingInspection && !m_StagedPrefab.IsEmpty())
 				RefreshStats();
 			else
 				m_Stats.Hide();
 		}
 
 		if (m_Receiver)
-			m_Receiver.SetCardVisible(stripHidden);
+			m_Receiver.SetCardVisible(stripHidden && !clothingInspection);
 	}
 
 	//------------------------------------------------------------------------------------------------
 	protected void RefreshStats()
 	{
 		GRSA_DraftService service = GRSA_DraftService.Get();
-		if (!service || !m_Stats || !m_Stage)
+		if (!service || !m_Stats || !m_Stage || m_iStagedClothingSlot >= 0)
 			return;
 
 		IEntity source = m_Stage.SlotSource();
@@ -718,12 +922,27 @@ class GRSA_GunsmithScreen : SCR_SubMenuBase
 	//------------------------------------------------------------------------------------------------
 	//! Pins are part of the signature: a position change on an unchanged part set must still
 	//! resync the stage.
-	protected string AttachmentsSignature(notnull GRSA_KitWeapon weapon)
+	protected string BuildAttachmentsSignature(notnull array<ResourceName> attachments, notnull array<int> pins)
 	{
-		weapon.EnsurePins();
 		string signature;
-		foreach (int i, ResourceName attachment : weapon.m_aAttachments)
-			signature += attachment + ":" + weapon.m_aAttachmentSlots[i].ToString() + ";";
+		foreach (int i, ResourceName attachment : attachments)
+			signature += attachment + ":" + pins[i].ToString() + ";";
 		return signature;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected string ExtraRejectLabel(GRSA_EExtraChangeResult result)
+	{
+		switch (result)
+		{
+			case GRSA_EExtraChangeResult.VOLUME_LIMIT:
+				return "NO SPACE";
+			case GRSA_EExtraChangeResult.WEIGHT_LIMIT:
+				return "TOO HEAVY";
+			case GRSA_EExtraChangeResult.INCOMPATIBLE:
+				return "DOES NOT FIT";
+		}
+
+		return "UNAVAILABLE";
 	}
 }

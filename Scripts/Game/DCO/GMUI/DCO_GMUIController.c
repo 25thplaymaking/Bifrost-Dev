@@ -29,6 +29,7 @@ class DCO_GMUIController
 	protected bool m_bCreateShown = true;
 	protected bool m_bBuilt;
 	protected bool m_bNativePropertiesOpen;
+	protected int m_iNativePropertiesHeartbeat;
 	protected int m_PeelAttempts;
 	protected int m_iViewportW;	// Live game-workspace size; the embedded viewport can resize independently.
 	protected int m_iViewportH;
@@ -39,6 +40,7 @@ class DCO_GMUIController
 	protected static DCO_GMUIController s_Instance;
 	protected static int s_iPauseSuppressedUntil;
 	protected static const int PAUSE_SUPPRESS_MS = 200;
+	protected static const int NATIVE_PROPERTIES_STALE_MS = 1500;
 
 	static bool IsActive()
 	{
@@ -63,6 +65,10 @@ class DCO_GMUIController
 		if (!s_Instance || !s_Instance.m_bBuilt)
 			return;
 		s_Instance.m_bNativePropertiesOpen = open;
+		if (open)
+			s_Instance.m_iNativePropertiesHeartbeat = System.GetTickCount();
+		else
+			s_Instance.m_iNativePropertiesHeartbeat = 0;
 		if (s_Instance.m_wRoot)
 			s_Instance.m_wRoot.SetEnabled(!open);
 		if (open)
@@ -70,10 +76,22 @@ class DCO_GMUIController
 			if (s_Instance.m_Menu)
 				s_Instance.m_Menu.Hide();
 			DCO_GMGizmo.Get().CancelInteraction();
+			DCO_VehicleServiceAccessPlacement.Get().Cancel();
 			DCO_ArsenalAccessPlacement.Get().Cancel();
 			DCO_AIAnimationFxTool.Get().Cancel();
 			DCO_TriggerSyncDrag.Get().Cancel();
 		}
+		else
+			ReleaseMenuFocus();
+	}
+
+	static void TouchNativeProperties()
+	{
+		if (!s_Instance || !s_Instance.m_bBuilt)
+			return;
+		s_Instance.m_iNativePropertiesHeartbeat = System.GetTickCount();
+		if (!s_Instance.m_bNativePropertiesOpen)
+			SetNativePropertiesOpen(true);
 	}
 
 	// The custom trigger editor is modal inside the Bifrost root. Temporarily hide
@@ -283,6 +301,8 @@ class DCO_GMUIController
 			m_Menu.Hide();
 			return true;
 		}
+		if (DCO_VehicleServiceAccessPlacement.Get().Cancel())
+			return true;
 		if (DCO_ArsenalAccessPlacement.Get().Cancel())
 			return true;
 		if (DCO_AIAnimationFxTool.Get().Cancel())
@@ -297,6 +317,10 @@ class DCO_GMUIController
 			DCO_GMArsenalPanel.Get().CloseSilent();
 			return true;
 		}
+		if (DCO_GMMarkerPanel.Get().CloseForBack())
+			return true;
+		if (DCO_GMCompositionPanel.Get().CloseForBack())
+			return true;
 		if (m_Scenario && m_Scenario.CloseForBack())
 			return true;
 		if (DCO_GMTacticsPanel.Get().IsOpen())
@@ -362,6 +386,7 @@ class DCO_GMUIController
 		DCO_GMTacticsPanel.Get().Init(m_wRoot);
 		DCO_GMTacticsFlow.Get().Init(m_wRoot);
 		DCO_ArsenalAccessPlacement.Get().Init();
+		DCO_VehicleServiceAccessPlacement.Get().Init();
 
 		DCO_GMArsenalPanel.Get().Init(m_wRoot);
 
@@ -373,6 +398,8 @@ class DCO_GMUIController
 
 		m_Render = new DCO_GMRenderManager();
 		m_Render.Start(m_wRoot);
+		DCO_GMMarkerPanel.Get().Init(m_wRoot, m_Render);
+		DCO_GMCompositionPanel.Get().Init(m_wRoot);
 		DCO_TriggerSyncDrag.Get().Start(m_Render);
 
 		m_Nametags = new DCO_GMNametags();
@@ -395,7 +422,7 @@ class DCO_GMUIController
 		m_Scenario.Init(m_wRoot, m_Menu);
 
 		m_Options = new DCO_GMOptionsPanel();
-		m_Options.Init(m_wRoot);
+		m_Options.Init(m_wRoot, m_Menu);
 
 		m_PreciseBar = new DCO_GMPreciseBar();
 		m_PreciseBar.Init(m_wRoot);
@@ -424,7 +451,7 @@ class DCO_GMUIController
 		MakeResizable("DCO_OverlayResize",  "DCO_OverlayBar",    180, 110);
 		MakeResizable("DCO_OrdersResize",   "DCO_OrdersBox",     180, 140);
 		MakeDraggable("DCO_OptionsDrag",   "DCO_OptionsPanel");
-		MakeResizable("DCO_OptionsResize", "DCO_OptionsPanel",  380, 500);
+		MakeResizable("DCO_OptionsResize", "DCO_OptionsPanel",  380, 540);
 
 		// The gizmo readout is a floating box like Overlays/Orders, so it gets the same grips.
 		MakeDraggable("DCO_GizmoDrag",   "DCO_GizmoPanel");
@@ -466,6 +493,7 @@ class DCO_GMUIController
 		DCO_GMHover.Wire(m_wRoot, "DCO_OptMasterBtn",     "DCO_OptMasterIcon");
 		DCO_GMHover.Wire(m_wRoot, "DCO_OptFontCompact",   "DCO_OptFontCompact_Label");
 		DCO_GMHover.Wire(m_wRoot, "DCO_OptFontCommand",   "DCO_OptFontCommand_Label");
+		DCO_GMHover.Wire(m_wRoot, "DCO_OptNativeTools",   "DCO_OptNativeTools_Label");
 		DCO_GMHover.Wire(m_wRoot, "DCO_QuickEditBtn",     "DCO_QuickEditBtn_Label");
 		DCO_GMHover.Wire(m_wRoot, "DCO_QuickDeployBtn",   "DCO_QuickDeployBtn_Label");
 		DCO_GMHover.Wire(m_wRoot, "DCO_QuickCleanBtn",    "DCO_QuickCleanBtn_Label");
@@ -656,7 +684,7 @@ class DCO_GMUIController
 		float scenarioW = 980;
 		float scenarioH = 760;
 		float optionsW = 420;
-		float optionsH = 500;
+		float optionsH = 540;
 		if (compactViewport)
 		{
 			overlayW = 380;
@@ -664,7 +692,7 @@ class DCO_GMUIController
 			scenarioW = 1100;
 			scenarioH = 850;
 			optionsW = 520;
-			optionsH = 660;
+			optionsH = 700;
 		}
 		PinBox("DCO_OverlayBar", 0, 0,   0, 0,   overlayW, overlayH,   EDIT_W + WIDGET_GAP, TOP_Y + 16);
 
@@ -743,6 +771,7 @@ class DCO_GMUIController
 	{
 		if (!m_bBuilt || !m_wRoot)
 			return;
+		ReconcileNativePropertiesFocus();
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
 		if (!workspace)
 			return;
@@ -751,6 +780,15 @@ class DCO_GMUIController
 		if (viewportW == m_iViewportW && viewportH == m_iViewportH)
 			return;
 		ApplyLayout();
+	}
+
+	protected void ReconcileNativePropertiesFocus()
+	{
+		if (!m_bNativePropertiesOpen || m_iNativePropertiesHeartbeat <= 0)
+			return;
+		if (System.GetTickCount() - m_iNativePropertiesHeartbeat <= NATIVE_PROPERTIES_STALE_MS)
+			return;
+		SetNativePropertiesOpen(false);
 	}
 
 	protected void SetTopZ(string name, int z)
@@ -963,6 +1001,7 @@ class DCO_GMUIController
 	{
 		ApplyPropertyOverlaysSuppressed(false);
 		m_bNativePropertiesOpen = false;
+		m_iNativePropertiesHeartbeat = 0;
 		RemoveMenuActionListeners();
 		s_iPauseSuppressedUntil = 0;
 		RemoveMasterHideListener();
@@ -1036,6 +1075,8 @@ class DCO_GMUIController
 			m_Nametags.Shutdown();
 			m_Nametags = null;
 		}
+		DCO_GMMarkerPanel.Get().Shutdown();
+		DCO_GMCompositionPanel.Get().Shutdown();
 		if (m_Render)
 		{
 			m_Render.Stop();
@@ -1046,6 +1087,7 @@ class DCO_GMUIController
 			m_Bridge.Shutdown();
 			m_Bridge = null;
 		}
+		DCO_VehicleServiceAccessPlacement.Get().Shutdown();
 		DCO_ArsenalAccessPlacement.Get().Shutdown();
 		DCO_GMTacticsFlow.Get().Shutdown();	// disarm any in-flight placement before its widgets die.
 		DCO_GMTacticsPanel.Get().Shutdown();

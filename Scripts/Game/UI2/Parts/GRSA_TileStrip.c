@@ -221,6 +221,30 @@ class GRSA_TileStrip
 	}
 
 	//------------------------------------------------------------------------------------------------
+	void SetCounts(notnull map<ResourceName, int> counts)
+	{
+		foreach (GRSA_ItemRowComponent row : m_aRows)
+		{
+			if (!row || !row.GetEntry())
+				continue;
+
+			int count;
+			counts.Find(row.GetEntry().m_Prefab, count);
+			if (count > 0)
+				row.SetStateText(string.Format("PACKED x%1", count));
+			else
+				row.SetStateText("ADD");
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	void SetTitle(string title)
+	{
+		if (m_wTitle)
+			m_wTitle.SetText(title);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	protected void OnRowFocused(GRSA_ItemRowComponent row)
 	{
 		RevealRow(row);

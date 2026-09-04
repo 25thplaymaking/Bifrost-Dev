@@ -77,7 +77,7 @@ OverlayWidgetClass "{AB21030000000001}" {
             Padding 8 0 0 10
            }
             Color 0.72 0.76 0.81 1
-            Text "WEAPONS"
+            Text "CUSTOMIZE"
             "Font Size" 16
             "Min Font Size" 11
            FontProperties FontProperties "{AB21030000000014}" {
@@ -233,20 +233,202 @@ OverlayWidgetClass "{AB21030000000001}" {
         Padding 16 16 16 16
        }
        {
-        TextWidgetClass "{AB21030000000036}" {
-         Name "ItemListTitle"
-         Slot LayoutSlot "{AB21030000000037}" {
-          HorizontalAlign 3
-          Padding 8 0 0 8
+         HorizontalLayoutWidgetClass "{AB21030000000060}" {
+          Name "ItemListHeader"
+          Slot LayoutSlot "{AB21030000000061}" {
+           HorizontalAlign 3
+           Padding 0 0 0 8
+          }
+          {
+           HorizontalLayoutWidgetClass "{AB21030000000062}" {
+            Name "ItemListBackControls"
+            Slot LayoutSlot "{AB21030000000063}" {
+             VerticalAlign 1
+             Padding 0 0 8 0
+            }
+            "Is Visible" 0
+            {
+             SizeLayoutWidgetClass "{AB21030000000064}" {
+              Name "ItemListBackInputSize"
+              Slot LayoutSlot "{AB21030000000065}" {
+               VerticalAlign 1
+               Padding 0 0 4 0
+              }
+              AllowWidthOverride 1
+              WidthOverride 32
+              {
+               ButtonWidgetClass "{AB21030000000066}" {
+                Name "ItemListBackInput"
+                Slot LayoutSlot "{AB21030000000067}" {
+                 HorizontalAlign 3
+                 VerticalAlign 1
+                }
+                "Ignore Cursor" 1
+                "no focus" 1
+                style blank
+                components {
+                 SCR_InputButtonComponent "{AB21030000000068}" {
+                  m_sActionName "MenuBack"
+                  m_iHeightInPixel 26
+                  m_bDisableClickSound 1
+                  m_sButtonWidgetName "ItemListBackInputDisplay"
+                  m_sHorizontalLayoutWidget "ItemListBackInputRow"
+                 }
+                }
+                {
+                 HorizontalLayoutWidgetClass "{AB21030000000069}" {
+                  Name "ItemListBackInputRow"
+                  Slot ButtonWidgetSlot "{AB2103000000006A}" {
+                   HorizontalAlign 1
+                   VerticalAlign 1
+                  }
+                  {
+                   SizeLayoutWidgetClass "{AB2103000000006B}" : "{B7C8B633428B153D}UI/layouts/WidgetLibrary/Buttons/WLib_InputButtonDisplay.layout" {
+                    Name "ItemListBackInputDisplay"
+                    Slot LayoutSlot "{AB2103000000006C}" {
+                     VerticalAlign 1
+                    }
+                    components {
+                     SCR_InputButtonDisplay "{AB2103000000006D}" {
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+             ButtonWidgetClass "{AB21030000000043}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+              Name "ItemListBackControlsButton"
+              Slot LayoutSlot "{AB21030000000044}" {
+               VerticalAlign 1
+              }
+             }
+            }
+           }
+           TextWidgetClass "{AB21030000000036}" {
+            Name "ItemListTitle"
+            Slot LayoutSlot "{AB21030000000037}" {
+             HorizontalAlign 3
+             VerticalAlign 1
+             SizeMode Fill
+             FillWeight 1
+             Padding 8 0 0 0
+            }
+            Color 0.88 0.91 0.94 1
+            Text ""
+            "Font Size" 16
+            "Min Font Size" 13
+            FontProperties FontProperties "{AB21030000000038}" {
+             Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+            }
+           }
+          }
          }
-         Color 0.88 0.91 0.94 1
-         Text ""
-         "Font Size" 16
-         "Min Font Size" 13
-         FontProperties FontProperties "{AB21030000000038}" {
-          Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+         VerticalLayoutWidgetClass "{AB21030000000070}" {
+          Name "ItemListFilters"
+          Slot LayoutSlot "{AB21030000000071}" {
+           HorizontalAlign 3
+           Padding 0 0 0 8
+          }
+          "Is Visible" 0
+          {
+           HorizontalLayoutWidgetClass "{AB21030000000072}" {
+            Name "ItemListFilterRow1"
+            Slot LayoutSlot "{AB21030000000073}" {
+             HorizontalAlign 3
+            }
+            {
+             ButtonWidgetClass "{AB21030000000074}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+              Name "ContentFilterAll"
+              Slot LayoutSlot "{AB21030000000075}" {
+               SizeMode Fill
+               FillWeight 1
+               Padding 0 0 4 0
+              }
+             }
+             ButtonWidgetClass "{AB21030000000076}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+              Name "ContentFilterPacked"
+              Slot LayoutSlot "{AB21030000000077}" {
+               SizeMode Fill
+               FillWeight 1
+               Padding 0 0 4 0
+              }
+             }
+             ButtonWidgetClass "{AB21030000000078}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+              Name "ContentFilterWeapons"
+              Slot LayoutSlot "{AB21030000000079}" {
+               SizeMode Fill
+               FillWeight 1
+              }
+             }
+            }
+           }
+           HorizontalLayoutWidgetClass "{AB2103000000007A}" {
+            Name "ItemListFilterRow2"
+            Slot LayoutSlot "{AB2103000000007B}" {
+             HorizontalAlign 3
+            }
+            {
+             ButtonWidgetClass "{AB2103000000007C}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+              Name "ContentFilterMagazines"
+              Slot LayoutSlot "{AB2103000000007D}" {
+               SizeMode Fill
+               FillWeight 1
+               Padding 0 0 4 0
+              }
+             }
+             ButtonWidgetClass "{AB2103000000007E}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+              Name "ContentFilterAttachments"
+              Slot LayoutSlot "{AB2103000000007F}" {
+               SizeMode Fill
+               FillWeight 1
+               Padding 0 0 4 0
+              }
+             }
+             ButtonWidgetClass "{AB21030000000080}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+              Name "ContentFilterThrowables"
+              Slot LayoutSlot "{AB21030000000081}" {
+               SizeMode Fill
+               FillWeight 1
+              }
+             }
+            }
+           }
+           HorizontalLayoutWidgetClass "{AB21030000000082}" {
+            Name "ItemListFilterRow3"
+            Slot LayoutSlot "{AB21030000000083}" {
+             HorizontalAlign 3
+            }
+            {
+             ButtonWidgetClass "{AB21030000000084}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+              Name "ContentFilterExplosives"
+              Slot LayoutSlot "{AB21030000000085}" {
+               SizeMode Fill
+               FillWeight 1
+               Padding 0 0 4 0
+              }
+             }
+             ButtonWidgetClass "{AB21030000000086}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+              Name "ContentFilterMedical"
+              Slot LayoutSlot "{AB21030000000087}" {
+               SizeMode Fill
+               FillWeight 1
+               Padding 0 0 4 0
+              }
+             }
+             ButtonWidgetClass "{AB21030000000088}" : "{ABEECB4C3A6F5958}UI/layouts/Menus/Armory/GRSA_CategoryButton.layout" {
+              Name "ContentFilterEquipment"
+              Slot LayoutSlot "{AB21030000000089}" {
+               SizeMode Fill
+               FillWeight 1
+              }
+             }
+            }
+           }
+          }
          }
-        }
         SizeLayoutWidgetClass "{AB21030000000039}" {
          Name "SoldierSearchSize"
          Slot LayoutSlot "{AB2103000000003A}" {
@@ -265,7 +447,7 @@ OverlayWidgetClass "{AB21030000000001}" {
           }
          }
         }
-        ScrollLayoutWidgetClass "{AB2103000000003D}" {
+         ScrollLayoutWidgetClass "{AB2103000000003D}" {
          Name "SoldierItemScroll"
          Slot LayoutSlot "{AB2103000000003E}" {
           HorizontalAlign 3
@@ -289,7 +471,7 @@ OverlayWidgetClass "{AB21030000000001}" {
            }
           }
          }
-        }
+         }
        }
       }
      }

@@ -2,6 +2,16 @@ class GRSA_KitClothing
 {
 	int m_iSlotIdx;
 	ResourceName m_Prefab;
+	ref array<ResourceName> m_aAttachments = {};
+	ref array<int> m_aAttachmentSlots = {};
+
+	void EnsurePins()
+	{
+		while (m_aAttachmentSlots.Count() < m_aAttachments.Count())
+			m_aAttachmentSlots.Insert(-1);
+		while (m_aAttachmentSlots.Count() > m_aAttachments.Count())
+			m_aAttachmentSlots.Remove(m_aAttachmentSlots.Count() - 1);
+	}
 }
 
 class GRSA_KitWeapon
@@ -118,6 +128,11 @@ class GRSA_Kit
 			clothing = new GRSA_KitClothing();
 			clothing.m_iSlotIdx = slotIdx;
 			m_aClothings.Insert(clothing);
+		}
+		if (clothing.m_Prefab != prefab)
+		{
+			clothing.m_aAttachments.Clear();
+			clothing.m_aAttachmentSlots.Clear();
 		}
 		clothing.m_Prefab = prefab;
 	}
@@ -252,6 +267,18 @@ class GRSA_Kit
 			ctx.StartObject();
 			ctx.WriteValue("slot", clothing.m_iSlotIdx);
 			ctx.WriteValue("prefab", clothing.m_Prefab);
+			clothing.EnsurePins();
+			int attachmentCount = clothing.m_aAttachments.Count();
+			ctx.StartArray("attachments", attachmentCount);
+			foreach (int aIdx, ResourceName attachment : clothing.m_aAttachments)
+			{
+				ctx.StartObject();
+				ctx.WriteValue("prefab", attachment);
+				if (clothing.m_aAttachmentSlots[aIdx] >= 0)
+					ctx.WriteValue("slot", clothing.m_aAttachmentSlots[aIdx]);
+				ctx.EndObject();
+			}
+			ctx.EndArray();
 			ctx.EndObject();
 		}
 		ctx.EndArray();
@@ -322,6 +349,29 @@ class GRSA_Kit
 				GRSA_KitClothing clothing = new GRSA_KitClothing();
 				ctx.ReadValue("slot", clothing.m_iSlotIdx);
 				ctx.ReadValue("prefab", clothing.m_Prefab);
+
+				int attachmentCount = 0;
+				if (ctx.StartArray("attachments", attachmentCount))
+				{
+					for (int a = 0; a < attachmentCount; ++a)
+					{
+						if (!ctx.StartObject())
+							continue;
+
+						ResourceName attachment;
+						ctx.ReadValue("prefab", attachment);
+						int pinnedSlot = -1;
+						ctx.ReadValue("slot", pinnedSlot);
+						ctx.EndObject();
+
+						if (!attachment.IsEmpty())
+						{
+							clothing.m_aAttachments.Insert(attachment);
+							clothing.m_aAttachmentSlots.Insert(pinnedSlot);
+						}
+					}
+					ctx.EndArray();
+				}
 				ctx.EndObject();
 
 				if (!clothing.m_Prefab.IsEmpty())

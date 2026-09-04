@@ -390,7 +390,7 @@ FrameWidgetClass "{AB21010000000001}" {
          }
          {
            TextWidgetClass "{AB21010000000071}" {
-            Name "GRSAttribution"
+            Name "ArsenalAttribution"
             Slot LayoutSlot "{AB21010000000072}" {
              VerticalAlign 1
              Padding 0 0 12 0
@@ -404,11 +404,11 @@ FrameWidgetClass "{AB21010000000001}" {
             }
            }
            ImageWidgetClass "{AB21010000000074}" {
-            Name "GRSLogo"
+            Name "BifrostLogo"
             Slot LayoutSlot "{AB21010000000075}" {
              VerticalAlign 1
             }
-            Texture "{B76617332A30DD64}UI/Textures/GRS_Logo.edds"
+            Texture "{E5C7FBCFFF93BE92}UI/Textures/Logo-NoText.edds"
             Size 48 48
            }
           }

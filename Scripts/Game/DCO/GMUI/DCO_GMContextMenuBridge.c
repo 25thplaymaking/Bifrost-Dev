@@ -17,6 +17,14 @@ class DCO_GMContextMenuBridge
 	static const int ID_FLYBY           = 71;
 	static const int ID_EDIT_LOADOUT    = 72;	// hovered-character: open the Bifrost Arsenal on the unit.
 	static const int ID_RESET_LOADOUT   = 73;
+	static const int ID_DOORS_OPEN      = 74;
+	static const int ID_DOORS_CLOSE     = 75;
+	static const int ID_LIGHTS_ON       = 76;
+	static const int ID_LIGHTS_OFF      = 77;
+	static const int ID_SURRENDER       = 78;
+	static const int ID_RESTORE_AI      = 79;
+	static const int ID_COMPOSITIONS    = 80;
+	static const int ID_MOVE_SERVICE_ACCESS = 81;
 
 	protected static const float PANEL_CLAIM_WINDOW_MS = 250.0;
 	protected static float s_fPanelClaimAtMs;
@@ -41,6 +49,22 @@ class DCO_GMContextMenuBridge
 		return fresh;
 	}
 
+	protected static DCO_VehicleServiceZoneComponent ResolveVehicleServiceZone(SCR_EditableEntityComponent editable)
+	{
+		if (!editable || !editable.GetOwner())
+			return null;
+		IEntity owner = editable.GetOwner();
+		DCO_VehicleServiceZoneComponent zone = DCO_VehicleServiceZoneComponent.Cast(
+			owner.FindComponent(DCO_VehicleServiceZoneComponent));
+		if (zone)
+			return zone;
+		DCO_VehicleServiceAccessComponent access = DCO_VehicleServiceAccessComponent.Cast(
+			owner.FindComponent(DCO_VehicleServiceAccessComponent));
+		if (access)
+			return access.GetZone();
+		return null;
+	}
+
 	protected DCO_GMContextMenu m_Menu;	// shared, owned by the controller.
 	protected ref DCO_GMGroupOrders m_GroupOrders = new DCO_GMGroupOrders();
 	protected ref DCO_GMCreatePlayerPicker m_Picker;
@@ -50,6 +74,8 @@ class DCO_GMContextMenuBridge
 	protected ref ScriptInvoker m_MenuCb = new ScriptInvoker();
 
 	protected ref array<SCR_BaseEditorAction> m_NativeActions = {};
+	protected ref array<SCR_BaseEditorAction> m_EvaluatedNativeActions = {};
+	protected ref array<bool> m_EvaluatedNativeCanPerform = {};
 	protected SCR_EditableEntityComponent m_Entity;
 	protected vector m_CursorPos;
 	protected int m_Flags;
@@ -153,6 +179,16 @@ class DCO_GMContextMenuBridge
 		m_Entity = m_Ctx.GetHoveredEntity();
 		m_CursorPos = cursorWorldPosition;
 		m_Flags = flags;
+		m_EvaluatedNativeActions.Clear();
+		m_EvaluatedNativeCanPerform.Clear();
+		foreach (SCR_EditorActionData actionData : filteredActions)
+		{
+			if (actionData && actionData.GetAction())
+			{
+				m_EvaluatedNativeActions.Insert(actionData.GetAction());
+				m_EvaluatedNativeCanPerform.Insert(actionData.GetCanBePerformed());
+			}
+		}
 		GetGame().GetCallqueue().Remove(BuildAndShowMenu);
 		GetGame().GetCallqueue().CallLater(BuildAndShowMenu, 0);
 	}
@@ -170,20 +206,14 @@ class DCO_GMContextMenuBridge
 			return;
 		}
 
-		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
-		SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
-
-		array<SCR_BaseEditorAction> all = {};
-		m_Ctx.GetActions(all);
-
 		m_NativeActions.Clear();
 		array<string> labels = {};
 		array<int> ids = {};
-		foreach (SCR_BaseEditorAction action : all)
+		array<bool> enabled = {};
+		for (int evaluatedIndex = 0; evaluatedIndex < m_EvaluatedNativeActions.Count(); evaluatedIndex++)
 		{
+			SCR_BaseEditorAction action = m_EvaluatedNativeActions[evaluatedIndex];
 			if (!action)
-				continue;
-			if (!action.CanBeShown(m_Entity, selected, m_CursorPos, m_Flags))
 				continue;
 
 			SCR_PlaceEntityContextAction placeAction = SCR_PlaceEntityContextAction.Cast(action);
@@ -196,6 +226,7 @@ class DCO_GMContextMenuBridge
 			m_NativeActions.Insert(action);
 			labels.Insert(label);
 			ids.Insert(NATIVE_BASE + idx);
+			enabled.Insert(evaluatedIndex < m_EvaluatedNativeCanPerform.Count() && m_EvaluatedNativeCanPerform[evaluatedIndex]);
 		}
 
 		// Append DCO group orders when a group is hovered.
@@ -209,6 +240,36 @@ class DCO_GMContextMenuBridge
 				labels.Insert(ordLabels[i]);
 				ids.Insert(ordIds[i]);
 			}
+		}
+
+		if (DCO_GMWorldControlClient.HasDoorTarget(m_Entity))
+		{
+			labels.Insert("Open Doors for Selection");
+			ids.Insert(ID_DOORS_OPEN);
+			labels.Insert("Close Doors for Selection");
+			ids.Insert(ID_DOORS_CLOSE);
+		}
+		if (DCO_GMWorldControlClient.HasLightTarget(m_Entity))
+		{
+			labels.Insert("Turn Selected Lights On");
+			ids.Insert(ID_LIGHTS_ON);
+			labels.Insert("Turn Selected Lights Off");
+			ids.Insert(ID_LIGHTS_OFF);
+		}
+		if (DCO_GMWorldControlClient.HasSurrenderTarget(m_Entity, false))
+		{
+			labels.Insert("Surrender Selected AI");
+			ids.Insert(ID_SURRENDER);
+		}
+		if (DCO_GMWorldControlClient.HasSurrenderTarget(m_Entity, true))
+		{
+			labels.Insert("Restore Selected AI");
+			ids.Insert(ID_RESTORE_AI);
+		}
+		if (ResolveVehicleServiceZone(m_Entity))
+		{
+			labels.Insert("Move Vehicle Service Access");
+			ids.Insert(ID_MOVE_SERVICE_ACCESS);
 		}
 
 		if (m_Entity && (m_Entity.GetEntityType() == EEditableEntityType.CHARACTER || m_Entity.GetEntityType() == EEditableEntityType.VEHICLE))
@@ -244,8 +305,10 @@ class DCO_GMContextMenuBridge
 				labels.Insert("Restore Hidden Terrain");
 				ids.Insert(ID_RESTORE_TERRAIN);
 			}
-			labels.Insert("Place Map Marker");
+			labels.Insert("Markers & Intel");
 			ids.Insert(ID_MARKER);
+			labels.Insert("Compositions");
+			ids.Insert(ID_COMPOSITIONS);
 			labels.Insert("Place Trigger Here");
 			ids.Insert(ID_TRIGGER);
 			labels.Insert("Show FPS (this client)");
@@ -259,9 +322,11 @@ class DCO_GMContextMenuBridge
 
 		if (!labels.IsEmpty())
 		{
+			while (enabled.Count() < labels.Count())
+				enabled.Insert(true);
 			int mx, my;
 			WidgetManager.GetMousePos(mx, my);
-			m_Menu.Show(labels, ids, mx, my, m_MenuCb, m_Entity);
+			m_Menu.ShowWithAvailability(labels, ids, enabled, mx, my, m_MenuCb, m_Entity);
 		}
 
 		HideVanilla();
@@ -280,7 +345,7 @@ class DCO_GMContextMenuBridge
 
 		SCR_UIInfo info = action.GetInfo();
 		if (!info || info.GetName().IsEmpty())
-			return "Action";
+			return ResolveNativeActionFallback(actionType);
 
 		string authoredName = info.GetName();
 		if (authoredName[0] != "#")
@@ -294,7 +359,19 @@ class DCO_GMContextMenuBridge
 				return translatedName;
 		}
 
-		return "Action";
+		return ResolveNativeActionFallback(actionType);
+	}
+
+	protected string ResolveNativeActionFallback(string actionType)
+	{
+		actionType.Replace("SCR_", "");
+		actionType.Replace("ContextAction", "");
+		actionType.Replace("ToolbarAction", "");
+		actionType.Replace("Action", "");
+		actionType.Replace("_", " ");
+		if (actionType.IsEmpty())
+			return "Action";
+		return actionType;
 	}
 
 	protected void HideVanilla()
@@ -317,6 +394,8 @@ class DCO_GMContextMenuBridge
 
 	void OnMenuAction(int actionId, SCR_EditableEntityComponent e)
 	{
+		if (actionId != ID_MOVE_SERVICE_ACCESS)
+			DCO_VehicleServiceAccessPlacement.Get().Cancel();
 		if (actionId == ID_CREATE_PLAYER)
 		{
 			if (m_Picker)
@@ -326,7 +405,8 @@ class DCO_GMContextMenuBridge
 		// Apply sandbox actions at the captured cursor position.
 		if (actionId == ID_HIDE_TERRAIN)    { DCO_GMTools.Get().HideTerrainAt(m_CursorPos); return; }
 		if (actionId == ID_RESTORE_TERRAIN) { DCO_GMTools.Get().RestoreTerrain();           return; }
-		if (actionId == ID_MARKER)          { DCO_GMTools.Get().PlaceMarkerAt(m_CursorPos); return; }
+		if (actionId == ID_MARKER)          { DCO_GMCompositionPanel.Get().CloseForBack(); DCO_GMMarkerPanel.Get().Open(m_CursorPos); return; }
+		if (actionId == ID_COMPOSITIONS)    { DCO_GMMarkerPanel.Get().CloseForBack(); DCO_GMCompositionPanel.Get().Open(m_CursorPos); return; }
 		if (actionId == ID_TRIGGER)         { DCO_GMTools.Get().PlaceTriggerAt(m_CursorPos);return; }
 		if (actionId == ID_INVULN)          { DCO_GMTools.Get().ToggleInvuln(e);            return; }
 		if (actionId == ID_FPS)             { DCO_GMTools.Get().ShowFps();                  return; }
@@ -336,11 +416,29 @@ class DCO_GMContextMenuBridge
 		if (actionId == ID_FLYBY)           { DCO_GMTools.Get().SendOnFlyby(e);             return; }
 		if (actionId == ID_EDIT_LOADOUT)    { if (e) DCO_GRSArmoryBridge.OpenForGameMaster(e.GetOwner()); return; }
 		if (actionId == ID_RESET_LOADOUT)   { if (e && e.GetOwner()) DCO_ArsenalServer.Route(DCO_ArsenalServer.VERB_RESET, e.GetOwner(), ""); return; }
+		if (actionId == ID_DOORS_OPEN)      { DCO_GMWorldControlClient.RouteSelected(EDCO_GMWorldControlAction.OPEN_DOORS, e); return; }
+		if (actionId == ID_DOORS_CLOSE)     { DCO_GMWorldControlClient.RouteSelected(EDCO_GMWorldControlAction.CLOSE_DOORS, e); return; }
+		if (actionId == ID_LIGHTS_ON)       { DCO_GMWorldControlClient.RouteSelected(EDCO_GMWorldControlAction.LIGHTS_ON, e); return; }
+		if (actionId == ID_LIGHTS_OFF)      { DCO_GMWorldControlClient.RouteSelected(EDCO_GMWorldControlAction.LIGHTS_OFF, e); return; }
+		if (actionId == ID_SURRENDER)       { DCO_GMWorldControlClient.RouteSelected(EDCO_GMWorldControlAction.SURRENDER, e); return; }
+		if (actionId == ID_RESTORE_AI)      { DCO_GMWorldControlClient.RouteSelected(EDCO_GMWorldControlAction.RESTORE, e); return; }
+		if (actionId == ID_MOVE_SERVICE_ACCESS)
+		{
+			DCO_ArsenalAccessPlacement.Get().Cancel();
+			DCO_AIAnimationFxTool.Get().Cancel();
+			DCO_VehicleServiceAccessPlacement.Get().BeginTargeting(ResolveVehicleServiceZone(e));
+			return;
+		}
 		if (actionId >= NATIVE_BASE)
 		{
 			int idx = actionId - NATIVE_BASE;
 			if (m_Ctx && idx >= 0 && idx < m_NativeActions.Count())
-				m_Ctx.ActionPerform(m_NativeActions[idx], m_CursorPos, m_Flags);
+			{
+				SCR_BaseEditorAction nativeAction = m_NativeActions[idx];
+				DCO_ContentBrowserGate.AllowNativeActionBrowser();
+				m_Ctx.ActionPerform(nativeAction, m_CursorPos, m_Flags);
+				DCO_ContentBrowserGate.ClearNativeActionBrowserAllowance();
+			}
 			return;
 		}
 		if (DCO_GMGroupOrders.IsOrderAction(actionId))

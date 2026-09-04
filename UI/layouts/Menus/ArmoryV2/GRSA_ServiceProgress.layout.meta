@@ -1,0 +1,11 @@
+MetaFileClass {
+ Name "{B1F05E4C09010001}UI/layouts/Menus/ArmoryV2/GRSA_ServiceProgress.layout"
+ Configurations {
+  LayoutResourceClass PC {}
+  LayoutResourceClass XBOX_ONE : PC {}
+  LayoutResourceClass XBOX_SERIES : PC {}
+  LayoutResourceClass PS4 : PC {}
+  LayoutResourceClass PS5 : PC {}
+  LayoutResourceClass HEADLESS : PC {}
+ }
+}

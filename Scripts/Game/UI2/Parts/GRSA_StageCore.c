@@ -12,15 +12,23 @@ class GRSA_StageDragHandler : ScriptedWidgetEventHandler
 		m_Target = target;
 		m_Core = core;
 		m_Workspace = GetGame().GetWorkspace();
-		m_Workspace.AddHandler(this);
+		if (m_Workspace)
+			m_Workspace.AddHandler(this);
+		m_Target.AddHandler(this);
 	}
 
 	//------------------------------------------------------------------------------------------------
 	void SetTarget(notnull RenderTargetWidget target)
 	{
+		if (target == m_Target)
+			return;
+
 		m_bDragging = false;
 		m_Core.SetPointerRotate(false);
+		if (m_Target)
+			m_Target.RemoveHandler(this);
 		m_Target = target;
+		m_Target.AddHandler(this);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -58,10 +66,33 @@ class GRSA_StageDragHandler : ScriptedWidgetEventHandler
 	}
 
 	//------------------------------------------------------------------------------------------------
+	override bool OnMouseWheel(Widget w, int x, int y, int wheel)
+	{
+		if (!m_Core || !m_Core.CanStartPointerRotate(w, x, y))
+			return false;
+
+		m_Core.AddPointerZoom(wheel);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override bool OnMouseLeave(Widget w, Widget enterW, int x, int y)
+	{
+		if (!m_bDragging)
+			return false;
+
+		m_bDragging = false;
+		m_Core.SetPointerRotate(false);
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	void Destroy()
 	{
 		if (m_Core)
 			m_Core.SetPointerRotate(false);
+		if (m_Target)
+			m_Target.RemoveHandler(this);
 		if (m_Workspace)
 			m_Workspace.RemoveHandler(this);
 
@@ -112,12 +143,17 @@ class GRSA_StageCore
 	ref ScriptInvoker m_OnSubjectSpin = new ScriptInvoker();
 
 	protected ref SharedItemRef m_WorldRef;
+	protected ResourceName m_EnvironmentPrefab = STAGE_ENVIRONMENT;
+	protected string m_sWorldType;
 	protected ref GRSA_StageDragHandler m_DragHandler;
 	protected BaseWorld m_World;
 	protected IEntity m_EnvironmentRig;
 	protected LightEntity m_StudioKey;
 	protected LightEntity m_StudioFillLeft;
 	protected LightEntity m_StudioFillRight;
+	protected bool m_bStudioLightingAllowed = true;
+	protected bool m_bAutomaticHDR;
+	protected float m_fCameraEVAdjustment;
 	protected ParticleEffectEntity m_Dust;
 	protected RenderTargetWidget m_wTarget;
 	protected InputManager m_InputManager;
@@ -136,6 +172,9 @@ class GRSA_StageCore
 	protected float m_fHomeDist;
 	protected float m_fZoomMin = 0.3;
 	protected float m_fZoomMax = 5;
+	protected bool m_bYawLimited;
+	protected float m_fYawCenter;
+	protected float m_fYawHalfRange = 180;
 	protected vector m_vPanCenter;
 	protected float m_fPanRange = 1.5;
 	protected float m_fPanMinY = 0.05;
@@ -151,7 +190,10 @@ class GRSA_StageCore
 	protected bool m_bPanArmed;
 	protected bool m_bResetHeld;
 	protected bool m_bMouseSampled;
+	protected bool m_bTranslationTrack;
 	protected int m_iMouseX;
+	protected int m_iMouseY;
+	protected float m_fPointerZoom;
 
 	//------------------------------------------------------------------------------------------------
 	bool IsAlive()
@@ -166,6 +208,54 @@ class GRSA_StageCore
 	}
 
 	//------------------------------------------------------------------------------------------------
+	IEntity GetEnvironmentRig()
+	{
+		return m_EnvironmentRig;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Selects a stage environment before the private world is created.
+	bool SetEnvironment(ResourceName environmentPrefab)
+	{
+		if (m_World || environmentPrefab.IsEmpty())
+			return false;
+
+		m_EnvironmentPrefab = environmentPrefab;
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	bool SetWorldType(string worldType)
+	{
+		if (m_World || worldType.IsEmpty())
+			return false;
+
+		m_sWorldType = worldType;
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Enables atmosphere-driven exposure before the private world is created.
+	bool SetAutomaticHDR(bool automaticHDR)
+	{
+		if (m_World)
+			return false;
+
+		m_bAutomaticHDR = automaticHDR;
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	bool SetCameraEVAdjustment(float adjustment)
+	{
+		if (m_World)
+			return false;
+
+		m_fCameraEVAdjustment = adjustment;
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	bool EnsureWorld(string namePrefix)
 	{
 		if (m_World)
@@ -173,7 +263,10 @@ class GRSA_StageCore
 
 		s_iWorldCounter++;
 		string worldName = string.Format("%1_%2", namePrefix, s_iWorldCounter);
-		m_WorldRef = BaseWorld.CreateWorld(worldName, worldName);
+		string worldType = worldName;
+		if (!m_sWorldType.IsEmpty())
+			worldType = m_sWorldType;
+		m_WorldRef = BaseWorld.CreateWorld(worldType, worldName);
 		if (!m_WorldRef)
 		{
 			GRSA_Log.Error("StageCore: CreateWorld failed");
@@ -192,17 +285,20 @@ class GRSA_StageCore
 		m_World.SetCameraFarPlane(CAMERA, CAMERA_FAR_PLANE);
 		m_World.SetCameraNearPlane(CAMERA, CAMERA_NEAR_PLANE);
 		m_World.SetCameraVerticalFOV(CAMERA, CAMERA_FOV);
-		m_World.SetCameraHDRBrightness(CAMERA, 1.0);
+		if (m_bAutomaticHDR)
+			m_World.SetCameraHDRBrightness(CAMERA, -1);
+		else
+			m_World.SetCameraHDRBrightness(CAMERA, 1.0);
+		m_World.AdjustCameraEV(CAMERA, m_fCameraEVAdjustment);
 
-		//! A created world starts with no world props at all — the rig prefab's GenericWorldEntity
-		//! root is what registers sky, shadows and the exposure postprocess, not just the lights.
-		Resource lighting = Resource.Load(STAGE_ENVIRONMENT);
+		//! A non-preview world relies on its selected environment for world properties as well as scenery.
+		Resource lighting = Resource.Load(m_EnvironmentPrefab);
 		if (lighting && lighting.IsValid())
 			m_EnvironmentRig = GetGame().SpawnEntityPrefab(lighting, m_World);
 		if (m_EnvironmentRig)
 		{
 			BindStudioLights();
-			if (!m_StudioKey || !m_StudioFillLeft || !m_StudioFillRight)
+			if (m_bStudioLightingAllowed && (!m_StudioKey || !m_StudioFillLeft || !m_StudioFillRight))
 				GRSA_Log.Warn("StageCore: camera-relative studio lights are missing from the environment rig");
 		}
 		else
@@ -238,22 +334,57 @@ class GRSA_StageCore
 		//! nothing but its clear color while the world renders to nobody.
 		target.SetRefresh(1, 0);
 		target.Update();
-		m_World.SetCameraHDRBrightness(CAMERA, 1.0);
+		if (m_bAutomaticHDR)
+			m_World.SetCameraHDRBrightness(CAMERA, -1);
+		else
+			m_World.SetCameraHDRBrightness(CAMERA, 1.0);
+		m_World.AdjustCameraEV(CAMERA, m_fCameraEVAdjustment);
 	}
 
 	//------------------------------------------------------------------------------------------------
 	void SetHome(vector angles, vector look, float dist)
 	{
+		angles[0] = ClampYaw(angles[0]);
 		m_vHomeAngles = angles;
 		m_vHomeLook = look;
-		m_fHomeDist = dist;
+		m_fHomeDist = Math.Clamp(dist, m_fZoomMin, m_fZoomMax);
 	}
 
 	//------------------------------------------------------------------------------------------------
 	void SetZoomRange(float minDist, float maxDist)
 	{
-		m_fZoomMin = minDist;
-		m_fZoomMax = maxDist;
+		m_fZoomMin = Math.Max(0.05, minDist);
+		m_fZoomMax = Math.Max(m_fZoomMin, maxDist);
+		m_fDistTarget = Math.Clamp(m_fDistTarget, m_fZoomMin, m_fZoomMax);
+		m_fDist = Math.Clamp(m_fDist, m_fZoomMin, m_fZoomMax);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	void SetYawLimit(float center, float halfRange)
+	{
+		m_bYawLimited = true;
+		m_fYawCenter = center;
+		m_fYawHalfRange = Math.Clamp(halfRange, 0, 180);
+		m_vAnglesTarget[0] = ClampYaw(m_vAnglesTarget[0]);
+		m_vAngles[0] = ClampYaw(m_vAngles[0]);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	void ClearYawLimit()
+	{
+		m_bYawLimited = false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	void SetStudioLightingAllowed(bool allowed)
+	{
+		m_bStudioLightingAllowed = allowed;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	void SetTranslationTrack(bool enabled)
+	{
+		m_bTranslationTrack = enabled;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -269,17 +400,30 @@ class GRSA_StageCore
 	//! The adjustable key and two rear fills are authored last in the rig's light group.
 	protected void BindStudioLights()
 	{
-		IEntity child = m_EnvironmentRig.GetChildren();
+		m_StudioKey = null;
+		m_StudioFillLeft = null;
+		m_StudioFillRight = null;
+		CollectStudioLights(m_EnvironmentRig);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void CollectStudioLights(IEntity entity)
+	{
+		if (!entity)
+			return;
+
+		LightEntity light = LightEntity.Cast(entity);
+		if (light)
+		{
+			m_StudioKey = m_StudioFillLeft;
+			m_StudioFillLeft = m_StudioFillRight;
+			m_StudioFillRight = light;
+		}
+
+		IEntity child = entity.GetChildren();
 		while (child)
 		{
-			LightEntity light = LightEntity.Cast(child);
-			if (light)
-			{
-				m_StudioKey = m_StudioFillLeft;
-				m_StudioFillLeft = m_StudioFillRight;
-				m_StudioFillRight = light;
-			}
-
+			CollectStudioLights(child);
 			child = child.GetSibling();
 		}
 	}
@@ -293,6 +437,12 @@ class GRSA_StageCore
 		m_bMouseSampled = false;
 		if (!active)
 			m_bMouseRotate = false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	void AddPointerZoom(float wheel)
+	{
+		m_fPointerZoom = wheel;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -363,6 +513,13 @@ class GRSA_StageCore
 	{
 		m_vLookTarget = worldPos;
 		m_fDistTarget = Math.Clamp(dist, m_fZoomMin, m_fZoomMax);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	void FocusOnAtYaw(vector worldPos, float dist, float yaw)
+	{
+		m_vAnglesTarget[0] = ClampYaw(yaw);
+		FocusOn(worldPos, dist);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -461,11 +618,16 @@ class GRSA_StageCore
 			//! menu component consumes that event before the workspace handler receives it.
 			bool dragHeld = m_bPointerRotate || m_InputManager.GetActionValue("GRSA_ArmoryDrag") > 0;
 			int mouseDeltaX;
+			int mouseDeltaY;
 			if (dragHeld)
 			{
 				if (m_bMouseSampled)
+				{
 					mouseDeltaX = mouseX - m_iMouseX;
+					mouseDeltaY = mouseY - m_iMouseY;
+				}
 				m_iMouseX = mouseX;
+				m_iMouseY = mouseY;
 				m_bMouseSampled = true;
 			}
 			else
@@ -494,17 +656,30 @@ class GRSA_StageCore
 			}
 			else if (m_bMouseRotate)
 			{
-				//! Drag is yaw only and the camera never tilts — a drag-pitched camera
-				//! ratchets into a birds-eye nothing on the station resets.
-				float yawInput = m_InputManager.GetActionValue("GRSA_ArmoryYaw");
-				if (yawInput == 0 && mouseDeltaX != 0)
-					yawInput = mouseDeltaX;
-
-				float yawDelta = yawInput * prefs.GetOrbitScale() * 0.75;
-				if (m_bSubjectSpinYaw)
-					m_OnSubjectSpin.Invoke(yawDelta);
+				if (m_bTranslationTrack)
+				{
+					float trackX = m_InputManager.GetActionValue("GRSA_ArmoryYaw");
+					float trackY = m_InputManager.GetActionValue("GRSA_ArmoryPitch");
+					if (trackX == 0)
+						trackX = mouseDeltaX;
+					if (trackY == 0)
+						trackY = mouseDeltaY;
+					Pan(trackX, trackY, Math.Max(m_fDist, 0.8) * 0.004);
+				}
 				else
-					m_vAnglesTarget[0] = m_vAnglesTarget[0] + yawDelta;
+				{
+					//! Drag is yaw only and the camera never tilts — a drag-pitched camera
+					//! ratchets into a birds-eye nothing on the station resets.
+					float yawInput = m_InputManager.GetActionValue("GRSA_ArmoryYaw");
+					if (yawInput == 0 && mouseDeltaX != 0)
+						yawInput = mouseDeltaX;
+
+					float yawDelta = yawInput * prefs.GetOrbitScale() * 0.75;
+					if (m_bSubjectSpinYaw)
+						m_OnSubjectSpin.Invoke(yawDelta);
+					else
+						m_vAnglesTarget[0] = ClampYaw(m_vAnglesTarget[0] + yawDelta);
+				}
 			}
 
 			//! The full-bleed render target sits under every side panel — scroll regions own the
@@ -514,9 +689,12 @@ class GRSA_StageCore
 				&& !GRSA_CarouselComponent.IsCursorOverAny(mouseX, mouseY))
 			{
 				float wheel = m_InputManager.GetActionValue("GRSA_ArmoryZoomWheel");
+				if (wheel == 0)
+					wheel = m_fPointerZoom;
 				if (wheel != 0)
 					m_fDistTarget = Math.Clamp(m_fDistTarget * (1 - wheel * 0.001), m_fZoomMin, m_fZoomMax);
 			}
+			m_fPointerZoom = 0;
 		}
 		else
 		{
@@ -537,7 +715,7 @@ class GRSA_StageCore
 
 			//! 100 deg/s at full stick matches the base inspection screen's gamepad rate.
 			float scale = prefs.GetOrbitScale() * 100 * tDelta;
-			if (m_bPanArmed)
+			if (m_bPanArmed || m_bTranslationTrack)
 			{
 				Pan(-m_InputManager.GetActionValue("GRSA_ArmoryYaw"), -m_InputManager.GetActionValue("GRSA_ArmoryPitch"), Math.Max(m_fDist, 0.8) * 2 * tDelta);
 			}
@@ -547,7 +725,7 @@ class GRSA_StageCore
 				if (m_bSubjectSpinYaw)
 					m_OnSubjectSpin.Invoke(yawDelta);
 				else
-					m_vAnglesTarget[0] = m_vAnglesTarget[0] + yawDelta;
+					m_vAnglesTarget[0] = ClampYaw(m_vAnglesTarget[0] + yawDelta);
 			}
 
 			float zoomDelta = m_InputManager.GetActionValue("GRSA_ArmoryZoomIn") - m_InputManager.GetActionValue("GRSA_ArmoryZoomOut");
@@ -594,6 +772,20 @@ class GRSA_StageCore
 	}
 
 	//------------------------------------------------------------------------------------------------
+	protected float ClampYaw(float yaw)
+	{
+		if (!m_bYawLimited)
+			return yaw;
+
+		float delta = yaw - m_fYawCenter;
+		while (delta > 180)
+			delta -= 360;
+		while (delta < -180)
+			delta += 360;
+		return m_fYawCenter + Math.Clamp(delta, -m_fYawHalfRange, m_fYawHalfRange);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! The key follows just above the camera while paired fills sit behind the subject, so every
 	//! rotated side remains readable without putting visible fixtures in the stage.
 	protected void ApplyStudioLighting(vector camMat[4])
@@ -602,10 +794,11 @@ class GRSA_StageCore
 			return;
 
 		GRSA_ClientPrefs prefs = GRSA_ClientPrefs.Get();
-		m_StudioKey.SetEnabled(prefs.m_bStudioLighting);
-		m_StudioFillLeft.SetEnabled(prefs.m_bStudioLighting);
-		m_StudioFillRight.SetEnabled(prefs.m_bStudioLighting);
-		if (!prefs.m_bStudioLighting)
+		bool enabled = m_bStudioLightingAllowed && prefs.m_bStudioLighting;
+		m_StudioKey.SetEnabled(enabled);
+		m_StudioFillLeft.SetEnabled(enabled);
+		m_StudioFillRight.SetEnabled(enabled);
+		if (!enabled)
 			return;
 
 		float brightness = prefs.m_iStudioBrightness * 0.01;
@@ -654,9 +847,7 @@ class GRSA_StageCore
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Returns the widget to its previous path; dropping the owning reference deletes the world
-	//! and everything spawned in it.
-	void Release()
+	void UnbindTarget()
 	{
 		if (m_DragHandler)
 			m_DragHandler.Destroy();
@@ -666,6 +857,14 @@ class GRSA_StageCore
 
 		m_DragHandler = null;
 		m_wTarget = null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Returns the widget to its previous path; dropping the owning reference deletes the world
+	//! and everything spawned in it.
+	void Release()
+	{
+		UnbindTarget();
 		m_Dust = null;
 		m_StudioKey = null;
 		m_StudioFillLeft = null;
