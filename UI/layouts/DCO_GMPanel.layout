@@ -5854,8 +5854,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              ImageWidgetClass "{0DCC0000000003A0}" { Name "DCO_ForceIcon_0" Slot OverlayWidgetSlot "{0DCC0000000003A1}" { HorizontalAlign 0 VerticalAlign 1 Padding 8 0 0 0 } Color 1 1 1 1 Size 26 26 }
              TextWidgetClass "{0DCC00000000030C}" { Name "DCO_ForceLabel_0" Slot OverlayWidgetSlot "{0DCC00000000030D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 92 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
              TextWidgetClass "{0DCC00000000FE00}" { Name "DCO_ForceHealth_0" Slot OverlayWidgetSlot "{0DCC00000000FE01}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
-             TextWidgetClass "{0DCC00000000FE02}" { Name "DCO_ForceReady_0" Slot OverlayWidgetSlot "{0DCC00000000FE03}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 160 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
-             TextWidgetClass "{0DCC00000000030E}" { Name "DCO_ForceAmmo_0" Slot OverlayWidgetSlot "{0DCC00000000030F}" { HorizontalAlign 3 VerticalAlign 2 Padding 160 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
+             HorizontalLayoutWidgetClass "{0DCC00000000FE20}" {
+              Name "DCO_ForceStatus_0"
+              Slot OverlayWidgetSlot "{0DCC00000000FE21}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 34 7 }
+              {
+               TextWidgetClass "{0DCC00000000FE02}" { Name "DCO_ForceReady_0" Slot LayoutSlot "{0DCC00000000FE03}" { VerticalAlign 1 Padding 0 0 4 0 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
+               TextWidgetClass "{0DCC00000000030E}" { Name "DCO_ForceAmmo_0" Slot LayoutSlot "{0DCC00000000030F}" { FillWeight 1 SizeMode Fill VerticalAlign 1 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
+              }
+             }
             SizeLayoutWidgetClass "{0DCC000000000312}" {
              Name "DCO_ForceBarHost_0"
              Slot OverlayWidgetSlot "{0DCC000000000313}" { HorizontalAlign 3 VerticalAlign 2 Padding 2 0 2 0 }
@@ -5891,8 +5897,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              ImageWidgetClass "{0DCC0000000003A8}" { Name "DCO_ForceIcon_1" Slot OverlayWidgetSlot "{0DCC0000000003A9}" { HorizontalAlign 0 VerticalAlign 1 Padding 8 0 0 0 } Color 1 1 1 1 Size 26 26 }
              TextWidgetClass "{0DCC00000000031C}" { Name "DCO_ForceLabel_1" Slot OverlayWidgetSlot "{0DCC00000000031D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 92 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
              TextWidgetClass "{0DCC00000000FE04}" { Name "DCO_ForceHealth_1" Slot OverlayWidgetSlot "{0DCC00000000FE05}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
-             TextWidgetClass "{0DCC00000000FE06}" { Name "DCO_ForceReady_1" Slot OverlayWidgetSlot "{0DCC00000000FE07}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 160 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
-             TextWidgetClass "{0DCC00000000031E}" { Name "DCO_ForceAmmo_1" Slot OverlayWidgetSlot "{0DCC00000000031F}" { HorizontalAlign 3 VerticalAlign 2 Padding 160 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
+             HorizontalLayoutWidgetClass "{0DCC00000000FE22}" {
+              Name "DCO_ForceStatus_1"
+              Slot OverlayWidgetSlot "{0DCC00000000FE23}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 34 7 }
+              {
+               TextWidgetClass "{0DCC00000000FE06}" { Name "DCO_ForceReady_1" Slot LayoutSlot "{0DCC00000000FE07}" { VerticalAlign 1 Padding 0 0 4 0 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
+               TextWidgetClass "{0DCC00000000031E}" { Name "DCO_ForceAmmo_1" Slot LayoutSlot "{0DCC00000000031F}" { FillWeight 1 SizeMode Fill VerticalAlign 1 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
+              }
+             }
              SizeLayoutWidgetClass "{0DCC000000000322}" { Name "DCO_ForceBarHost_1" Slot OverlayWidgetSlot "{0DCC000000000323}" { HorizontalAlign 3 VerticalAlign 2 Padding 2 0 2 0 } AllowHeightOverride 1 HeightOverride 3 { ProgressBarWidgetClass "{0DCC000000000320}" { Name "DCO_ForceBar_1" Slot AlignableSlot "{0DCC000000000321}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.337 0.761 0.439 1 Current 0 } } }
              ButtonWidgetClass "{0DCC0000000003AA}" { Name "DCO_ForceSelect_1" Slot OverlayWidgetSlot "{0DCC0000000003AB}" { HorizontalAlign 3 VerticalAlign 3 Padding 0 0 30 0 } style blank }
              ButtonWidgetClass "{0DCC0000000003AC}" { Name "DCO_ForceHide_1" Slot OverlayWidgetSlot "{0DCC0000000003AD}" { HorizontalAlign 2 VerticalAlign 1 Padding 0 0 7 0 } style blank { ImageWidgetClass "{0DCC0000000003AE}" { Name "DCO_ForceHideIcon_1" Slot ButtonWidgetSlot "{0DCC0000000003AF}" { Padding 4 4 4 4 } Texture "{AA53CE1A22171748}UI/Textures/Editor/Toolbar/ToolbarAction_ToggleInterface.edds" Color 0.851 0.537 0.169 1 Size 16 16 } } }
@@ -5915,8 +5927,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              ImageWidgetClass "{0DCC0000000003B0}" { Name "DCO_ForceIcon_2" Slot OverlayWidgetSlot "{0DCC0000000003B1}" { HorizontalAlign 0 VerticalAlign 1 Padding 8 0 0 0 } Color 1 1 1 1 Size 26 26 }
              TextWidgetClass "{0DCC00000000032C}" { Name "DCO_ForceLabel_2" Slot OverlayWidgetSlot "{0DCC00000000032D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 92 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
              TextWidgetClass "{0DCC00000000FE08}" { Name "DCO_ForceHealth_2" Slot OverlayWidgetSlot "{0DCC00000000FE09}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
-             TextWidgetClass "{0DCC00000000FE0A}" { Name "DCO_ForceReady_2" Slot OverlayWidgetSlot "{0DCC00000000FE0B}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 160 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
-             TextWidgetClass "{0DCC00000000032E}" { Name "DCO_ForceAmmo_2" Slot OverlayWidgetSlot "{0DCC00000000032F}" { HorizontalAlign 3 VerticalAlign 2 Padding 160 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
+             HorizontalLayoutWidgetClass "{0DCC00000000FE24}" {
+              Name "DCO_ForceStatus_2"
+              Slot OverlayWidgetSlot "{0DCC00000000FE25}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 34 7 }
+              {
+               TextWidgetClass "{0DCC00000000FE0A}" { Name "DCO_ForceReady_2" Slot LayoutSlot "{0DCC00000000FE0B}" { VerticalAlign 1 Padding 0 0 4 0 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
+               TextWidgetClass "{0DCC00000000032E}" { Name "DCO_ForceAmmo_2" Slot LayoutSlot "{0DCC00000000032F}" { FillWeight 1 SizeMode Fill VerticalAlign 1 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
+              }
+             }
              SizeLayoutWidgetClass "{0DCC000000000332}" { Name "DCO_ForceBarHost_2" Slot OverlayWidgetSlot "{0DCC000000000333}" { HorizontalAlign 3 VerticalAlign 2 Padding 2 0 2 0 } AllowHeightOverride 1 HeightOverride 3 { ProgressBarWidgetClass "{0DCC000000000330}" { Name "DCO_ForceBar_2" Slot AlignableSlot "{0DCC000000000331}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.337 0.761 0.439 1 Current 0 } } }
              ButtonWidgetClass "{0DCC0000000003B2}" { Name "DCO_ForceSelect_2" Slot OverlayWidgetSlot "{0DCC0000000003B3}" { HorizontalAlign 3 VerticalAlign 3 Padding 0 0 30 0 } style blank }
              ButtonWidgetClass "{0DCC0000000003B4}" { Name "DCO_ForceHide_2" Slot OverlayWidgetSlot "{0DCC0000000003B5}" { HorizontalAlign 2 VerticalAlign 1 Padding 0 0 7 0 } style blank { ImageWidgetClass "{0DCC0000000003B6}" { Name "DCO_ForceHideIcon_2" Slot ButtonWidgetSlot "{0DCC0000000003B7}" { Padding 4 4 4 4 } Texture "{AA53CE1A22171748}UI/Textures/Editor/Toolbar/ToolbarAction_ToggleInterface.edds" Color 0.851 0.537 0.169 1 Size 16 16 } } }
@@ -5939,8 +5957,14 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
              ImageWidgetClass "{0DCC0000000003B8}" { Name "DCO_ForceIcon_3" Slot OverlayWidgetSlot "{0DCC0000000003B9}" { HorizontalAlign 0 VerticalAlign 1 Padding 8 0 0 0 } Color 1 1 1 1 Size 26 26 }
              TextWidgetClass "{0DCC00000000033C}" { Name "DCO_ForceLabel_3" Slot OverlayWidgetSlot "{0DCC00000000033D}" { HorizontalAlign 3 VerticalAlign 0 Padding 42 4 92 0 } Text "FACTION" Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
              TextWidgetClass "{0DCC00000000FE0C}" { Name "DCO_ForceHealth_3" Slot OverlayWidgetSlot "{0DCC00000000FE0D}" { HorizontalAlign 2 VerticalAlign 0 Padding 0 4 34 0 } Text "0%" "Horizontal Alignment" Right Color 0.86 0.89 0.91 1 "Font Size" 16 "Min Font Size" 10 }
-             TextWidgetClass "{0DCC00000000FE0E}" { Name "DCO_ForceReady_3" Slot OverlayWidgetSlot "{0DCC00000000FE0F}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 160 7 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
-             TextWidgetClass "{0DCC00000000033E}" { Name "DCO_ForceAmmo_3" Slot OverlayWidgetSlot "{0DCC00000000033F}" { HorizontalAlign 3 VerticalAlign 2 Padding 160 0 34 7 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
+             HorizontalLayoutWidgetClass "{0DCC00000000FE26}" {
+              Name "DCO_ForceStatus_3"
+              Slot OverlayWidgetSlot "{0DCC00000000FE27}" { HorizontalAlign 3 VerticalAlign 2 Padding 42 0 34 7 }
+              {
+               TextWidgetClass "{0DCC00000000FE0E}" { Name "DCO_ForceReady_3" Slot LayoutSlot "{0DCC00000000FE0F}" { VerticalAlign 1 Padding 0 0 4 0 } Text "0/0 READY" Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 9 }
+               TextWidgetClass "{0DCC00000000033E}" { Name "DCO_ForceAmmo_3" Slot LayoutSlot "{0DCC00000000033F}" { FillWeight 1 SizeMode Fill VerticalAlign 1 } Text "0 RDS · 0/M" "Horizontal Alignment" Right Color 0.58 0.63 0.68 1 "Font Size" 13 "Min Font Size" 8 }
+              }
+             }
              SizeLayoutWidgetClass "{0DCC000000000342}" { Name "DCO_ForceBarHost_3" Slot OverlayWidgetSlot "{0DCC000000000343}" { HorizontalAlign 3 VerticalAlign 2 Padding 2 0 2 0 } AllowHeightOverride 1 HeightOverride 3 { ProgressBarWidgetClass "{0DCC000000000340}" { Name "DCO_ForceBar_3" Slot AlignableSlot "{0DCC000000000341}" { HorizontalAlign 3 VerticalAlign 3 } Color 0.337 0.761 0.439 1 Current 0 } } }
              ButtonWidgetClass "{0DCC0000000003BA}" { Name "DCO_ForceSelect_3" Slot OverlayWidgetSlot "{0DCC0000000003BB}" { HorizontalAlign 3 VerticalAlign 3 Padding 0 0 30 0 } style blank }
              ButtonWidgetClass "{0DCC0000000003BC}" { Name "DCO_ForceHide_3" Slot OverlayWidgetSlot "{0DCC0000000003BD}" { HorizontalAlign 2 VerticalAlign 1 Padding 0 0 7 0 } style blank { ImageWidgetClass "{0DCC0000000003BE}" { Name "DCO_ForceHideIcon_3" Slot ButtonWidgetSlot "{0DCC0000000003BF}" { Padding 4 4 4 4 } Texture "{AA53CE1A22171748}UI/Textures/Editor/Toolbar/ToolbarAction_ToggleInterface.edds" Color 0.851 0.537 0.169 1 Size 16 16 } } }
