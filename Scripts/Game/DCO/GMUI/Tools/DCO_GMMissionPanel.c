@@ -177,11 +177,14 @@ class DCO_GMMissionPanel
 				Label("Apply_Label", "RESTORE ALL TERRAIN");
 				break;
 			case DCO_GMMissionTool.SCALE:
-				if (selected.Count() == 1 && selected[0] && SCR_EditableEntityComponent.DCO_CanScale(selected[0].GetOwner()))
-					m_Value.SetText(selected[0].GetOwner().GetScale().ToString());
-				help = "1. Select a static prop or whole barricade assembly.\n2. Enter a scale below.\n3. Choose APPLY SCALE. Characters, vehicles and assemblies with moving physics parts are not supported.";
+				SCR_EditableEntityComponent scaleTarget;
+				if (selected.Count() == 1)
+					scaleTarget = SCR_EditableEntityComponent.DCO_ResolveScaleTarget(selected[0]);
+				if (scaleTarget && scaleTarget.GetOwner())
+					m_Value.SetText(scaleTarget.GetOwner().GetScale().ToString());
+				help = "1. Select the objects, equipment, vehicles or characters to resize.\n2. Enter a scale below.\n3. Choose APPLY SCALE. A selected assembly includes its attached parts; select only a part to resize it separately.";
 				Label("Value_Caption", "Uniform scale");
-				Label("Value_Help", "Enter 0.25 to 4.0. 1.0 is original size, 0.5 is half size, and 2.0 is double size.");
+				Label("Value_Help", "Enter 0.01 to 100. 1.0 restores normal size, 0.5 halves it, and 2.0 doubles it. Animation and collision behavior depends on the asset.");
 				Label("Apply_Label", "APPLY SCALE");
 				break;
 			case DCO_GMMissionTool.INVINCIBLE:
@@ -447,7 +450,7 @@ class DCO_GMMissionPanel
 		else if (body.Length() > 2048) issue = "Shorten the message to 2048 characters or fewer.";
 		else if (m_Tool == 8 && (body.Length() > 64 || body.Contains("\n") || body.Contains("\r"))) issue = "Use a single-line link name of 64 characters or fewer.";
 		else if (m_Tool == 1 && !(m_Value.GetText().ToFloat() >= 5 && m_Value.GetText().ToFloat() <= 100)) issue = "Enter a radius from 5 to 100 metres.";
-		else if (m_Tool == 3 && !(m_Value.GetText().ToFloat() >= 0.25 && m_Value.GetText().ToFloat() <= 4)) issue = "Enter a scale from 0.25 to 4.0. Use 1.0 for original size.";
+		else if (m_Tool == DCO_GMMissionTool.SCALE && !SCR_EditableEntityComponent.DCO_IsMissionScaleValid(m_Value.GetText().ToFloat())) issue = "Enter a scale from 0.01 to 100. Use 1.0 for original size.";
 		if (issue.IsEmpty()) return true;
 		OnResult(false, issue);
 		return false;

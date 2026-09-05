@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Removed Bifrost's runtime scaling bans on characters, vehicles, equipment, physics bodies and attached entities. Scale Object now accepts 0.01–100, resolves player selections to their controlled character, checks native scalar readback, restores the previous value on rejection, and retains requested scale after native movement/animation updates. Nested selections are handled through their selected parent. Removed the recursive static transform reset; in-game and multiplayer acceptance remain pending.
 ## 1.0.29 - 2026-09-04
 
 - Corrected Gunsmith input routing so preview dragging checks the control under the pointer, item rows use native button activation, and mouse focus no longer slides a weapon tile away before release. Weapon and attachment interactions await operator testing.

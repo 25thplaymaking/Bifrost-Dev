@@ -2,17 +2,39 @@ modded class SCR_EditableEntityComponent
 {
 	[RplProp(onRplName: "DCO_ApplyMissionScale")]
 	protected float m_fDCO_MissionScale;
+	protected bool m_bDCO_ScaleOwnsPostFrame;
 	[RplProp(onRplName: "DCO_ApplyMissionInvincible")]
 	protected int m_iDCO_MissionInvincible;
 
 	bool DCO_SetMissionScale(float scale)
 	{
-		if (!Replication.IsServer() || !(scale >= 0.25 && scale <= 4.0) || !DCO_CanScale(GetOwner()))
+		if (!Replication.IsServer() || !DCO_IsMissionScaleValid(scale) || !DCO_CanScale(GetOwner()))
 			return false;
+		IEntity entity = GetOwner();
+		float previousScale = entity.GetScale();
+		entity.SetScale(scale);
+		if (!float.AlmostEqual(entity.GetScale(), scale, 0.0001))
+		{
+			entity.SetScale(previousScale);
+			return false;
+		}
 		m_fDCO_MissionScale = scale;
 		DCO_ApplyMissionScale();
 		Replication.BumpMe();
 		return true;
+	}
+
+	static bool DCO_IsMissionScaleValid(float scale)
+	{
+		return scale >= 0.01 && scale <= 100.0;
+	}
+
+	static SCR_EditableEntityComponent DCO_ResolveScaleTarget(SCR_EditableEntityComponent editable)
+	{
+		SCR_EditablePlayerDelegateComponent player = SCR_EditablePlayerDelegateComponent.Cast(editable);
+		if (player)
+			return player.GetControlledEntity();
+		return editable;
 	}
 
 	static bool DCO_CanScale(IEntity entity)
@@ -22,42 +44,12 @@ modded class SCR_EditableEntityComponent
 
 	static string DCO_GetScaleIssue(IEntity entity)
 	{
-		if (!entity)
+		if (!entity || entity.IsDeleted())
 			return "The selected object no longer exists. Select it again.";
-		if (ChimeraCharacter.Cast(entity))
-			return "Characters cannot be scaled. Select a static prop or barricade.";
-		if (Vehicle.Cast(entity))
-			return "Vehicles cannot be scaled. Select a static prop or barricade.";
-		if (entity.GetParent())
-			return "Select the whole assembly instead of an attached part.";
 		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(entity.FindComponent(SCR_EditableEntityComponent));
-		if (!editable || editable.GetEntityType() != EEditableEntityType.GENERIC || SCR_EditableSystemComponent.Cast(editable))
-			return "Select an editable static prop or barricade, not a system or inventory item.";
-
-		// Composition roots have no mesh; validate the complete physical hierarchy.
-		array<IEntity> parts = {entity};
-		bool hasModel;
-		for (int i = 0; i < parts.Count(); i++)
-		{
-			IEntity part = parts[i];
-			if (ChimeraCharacter.Cast(part) || Vehicle.Cast(part))
-				return "This assembly contains a character or vehicle and cannot be scaled.";
-			Physics physics = part.GetPhysics();
-			if (physics && (physics.IsDynamic() || physics.IsKinematic()))
-				return "This object has moving physics parts. Select a fully static prop or barricade.";
-			if (part.GetVObject())
-				hasModel = true;
-			IEntity child = part.GetChildren();
-			while (child)
-			{
-				if (parts.Count() >= 512)
-					return "This assembly is too large to scale. Select a smaller static assembly.";
-				parts.Insert(child);
-				child = child.GetSibling();
-			}
-		}
-		if (!hasModel)
-			return "This selection has no model to resize. Select a static prop or barricade.";
+		RplId id;
+		if (!editable || !editable.IsReplicated(id) || !id.IsValid())
+			return "This object has no replicated GM target. Select a GM-editable entity.";
 		return string.Empty;
 	}
 
@@ -67,21 +59,27 @@ modded class SCR_EditableEntityComponent
 		if (!entity || m_fDCO_MissionScale <= 0)
 			return;
 		entity.SetScale(m_fDCO_MissionScale);
-		DCO_UpdateScaleHierarchy(entity);
+		if (m_fDCO_MissionScale != 1.0)
+		{
+			if (!(GetEventMask() & EntityEvent.POSTFRAME))
+			{
+				SetEventMask(entity, EntityEvent.POSTFRAME);
+				m_bDCO_ScaleOwnsPostFrame = true;
+			}
+		}
+		else if (m_bDCO_ScaleOwnsPostFrame)
+		{
+			ClearEventMask(entity, EntityEvent.POSTFRAME);
+			m_bDCO_ScaleOwnsPostFrame = false;
+		}
 	}
 
-	protected static void DCO_UpdateScaleHierarchy(IEntity entity)
+	override void EOnPostFrame(IEntity owner, float timeSlice)
 	{
-		entity.Update();
-		GenericEntity generic = GenericEntity.Cast(entity);
-		if (generic)
-			generic.OnTransformReset();
-		IEntity child = entity.GetChildren();
-		while (child)
-		{
-			DCO_UpdateScaleHierarchy(child);
-			child = child.GetSibling();
-		}
+		super.EOnPostFrame(owner, timeSlice);
+		// Animated and moving entities can replace their transform after the request.
+		if (owner && m_fDCO_MissionScale > 0 && !float.AlmostEqual(owner.GetScale(), m_fDCO_MissionScale, 0.0001))
+			owner.SetScale(m_fDCO_MissionScale);
 	}
 
 	bool DCO_SetMissionInvincible(bool enabled)
