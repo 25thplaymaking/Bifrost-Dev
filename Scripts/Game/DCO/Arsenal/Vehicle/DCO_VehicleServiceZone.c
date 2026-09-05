@@ -1065,7 +1065,7 @@ class DCO_VehicleServiceServer
 			if (rocketPrefab.IsEmpty())
 				continue;
 			Resource rocketResource = Resource.Load(rocketPrefab);
-			if (!rocketResource.IsValid())
+			if (!rocketResource || !rocketResource.IsValid())
 				continue;
 			supportedSystems++;
 			for (int barrel = 0; barrel < rocketMuzzle.GetBarrelsCount(); barrel++)

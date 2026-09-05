@@ -91,18 +91,24 @@ class DCO_GMMissionServer
 			return false;
 		int applied;
 		set<RplId> seen = new set<RplId>();
+		set<SCR_EditableEntityComponent> protectedTargets = new set<SCR_EditableEntityComponent>();
 		foreach (RplId id : ids)
 		{
 			if (seen.Contains(id))
 				continue;
 			seen.Insert(id);
 			SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(id));
+			if (tool == DCO_GMMissionTool.INVINCIBLE)
+				editable = SCR_EditableEntityComponent.DCO_ResolveMissionTarget(editable);
 			if (!editable || !editable.GetOwner())
 				continue;
 			if (tool == DCO_GMMissionTool.INVINCIBLE && (options[0] == 0 || options[0] == 1))
 			{
-				if (editable.DCO_SetMissionInvincible(options[0] == 1))
+				if (!protectedTargets.Contains(editable) && editable.DCO_SetMissionInvincible(options[0] == 1))
+				{
+					protectedTargets.Insert(editable);
 					applied++;
+				}
 				if (options[1] == 1)
 				{
 					SCR_BaseCompartmentManagerComponent compartments = SCR_BaseCompartmentManagerComponent.Cast(editable.GetOwner().FindComponent(SCR_BaseCompartmentManagerComponent));
@@ -113,8 +119,11 @@ class DCO_GMMissionServer
 					{
 						if (!occupant) continue;
 						SCR_EditableEntityComponent crew = SCR_EditableEntityComponent.Cast(occupant.FindComponent(SCR_EditableEntityComponent));
-						if (occupant && crew && crew.DCO_SetMissionInvincible(options[0] == 1))
+						if (crew && !protectedTargets.Contains(crew) && crew.DCO_SetMissionInvincible(options[0] == 1))
+						{
+							protectedTargets.Insert(crew);
 							applied++;
+						}
 					}
 				}
 			}
@@ -157,7 +166,7 @@ class DCO_GMMissionServer
 				continue;
 			seen.Insert(id);
 			SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(id));
-			editable = SCR_EditableEntityComponent.DCO_ResolveScaleTarget(editable);
+			editable = SCR_EditableEntityComponent.DCO_ResolveMissionTarget(editable);
 			if (!editable || !editable.GetOwner())
 			{
 				skipped++;

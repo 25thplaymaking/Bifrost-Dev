@@ -13,6 +13,8 @@ class DCO_ScenarioOptionHandler : ScriptedWidgetEventHandler
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		if (button != 0)
+			return false;
 		if (!m_Row)
 			return false;
 		return m_Row.OnAction(m_Action);
@@ -1215,6 +1217,8 @@ class DCO_ScenarioButtonHandler : ScriptedWidgetEventHandler
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		if (button != 0)
+			return false;
 		if (m_Owner)
 			return m_Owner.OnButton(w);
 		return false;
@@ -1255,6 +1259,8 @@ class DCO_ScenarioCategoryHandler : ScriptedWidgetEventHandler
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		if (button != 0)
+			return false;
 		if (!m_Owner)
 			return false;
 		return m_Owner.SelectCategory(m_Index);

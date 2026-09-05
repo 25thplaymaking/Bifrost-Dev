@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Reviewed mission actions and changed feature groups against installed native source through PAC1CLI and checked their layout bindings. Corrected non-primary action clicks across the affected panels, player-delegate invincibility, and Chatter text focus.
+- Corrected composition spawn rollback and malformed-parent validation, plus a missing-resource guard in vehicle rocket servicing.
+- Separated FX Tracer cosmetic cues from damaging ammunition and broadcast its shot audio/visuals to clients. Added a repeatable layout checker and a per-feature click/selection guide; runtime and multiplayer acceptance remain with the operator.
+
 - Removed Bifrost's runtime scaling bans on characters, vehicles, equipment, physics bodies and attached entities. Scale Object now accepts 0.01–100, resolves player selections to their controlled character, checks native scalar readback, restores the previous value on rejection, and retains requested scale after native movement/animation updates. Nested selections are handled through their selected parent. Removed the recursive static transform reset; in-game and multiplayer acceptance remain pending.
 ## 1.0.29 - 2026-09-04
 

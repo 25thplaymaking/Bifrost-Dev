@@ -11,6 +11,8 @@ class DCO_OptionsButtonHandler : ScriptedWidgetEventHandler
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		if (button != 0)
+			return false;
 		if (m_Owner)
 			return m_Owner.OnButton(w);
 		return false;
@@ -31,6 +33,8 @@ class DCO_OptSwatchHandler : ScriptedWidgetEventHandler
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		if (button != 0)
+			return false;
 		if (m_Owner)
 			return m_Owner.OnSwatch(m_Index);
 		return false;
@@ -50,6 +54,8 @@ class DCO_OptVisibilityHandler : ScriptedWidgetEventHandler
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		if (button != 0)
+			return false;
 		if (m_Owner)
 			return m_Owner.ToggleVisibility(m_Index);
 		return false;

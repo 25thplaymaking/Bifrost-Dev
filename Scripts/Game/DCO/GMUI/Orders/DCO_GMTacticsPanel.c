@@ -13,6 +13,8 @@ class DCO_TacBtnHandler : ScriptedWidgetEventHandler
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		if (button != 0)
+			return false;
 		if (m_Owner)
 			return m_Owner.OnButton(m_Id);
 		return false;

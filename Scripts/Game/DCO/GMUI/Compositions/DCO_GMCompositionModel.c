@@ -364,7 +364,12 @@ class DCO_GMCompositionServer
 			if (item.m_iRootIndex < 0 || item.m_iRootIndex >= itemCount)
 				return false;
 			item.m_fScale = Math.Clamp(item.m_fScale, 0.01, 100.0);
+		}
 
+		// Validate every item before following references to another stored item.
+		for (int index = 0; index < itemCount; index++)
+		{
+			DCO_GMCompositionItem item = composition.m_aItems[index];
 			int ancestorIndex = index;
 			int guard;
 			while (composition.m_aItems[ancestorIndex].m_iParentIndex >= 0)
@@ -634,6 +639,7 @@ class DCO_GMCompositionServer
 				spawnParams.Transform[3] = plannedPositions[spawnIndex];
 				spawnParams.Scale = item.m_fScale;
 				IEntity entity = GetGame().SpawnEntityPrefab(resource, world, spawnParams);
+				spawnedEntities[spawnIndex] = entity;
 				SCR_EditableEntityComponent editable;
 				if (entity)
 				{
@@ -648,7 +654,6 @@ class DCO_GMCompositionServer
 					SendResult(controller, false, "Placement failed atomically; every partially spawned entity was rolled back.");
 					return;
 				}
-				spawnedEntities[spawnIndex] = entity;
 				spawnedEditables[spawnIndex] = editable;
 				spawnedFlags[spawnIndex] = true;
 				spawnedCount++;

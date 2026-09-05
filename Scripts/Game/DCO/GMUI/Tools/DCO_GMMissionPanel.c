@@ -3,7 +3,10 @@ class DCO_GMMissionButton : ScriptedWidgetEventHandler
 	DCO_GMMissionPanel m_Panel;
 	int m_Action;
 	void DCO_GMMissionButton(DCO_GMMissionPanel panel, int action) { m_Panel = panel; m_Action = action; }
-	override bool OnClick(Widget w, int x, int y, int button) { return m_Panel.OnAction(m_Action); }
+	override bool OnClick(Widget w, int x, int y, int button)
+	{
+		return button == 0 && m_Panel && m_Panel.OnAction(m_Action);
+	}
 }
 
 class DCO_GMMissionPanel
@@ -179,7 +182,7 @@ class DCO_GMMissionPanel
 			case DCO_GMMissionTool.SCALE:
 				SCR_EditableEntityComponent scaleTarget;
 				if (selected.Count() == 1)
-					scaleTarget = SCR_EditableEntityComponent.DCO_ResolveScaleTarget(selected[0]);
+					scaleTarget = SCR_EditableEntityComponent.DCO_ResolveMissionTarget(selected[0]);
 				if (scaleTarget && scaleTarget.GetOwner())
 					m_Value.SetText(scaleTarget.GetOwner().GetScale().ToString());
 				help = "1. Select the objects, equipment, vehicles or characters to resize.\n2. Enter a scale below.\n3. Choose APPLY SCALE. A selected assembly includes its attached parts; select only a part to resize it separately.";
@@ -232,7 +235,7 @@ class DCO_GMMissionPanel
 				Label("Apply_Label", "REMOVE INTERACTION");
 				break;
 			default:
-				help = "1. Choose the ground position.\n2. Give it a name below.\n3. Create the position, then use Use Named Position to direct selected groups or supported modules there.";
+				help = "1. Choose the ground position.\n2. Give it a name below.\n3. Create the position, then use Use Named Position to direct selected groups or supported modules there. These are named coordinates, not AI landing pads or laser targets.";
 				Label("Title_Caption", DCO_GMMissionTool.Name(tool) + " - name");
 				Label("Title_Help", "For example: LZ Falcon, RP Oak or Target Bridge. This name appears in the saved-position picker. Maximum 64 characters.");
 				Label("Apply_Label", DCO_GMMissionTool.Name(tool));
@@ -261,6 +264,7 @@ class DCO_GMMissionPanel
 			}
 		}
 		if (m_Title.IsVisibleInHierarchy()) GetGame().GetWorkspace().SetFocusedWidget(m_Title);
+		else if (m_Body.IsVisibleInHierarchy()) GetGame().GetWorkspace().SetFocusedWidget(m_Body);
 		else if (m_Value.IsVisibleInHierarchy()) GetGame().GetWorkspace().SetFocusedWidget(m_Value);
 		else GetGame().GetWorkspace().SetFocusedWidget(m_Root.FindAnyWidget("DCO_MissionApply"));
 	}

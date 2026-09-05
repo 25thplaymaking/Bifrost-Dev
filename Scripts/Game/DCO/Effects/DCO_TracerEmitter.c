@@ -96,7 +96,7 @@ class DCO_TracerEmitterComponent : ScriptComponent
 	[Attribute("2", UIWidgets.Slider, "Pause between bursts (seconds). 0 = continuous fire.", "0 15 0.5", category: "Bifrost"), RplProp()]
 	float m_fPauseSec;
 
-	[Attribute("0", UIWidgets.CheckBox, "LIVE rounds: the impact fuse is armed and the stream can wound/kill. OFF = cosmetic tracer visuals only.", category: "Bifrost"), RplProp()]
+	[Attribute("0", UIWidgets.CheckBox, "LIVE rounds can wound or kill. OFF draws cosmetic tracer cues without spawning ammunition.", category: "Bifrost"), RplProp()]
 	bool m_bLive;
 
 	[Attribute("1", UIWidgets.CheckBox, "Play a gunshot sound per round while firing.", category: "Bifrost"), RplProp()]
@@ -114,6 +114,7 @@ class DCO_TracerEmitterComponent : ScriptComponent
 	protected ref Resource m_LoadedTracer;	// cached per round type; re-loaded when m_eRound changes.
 	protected ref Resource m_LoadedBall;
 	protected EDCO_TracerRound m_eLoadedFor;
+	protected ref Shape m_ShotCue;
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
@@ -134,7 +135,11 @@ class DCO_TracerEmitterComponent : ScriptComponent
 	void ~DCO_TracerEmitterComponent()
 	{
 		if (GetGame() && GetGame().GetCallqueue())
+		{
 			GetGame().GetCallqueue().Remove(DCO_FireTick);
+			GetGame().GetCallqueue().Remove(DCO_ClearShotCue);
+		}
+		m_ShotCue = null;
 		DCO_TriggerFxRegistry.Unregister(GetOwner());
 	}
 
@@ -279,7 +284,8 @@ class DCO_TracerEmitterComponent : ScriptComponent
 		// Every-Nth belt mix: shot 0 (and every m_iTracerEvery-th after) is the tracer; the rest are ball.
 		Resource roundRes = m_LoadedTracer;
 		int density = Math.Clamp(m_iTracerEvery, 1, 10);
-		if (density > 1 && (m_iShotCounter % density) != 0 && m_LoadedBall)
+		bool showTracer = (m_iShotCounter % density) == 0;
+		if (!showTracer && m_LoadedBall)
 			roundRes = m_LoadedBall;
 		m_iShotCounter++;
 
@@ -293,6 +299,12 @@ class DCO_TracerEmitterComponent : ScriptComponent
 		sp.TransformMode = ETransformMode.WORLD;
 		Math3D.MatrixFromForwardVec(dir, sp.Transform);	// BI's own orthonormal-from-forward helper.
 		sp.Transform[3] = muzzle;
+
+		if (!m_bLive)
+		{
+			DCO_PresentShot(muzzle, dir, roundIdx, showTracer);
+			return;
+		}
 
 		IEntity proj = GetGame().SpawnEntityPrefab(roundRes, owner.GetWorld(), sp);
 		if (!proj)
@@ -313,11 +325,59 @@ class DCO_TracerEmitterComponent : ScriptComponent
 		}
 
 		ProjectileMoveComponent move = ProjectileMoveComponent.Cast(proj.FindComponent(ProjectileMoveComponent));
-		if (move)
-			move.Launch(dir, vector.Zero, 1.0, proj, null, owner, null, null);
+		if (!move)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(proj);
+			m_iSpawnFails++;
+			return;
+		}
+		move.Launch(dir, vector.Zero, 1.0, proj, null, owner, null, null);
+		DCO_PresentShot(muzzle, dir, roundIdx, showTracer);
+	}
 
-		if (m_bSound)
-			AudioSystem.PlayEvent(StaticData().m_ShotAcps[roundIdx], SHOT_EVENT, sp.Transform);	// positional, engine attenuation.
+	protected void DCO_PresentShot(vector muzzle, vector direction, int roundIndex, bool showTracer)
+	{
+		vector end = muzzle;
+		if (showTracer)
+		{
+			TraceParam trace = new TraceParam();
+			trace.Start = muzzle;
+			trace.End = muzzle + direction * 80;
+			trace.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
+			trace.TargetLayers = EPhysicsLayerDefs.FireGeometry;
+			trace.Exclude = GetOwner();
+			float fraction = GetGame().GetWorld().TraceMove(trace, null);
+			end = muzzle + direction * (80 * fraction);
+		}
+		DCO_RpcShotCue(muzzle, end, roundIndex, m_bSound);
+		Rpc(DCO_RpcShotCue, muzzle, end, roundIndex, m_bSound);
+	}
+
+	[RplRpc(RplChannel.Unreliable, RplRcver.Broadcast)]
+	protected void DCO_RpcShotCue(vector muzzle, vector end, int roundIndex, bool sound)
+	{
+		if (System.IsConsoleApp())
+			return;
+		if (sound)
+		{
+			vector transform[4];
+			Math3D.MatrixIdentity4(transform);
+			transform[3] = muzzle;
+			AudioSystem.PlayEvent(DCO_GetRoundSound(roundIndex), SHOT_EVENT, transform);
+		}
+		if (vector.DistanceSq(muzzle, end) <= 0.01)
+			return;
+		vector points[2];
+		points[0] = muzzle;
+		points[1] = end;
+		m_ShotCue = Shape.CreateLines(DCO_GetRoundVisualColor(roundIndex), 0, points, 2);
+		GetGame().GetCallqueue().Remove(DCO_ClearShotCue);
+		GetGame().GetCallqueue().CallLater(DCO_ClearShotCue, 40, false);
+	}
+
+	protected void DCO_ClearShotCue()
+	{
+		m_ShotCue = null;
 	}
 
 }

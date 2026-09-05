@@ -10,6 +10,8 @@ class DCO_ContextMenuHandler : ScriptedWidgetEventHandler
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		if (button != 0)
+			return false;
 		if (m_Owner)
 			return m_Owner.OnMenuButton(w);
 		return false;

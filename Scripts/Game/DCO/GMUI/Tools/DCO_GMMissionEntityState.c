@@ -29,7 +29,7 @@ modded class SCR_EditableEntityComponent
 		return scale >= 0.01 && scale <= 100.0;
 	}
 
-	static SCR_EditableEntityComponent DCO_ResolveScaleTarget(SCR_EditableEntityComponent editable)
+	static SCR_EditableEntityComponent DCO_ResolveMissionTarget(SCR_EditableEntityComponent editable)
 	{
 		SCR_EditablePlayerDelegateComponent player = SCR_EditablePlayerDelegateComponent.Cast(editable);
 		if (player)

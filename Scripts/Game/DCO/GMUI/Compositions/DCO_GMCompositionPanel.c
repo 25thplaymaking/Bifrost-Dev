@@ -11,6 +11,8 @@ class DCO_GMCompositionPanelButtonHandler : ScriptedWidgetEventHandler
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		if (button != 0)
+			return false;
 		return m_Owner && m_Owner.OnAction(m_iAction);
 	}
 }
