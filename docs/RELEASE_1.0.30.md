@@ -3,6 +3,7 @@
 REQUIREMENTS
 - Fix trigger-controlled audio start, stop and status using the replicated playback state.
 - Return the actual automatic/manual teleporter mode when reopening endpoint settings.
+- Reject a teleport arrival if the same character has boarded a vehicle before delivery; retain native movement synchronization and the existing respawn identity guard.
 - Preserve the complete reviewed gameplay candidate and remove temporary Workbench helpers.
 - Prepare a clean local release commit, matching version, notes and source fingerprint.
 - Validate available compiler, resource and integrity checks; distinguish pending runtime evidence.
@@ -25,7 +26,7 @@ REQUEST INTERPRETATION
 - Complete the final-review fixes and local preparation as version 1.0.30, without rewriting the existing 1.0.29 release.
 
 UNDERSTANDING OF THE OVERALL TASK IN A BRIEF SUMMARY
-Prepare an identifiable, clean candidate with both reviewed defects corrected and an honest BI upload handoff.
+Prepare an identifiable, clean candidate with the reviewed audio, settings and delayed-arrival defects corrected and an honest BI upload handoff.
 
 ## Corrections
 
@@ -33,13 +34,16 @@ Audio emitters now route the existing FX start/stop entry point directly to thei
 
 Teleporter edit replies derive their activation selection from the replicated automatic/manual setting. Intel replies retain their audience scope. Both local and remote reply paths use the same resolved value.
 
+The server teleport helper and client arrival handler now reject occupied vehicles before calling native teleportation. The arrival handler retains its replicated character identity check, so a delayed message cannot target a replacement character after respawn. RPC direction, reliability and native movement synchronization are unchanged.
+
 ## Verification and limits
 
-- Native WORKBENCH validation after both fixes: zero errors and 14 existing base-game deprecation warnings.
+- Native WORKBENCH validation after the delayed-arrival fix: zero errors and 14 existing base-game deprecation warnings.
+- Follow-up RPL source review traced the server request, delayed completion, checked destination, guarded teleport helper and client arrival handler against native teleport behavior. No further confirmed defects were found in that path; this is source review, not multiplayer runtime evidence.
 - Temporary Workbench handlers were already absent by the cleanup check. Post-cleanup native WORKBENCH validation also passed with zero errors and 14 existing warnings. No Workbench process was launched or restarted; the operator's session was preserved.
 - Layout validation: 363 checks across 26 layouts, zero failures; two fault-injection checks passed.
 - Audio/resource validation: all six file hashes, formats, graph structure, metadata and nine distinct audio controls passed.
-- The final two corrections were checked by following the complete server start/stop/status and local/remote settings-reply paths. No new play session or script reload was performed in the operator's running world.
+- The audio and settings corrections were checked by following the complete server start/stop/status and local/remote settings-reply paths. No new play session or script reload was performed in the operator's running world.
 - Operator confirmation on September 5: movement speed is fixed, teleporters work locally as expected, and the UI delay was a fluke. This supersedes the earlier open startup-latency concern and the local movement/teleporter handoff in the field-test record.
 - Dedicated-server, remote-client, reconnect/JIP and listening-quality tests are not claimed.
 - The existing GitHub 1.0.29 release is preserved; version 1.0.30 is a new local candidate. No tag, push, GitHub release or BI upload is performed by this preparation.

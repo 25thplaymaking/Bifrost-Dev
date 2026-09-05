@@ -457,6 +457,8 @@ modded class SCR_PlayerController
 	bool DCO_TeleportMissionCharacter(ChimeraCharacter character, vector position)
 	{
 		if (!Replication.IsServer() || !character || GetControlledEntity() != character) return false;
+		SCR_CompartmentAccessComponent access = SCR_CompartmentAccessComponent.Cast(character.FindComponent(SCR_CompartmentAccessComponent));
+		if (access && access.GetVehicle()) return false;
 		RplComponent rpl = character.GetRplComponent();
 		if (!rpl || !SCR_Global.TeleportPlayer(GetPlayerId(), position)) return false;
 		Rpc(DCO_RpcMissionTeleport, rpl.Id(), position);
@@ -469,8 +471,11 @@ modded class SCR_PlayerController
 		ChimeraCharacter character = ChimeraCharacter.Cast(GetControlledEntity());
 		if (!character) return;
 		RplComponent rpl = character.GetRplComponent();
-		// A delayed arrival must not move a replacement character after respawn.
-		if (rpl && rpl.Id() == characterId) SCR_Global.TeleportPlayer(GetPlayerId(), position);
+		// A delayed arrival must not move a replacement character or an occupied vehicle.
+		if (!rpl || rpl.Id() != characterId) return;
+		SCR_CompartmentAccessComponent access = SCR_CompartmentAccessComponent.Cast(character.FindComponent(SCR_CompartmentAccessComponent));
+		if (access && access.GetVehicle()) return;
+		SCR_Global.TeleportPlayer(GetPlayerId(), position);
 	}
 
 	protected float m_fDCO_LastMissionRequest = -10000;

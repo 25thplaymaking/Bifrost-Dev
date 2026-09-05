@@ -6,6 +6,7 @@
 
 - Fixed trigger-controlled audio so stopping or deactivating a trigger stops the recording, and firing status follows the replicated playback state.
 - Fixed teleporter settings reopening with a stale activation mode after changing the native Automatic teleporter attribute.
+- Prevented a delayed teleporter arrival from moving an occupied vehicle when the player boards before the message arrives.
 - Added freely placeable, editable paired teleporters with manual or automatic entry, configurable travel delay and radius, checked arrival positions, cancellation and return-loop protection.
 - Added six positional audio recordings with preset, playback, volume, range, fade, loop, wall-obstruction and reverb controls. Source terms and provenance are retained under Sounds/Bifrost.
 - Added passive GM hints with selected-player and selected-faction audiences and configurable duration.
