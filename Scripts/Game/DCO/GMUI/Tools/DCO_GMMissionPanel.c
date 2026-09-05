@@ -179,7 +179,7 @@ class DCO_GMMissionPanel
 			case DCO_GMMissionTool.SCALE:
 				if (selected.Count() == 1 && selected[0] && SCR_EditableEntityComponent.DCO_CanScale(selected[0].GetOwner()))
 					m_Value.SetText(selected[0].GetOwner().GetScale().ToString());
-				help = "1. Select the static props to resize.\n2. Enter a scale below.\n3. Choose APPLY SCALE. Vehicles, characters, buildings and objects with attached children cannot be scaled.";
+				help = "1. Select a static prop or whole barricade assembly.\n2. Enter a scale below.\n3. Choose APPLY SCALE. Characters, vehicles and assemblies with moving physics parts are not supported.";
 				Label("Value_Caption", "Uniform scale");
 				Label("Value_Help", "Enter 0.25 to 4.0. 1.0 is original size, 0.5 is half size, and 2.0 is double size.");
 				Label("Apply_Label", "APPLY SCALE");

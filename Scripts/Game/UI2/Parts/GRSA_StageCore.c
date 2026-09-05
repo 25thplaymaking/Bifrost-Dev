@@ -452,19 +452,25 @@ class GRSA_StageCore
 		if (!m_wTarget || !m_wTarget.IsVisibleInHierarchy() || !IsOverStage(x, y))
 			return false;
 
-		Widget cursor = source;
+		// Workspace callbacks can name the workspace instead of the clicked control.
+		Widget hit = WidgetManager.GetWidgetUnderCursor();
+		return !IsStageControl(hit) && !IsStageControl(source);
+	}
+
+	protected bool IsStageControl(Widget cursor)
+	{
 		Widget stageRoot = m_wTarget.GetParent();
 		while (cursor && cursor != stageRoot)
 		{
 			if (ButtonWidget.Cast(cursor) || EditBoxWidget.Cast(cursor) || MultilineEditBoxWidget.Cast(cursor)
 				|| CheckBoxWidget.Cast(cursor) || SliderWidget.Cast(cursor) || BaseListboxWidget.Cast(cursor)
 				|| ScrollLayoutWidget.Cast(cursor) || cursor.FindHandler(SCR_ButtonBaseComponent))
-				return false;
+				return true;
 
 			cursor = cursor.GetParent();
 		}
 
-		return true;
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------

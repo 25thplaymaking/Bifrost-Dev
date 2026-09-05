@@ -74,6 +74,7 @@ class GRSA_ItemRowComponent : SCR_ButtonBaseComponent
 		m_BackgroundSelectedHovered = GRSA_Theme.MapButtonAccent(m_BackgroundSelectedHovered);
 		m_BackgroundClicked = GRSA_Theme.MapButtonAccent(m_BackgroundClicked);
 		super.HandlerAttached(w);
+		m_OnClicked.Insert(OnRowActivated);
 		GRSA_Theme.ApplyAccentWidgets(w);
 		m_wName = TextWidget.Cast(w.FindAnyWidget("RowName"));
 		m_wCost = TextWidget.Cast(w.FindAnyWidget("RowCost"));
@@ -376,9 +377,12 @@ class GRSA_ItemRowComponent : SCR_ButtonBaseComponent
 		if (m_wQtyEntry && (IsWidgetWithin(w, m_wQtyEntry) || IsPointWithin(m_wQtyEntry, x, y)))
 			return false;
 
-		bool result = super.OnClick(w, x, y, button);
+		return super.OnClick(w, x, y, button);
+	}
+
+	protected void OnRowActivated(SCR_ButtonBaseComponent button)
+	{
 		m_OnEntryClicked.Invoke(this);
-		return result;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -396,7 +400,7 @@ class GRSA_ItemRowComponent : SCR_ButtonBaseComponent
 	//------------------------------------------------------------------------------------------------
 	protected bool IsPointWithin(Widget widget, int x, int y)
 	{
-		if (!widget || !widget.IsVisible())
+		if (!widget || !widget.IsVisibleInHierarchy())
 			return false;
 
 		float left, top, width, height;
@@ -408,6 +412,7 @@ class GRSA_ItemRowComponent : SCR_ButtonBaseComponent
 	//------------------------------------------------------------------------------------------------
 	override void HandlerDeattached(Widget w)
 	{
+		m_OnClicked.Remove(OnRowActivated);
 		if (m_wThumb)
 		{
 			ItemPreviewManagerEntity previewManager = GRSA_ItemIntel.GetPreviewManager();

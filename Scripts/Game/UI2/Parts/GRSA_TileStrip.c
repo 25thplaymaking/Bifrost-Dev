@@ -247,7 +247,9 @@ class GRSA_TileStrip
 	//------------------------------------------------------------------------------------------------
 	protected void OnRowFocused(GRSA_ItemRowComponent row)
 	{
-		RevealRow(row);
+		// Moving a mouse-pressed tile before release cancels its native click.
+		if (!GetGame().GetInputManager().IsUsingMouseAndKeyboard())
+			RevealRow(row);
 	}
 
 	//------------------------------------------------------------------------------------------------

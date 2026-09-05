@@ -24,10 +24,11 @@ UNDERSTANDING OF THE OVERALL TASK IN A BRIEF SUMMARY
 
 ## Validation boundary
 
-- **Main publication is paused:** the final log inspection found a native access violation at 22:27:46 on September 4, 2026, immediately after creating the Arsenal/Vehicle Service item-list layout. The invalid read was at address 0x50. The native stack has no actionable script frame, so the cause is not established. No speculative production patch was made. This is newer than the successful script compilation and prevents a clean runtime release claim.
-- The final production script changes passed Workbench validation with zero script errors and 14 warnings. The authoritative log records Game module loading at 22:21:07 on September 4, 2026. A subsequent validation attempt during release preparation lost its connection; the read-only compiler fallback still reports the prior pass. No further production script edits were made during release preparation.
+- The operator identified the earlier native Workbench crash as a false positive and cleared it as a release concern. That is an operator determination; this release does not claim to have established the native crash's cause.
+- After the Gunsmith input and barricade-scale corrections, Workbench `WORKBENCH` validation passed with zero errors and 14 existing base-game deprecation warnings at approximately 22:45 EDT on September 4, 2026. See the focused repair record for the source evidence and changes.
 - The final static replication review checked server-authorized mission requests, replicated terrain/object/interaction state, composition/marker/intel snapshots, and local UI settings. Dedicated-server, remote-client, and JIP acceptance remain with the user.
 - The final CREATE scrollbar, ellipsis, and monochrome presets await the user's interaction checks. Earlier local mission-panel regression evidence is recorded separately in Tests/Workbench/README.md.
+- Weapon selection, attachment-slot activation and static barricade scaling also await the user's interaction checks. Character scaling remains unsupported and now returns an explicit explanation. No live reload or playtest was performed for these corrections.
 - Workshop metadata reported 1.0.28 during preparation. No package was created or uploaded by this release operation, so package fingerprint and Workshop parity are not claimed.
 
 ## BI upload handoff
@@ -36,11 +37,11 @@ Publish this exact clean checkout as version **1.0.29** using the existing Bifro
 
 ## Static preparation results
 
-- 1,263 candidate files were checked before this record's final edit; no empty files or missing metadata for new runtime resources were found.
+- 1,264 candidate files were checked after the follow-up repair; no empty files or missing metadata for new runtime resources were found.
 - 396 metadata GUIDs are unique; all 92 referenced Bifrost editor attribute classes resolve.
 - No merge debris or eager non-constant static initializers were found in the Game scripts. The whitespace check passed.
 - Temporary Enfusion MCP handlers are absent. No new Workbench or helper process was launched.
 
-## Native crash evidence
+## Follow-up repair
 
-The existing Workbench session's `logs_2026-09-04_19-36-47/console.log` records `GRSA_ItemListPanel.layout` creation at 22:27:46.278, followed by `ENGINE (F): Crashed` at 22:27:46.365. Its `crash.log` records the access violation and an unresolved native stack. The adjacent `EditBoxFilterComponent used on invalid widget type` warning also occurs in native chat UI, so it is not sufficient evidence to assign the crash to the edit box. The dump remains in the user's Workbench log folder; it is not included in the release source.
+[Gunsmith input and GM Scale Object repair](GUNSMITH_SCALE_REPAIR_2026-09-04.md) records the reported targets, supported behavior, source findings and validation boundary.

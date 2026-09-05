@@ -17,13 +17,48 @@ modded class SCR_EditableEntityComponent
 
 	static bool DCO_CanScale(IEntity entity)
 	{
-		if (!entity || entity.GetParent() || entity.GetChildren() || ChimeraCharacter.Cast(entity) || Vehicle.Cast(entity) || Building.Cast(entity))
-			return false;
+		return DCO_GetScaleIssue(entity).IsEmpty();
+	}
+
+	static string DCO_GetScaleIssue(IEntity entity)
+	{
+		if (!entity)
+			return "The selected object no longer exists. Select it again.";
+		if (ChimeraCharacter.Cast(entity))
+			return "Characters cannot be scaled. Select a static prop or barricade.";
+		if (Vehicle.Cast(entity))
+			return "Vehicles cannot be scaled. Select a static prop or barricade.";
+		if (entity.GetParent())
+			return "Select the whole assembly instead of an attached part.";
 		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(entity.FindComponent(SCR_EditableEntityComponent));
-		if (!editable || editable.GetEntityType() != EEditableEntityType.GENERIC || SCR_EditableSystemComponent.Cast(editable) || !entity.GetVObject())
-			return false;
-		Physics physics = entity.GetPhysics();
-		return !physics || (!physics.IsDynamic() && !physics.IsKinematic());
+		if (!editable || editable.GetEntityType() != EEditableEntityType.GENERIC || SCR_EditableSystemComponent.Cast(editable))
+			return "Select an editable static prop or barricade, not a system or inventory item.";
+
+		// Composition roots have no mesh; validate the complete physical hierarchy.
+		array<IEntity> parts = {entity};
+		bool hasModel;
+		for (int i = 0; i < parts.Count(); i++)
+		{
+			IEntity part = parts[i];
+			if (ChimeraCharacter.Cast(part) || Vehicle.Cast(part))
+				return "This assembly contains a character or vehicle and cannot be scaled.";
+			Physics physics = part.GetPhysics();
+			if (physics && (physics.IsDynamic() || physics.IsKinematic()))
+				return "This object has moving physics parts. Select a fully static prop or barricade.";
+			if (part.GetVObject())
+				hasModel = true;
+			IEntity child = part.GetChildren();
+			while (child)
+			{
+				if (parts.Count() >= 512)
+					return "This assembly is too large to scale. Select a smaller static assembly.";
+				parts.Insert(child);
+				child = child.GetSibling();
+			}
+		}
+		if (!hasModel)
+			return "This selection has no model to resize. Select a static prop or barricade.";
+		return string.Empty;
 	}
 
 	protected void DCO_ApplyMissionScale()
@@ -32,10 +67,21 @@ modded class SCR_EditableEntityComponent
 		if (!entity || m_fDCO_MissionScale <= 0)
 			return;
 		entity.SetScale(m_fDCO_MissionScale);
+		DCO_UpdateScaleHierarchy(entity);
+	}
+
+	protected static void DCO_UpdateScaleHierarchy(IEntity entity)
+	{
 		entity.Update();
 		GenericEntity generic = GenericEntity.Cast(entity);
 		if (generic)
 			generic.OnTransformReset();
+		IEntity child = entity.GetChildren();
+		while (child)
+		{
+			DCO_UpdateScaleHierarchy(child);
+			child = child.GetSibling();
+		}
 	}
 
 	bool DCO_SetMissionInvincible(bool enabled)

@@ -88,6 +88,12 @@ class DCO_GMMissionServer
 		if (tool != DCO_GMMissionTool.SCALE && tool != DCO_GMMissionTool.INVINCIBLE && tool != DCO_GMMissionTool.NAMED && tool != DCO_GMMissionTool.REMOVE)
 			return false;
 		int applied;
+		string scaleIssue;
+		if (tool == DCO_GMMissionTool.SCALE && !(options[0] >= 0.25 && options[0] <= 4.0))
+		{
+			result = "Enter a scale from 0.25 to 4.0. Use 1.0 for original size.";
+			return false;
+		}
 		set<RplId> seen = new set<RplId>();
 		foreach (RplId id : ids)
 		{
@@ -96,9 +102,18 @@ class DCO_GMMissionServer
 			seen.Insert(id);
 			SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(id));
 			if (!editable || !editable.GetOwner())
+			{
+				if (scaleIssue.IsEmpty())
+					scaleIssue = "The selected object no longer exists. Select it again.";
 				continue;
-			if (tool == DCO_GMMissionTool.SCALE && editable.DCO_SetMissionScale(options[0]))
-				applied++;
+			}
+			if (tool == DCO_GMMissionTool.SCALE)
+			{
+				if (editable.DCO_SetMissionScale(options[0]))
+					applied++;
+				else if (scaleIssue.IsEmpty())
+					scaleIssue = SCR_EditableEntityComponent.DCO_GetScaleIssue(editable.GetOwner());
+			}
 			if (tool == DCO_GMMissionTool.INVINCIBLE && (options[0] == 0 || options[0] == 1))
 			{
 				if (editable.DCO_SetMissionInvincible(options[0] == 1))
@@ -130,7 +145,15 @@ class DCO_GMMissionServer
 				}
 			}
 		}
-		result = string.Format("%1: applied to %2 supported targets (including crew when selected).", DCO_GMMissionTool.Name(tool), applied);
+		if (tool == DCO_GMMissionTool.SCALE)
+		{
+			if (ids.IsEmpty())
+				result = "Select a static prop or barricade, then apply a scale.";
+			else
+				result = string.Format("Scale Object: resized %1; skipped %2. %3", applied, seen.Count() - applied, scaleIssue);
+		}
+		else
+			result = string.Format("%1: applied to %2 supported targets (including crew when selected).", DCO_GMMissionTool.Name(tool), applied);
 		return applied > 0;
 	}
 

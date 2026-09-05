@@ -4,6 +4,8 @@
 
 ## 1.0.29 - 2026-09-04
 
+- Corrected Gunsmith input routing so preview dragging checks the control under the pointer, item rows use native button activation, and mouse focus no longer slides a weapon tile away before release. Weapon and attachment interactions await operator testing.
+- Extended GM Scale Object to static barricade assemblies and static structures, validating every physical child before changing the replicated root scale. Added explicit reasons for unsupported characters, vehicles, moving parts and invalid selections, plus resized/skipped counts.
 - Reworked CREATE scrollbar input with a wider draggable track, standardized catalog row text at 18 pixels, and added measured ellipsis with complete names on hover. Added saved Black and White GM accent presets. Script validation passed; final interaction and appearance checks remain with the user.
 - Repaired Composition Library sizing and contrast, added labeled save fields and separate entry metadata, and kept its footer accessible with a bounded scrolling library. Removed its CREATE shortcut and exposed 13 mission actions under Lightning > Bifrost with selection/terrain targeting and cancellation.
 - Made Hide Terrain Objects a native selectable system with a persistent circle, editable radius and on/off properties. Corrected its checkbox attribute, static-scenery coverage and restoration lifecycle. Restored visible targeting instructions and routed Chatter through the native chat feed.
