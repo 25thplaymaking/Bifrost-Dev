@@ -25,6 +25,18 @@ class DCO_GMContextMenuBridge
 	static const int ID_RESTORE_AI      = 79;
 	static const int ID_COMPOSITIONS    = 80;
 	static const int ID_MOVE_SERVICE_ACCESS = 81;
+	static const int ID_SAVE_COMPOSITION = 82;
+	static const int ID_PLACE_COMMENT = 83;
+	static const int ID_TELEPORT_PLAYERS = 84;
+	static const int ID_TELEPORT_PLAYERS_HERE = 85;
+	static const int ID_CHANGE_SIDE_RELATIONS = 86;
+	static const int ID_MISSION_TOOLS = 87;
+	static const int ID_MISSION_BASE = 960;
+	static const int ID_RELATION_SOURCE_BASE = 500;
+	static const int ID_RELATION_TARGET_BASE = 700;
+	static const int ID_RELATION_FRIENDLY = 950;
+	static const int ID_RELATION_HOSTILE = 951;
+	static const int RELATION_FACTION_LIMIT = 200;
 
 	protected static const float PANEL_CLAIM_WINDOW_MS = 250.0;
 	protected static float s_fPanelClaimAtMs;
@@ -80,6 +92,10 @@ class DCO_GMContextMenuBridge
 	protected vector m_CursorPos;
 	protected int m_Flags;
 	protected bool m_bContextMissingLogged;
+	protected FactionKey m_RelationSourceKey;
+	protected FactionKey m_RelationTargetKey;
+	protected int m_iRelationMenuX;
+	protected int m_iRelationMenuY;
 
 	void Init(Widget shellRoot, DCO_GMContextMenu menu)
 	{
@@ -195,6 +211,11 @@ class DCO_GMContextMenuBridge
 
 	protected void BuildAndShowMenu()
 	{
+		if (DCO_GMMissionPanel.Get().IsOpen() || DCO_GMCompositionPanel.Get().IsOpen())
+		{
+			HideVanilla();
+			return;
+		}
 		if (DCO_GMUIController.IsNativePropertiesOpen())
 			return;
 		if (!ResolveContextComponent() || !m_Menu)
@@ -210,6 +231,27 @@ class DCO_GMContextMenuBridge
 		array<string> labels = {};
 		array<int> ids = {};
 		array<bool> enabled = {};
+		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
+		SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
+		if (!selected.IsEmpty())
+		{
+			labels.Insert("Save Selection as Composition");
+			ids.Insert(ID_SAVE_COMPOSITION);
+			enabled.Insert(true);
+		}
+		if (DCO_GMTools.Get().HasSelectedPlayers(selected, m_Entity))
+		{
+			labels.Insert("Teleport Players");
+			ids.Insert(ID_TELEPORT_PLAYERS);
+			enabled.Insert(true);
+		}
+		labels.Insert("Open Composition Library");
+		ids.Insert(ID_COMPOSITIONS);
+		enabled.Insert(true);
+		labels.Insert("Mission Tools");
+		ids.Insert(ID_MISSION_TOOLS);
+		enabled.Insert(true);
+
 		for (int evaluatedIndex = 0; evaluatedIndex < m_EvaluatedNativeActions.Count(); evaluatedIndex++)
 		{
 			SCR_BaseEditorAction action = m_EvaluatedNativeActions[evaluatedIndex];
@@ -274,7 +316,7 @@ class DCO_GMContextMenuBridge
 
 		if (m_Entity && (m_Entity.GetEntityType() == EEditableEntityType.CHARACTER || m_Entity.GetEntityType() == EEditableEntityType.VEHICLE))
 		{
-			labels.Insert("Toggle Invulnerability");
+			labels.Insert("Make Invincible");
 			ids.Insert(ID_INVULN);
 			labels.Insert("Toggle Visibility");
 			ids.Insert(ID_VISIBILITY);
@@ -298,7 +340,7 @@ class DCO_GMContextMenuBridge
 		{
 			labels.Insert("Create Player Here");
 			ids.Insert(ID_CREATE_PLAYER);
-			labels.Insert("Hide Terrain (nearby)");
+			labels.Insert("Hide Terrain Objects");
 			ids.Insert(ID_HIDE_TERRAIN);
 			if (DCO_GMTools.Get().HasHiddenTerrain())
 			{
@@ -307,16 +349,23 @@ class DCO_GMContextMenuBridge
 			}
 			labels.Insert("Markers & Intel");
 			ids.Insert(ID_MARKER);
-			labels.Insert("Compositions");
-			ids.Insert(ID_COMPOSITIONS);
+			labels.Insert("Place Comment");
+			ids.Insert(ID_PLACE_COMMENT);
 			labels.Insert("Place Trigger Here");
 			ids.Insert(ID_TRIGGER);
+			labels.Insert("Change Side Relations");
+			ids.Insert(ID_CHANGE_SIDE_RELATIONS);
 			labels.Insert("Show FPS (this client)");
 			ids.Insert(ID_FPS);
 			if (DCO_GMTools.Get().HasTeleportMark())
 			{
 				labels.Insert("Teleport Marked Unit Here");
 				ids.Insert(ID_TP_HERE);
+			}
+			if (DCO_GMTools.Get().HasPendingPlayerTeleport())
+			{
+				labels.Insert("Teleport Players Here");
+				ids.Insert(ID_TELEPORT_PLAYERS_HERE);
 			}
 		}
 
@@ -394,6 +443,40 @@ class DCO_GMContextMenuBridge
 
 	void OnMenuAction(int actionId, SCR_EditableEntityComponent e)
 	{
+		if (actionId == ID_MISSION_TOOLS)
+		{
+			array<string> labels = {};
+			array<int> ids = {};
+			for (int tool = 1; tool <= 13; tool++)
+			{
+				labels.Insert(DCO_GMMissionTool.Name(tool));
+				ids.Insert(ID_MISSION_BASE + tool);
+			}
+			int x, y;
+			WidgetManager.GetMousePos(x, y);
+			m_Menu.ShowTitledDetailed(labels, ids, x, y, "MISSION TOOLS", "AUTHOR / CONFIGURE / APPLY", -1, m_MenuCb, m_Entity);
+			return;
+		}
+		if (actionId > ID_MISSION_BASE && actionId <= ID_MISSION_BASE + 13)
+		{
+			DCO_GMMissionPanel.Get().Open(actionId - ID_MISSION_BASE, m_CursorPos, m_Entity);
+			return;
+		}
+		if (actionId >= ID_RELATION_SOURCE_BASE && actionId < ID_RELATION_SOURCE_BASE + RELATION_FACTION_LIMIT)
+		{
+			SelectRelationSource(actionId - ID_RELATION_SOURCE_BASE);
+			return;
+		}
+		if (actionId >= ID_RELATION_TARGET_BASE && actionId < ID_RELATION_TARGET_BASE + RELATION_FACTION_LIMIT)
+		{
+			SelectRelationTarget(actionId - ID_RELATION_TARGET_BASE);
+			return;
+		}
+		if (actionId == ID_RELATION_FRIENDLY || actionId == ID_RELATION_HOSTILE)
+		{
+			ApplySideRelation(actionId == ID_RELATION_FRIENDLY);
+			return;
+		}
 		if (actionId != ID_MOVE_SERVICE_ACCESS)
 			DCO_VehicleServiceAccessPlacement.Get().Cancel();
 		if (actionId == ID_CREATE_PLAYER)
@@ -403,16 +486,21 @@ class DCO_GMContextMenuBridge
 			return;
 		}
 		// Apply sandbox actions at the captured cursor position.
-		if (actionId == ID_HIDE_TERRAIN)    { DCO_GMTools.Get().HideTerrainAt(m_CursorPos); return; }
-		if (actionId == ID_RESTORE_TERRAIN) { DCO_GMTools.Get().RestoreTerrain();           return; }
+		if (actionId == ID_HIDE_TERRAIN)    { DCO_GMMissionPanel.Get().Open(DCO_GMMissionTool.HIDE, m_CursorPos, e); return; }
+		if (actionId == ID_RESTORE_TERRAIN) { DCO_GMMissionPanel.Get().Open(DCO_GMMissionTool.RESTORE, m_CursorPos, e);           return; }
 		if (actionId == ID_MARKER)          { DCO_GMCompositionPanel.Get().CloseForBack(); DCO_GMMarkerPanel.Get().Open(m_CursorPos); return; }
+		if (actionId == ID_PLACE_COMMENT)   { DCO_GMCompositionPanel.Get().CloseForBack(); DCO_GMMarkerPanel.Get().OpenForKind(m_CursorPos, DCO_GMMarkerKind.COMMENT); return; }
 		if (actionId == ID_COMPOSITIONS)    { DCO_GMMarkerPanel.Get().CloseForBack(); DCO_GMCompositionPanel.Get().Open(m_CursorPos); return; }
+		if (actionId == ID_SAVE_COMPOSITION){ DCO_GMMarkerPanel.Get().CloseForBack(); DCO_GMCompositionPanel.Get().OpenForCapture(m_CursorPos); return; }
 		if (actionId == ID_TRIGGER)         { DCO_GMTools.Get().PlaceTriggerAt(m_CursorPos);return; }
-		if (actionId == ID_INVULN)          { DCO_GMTools.Get().ToggleInvuln(e);            return; }
+		if (actionId == ID_CHANGE_SIDE_RELATIONS) { OpenSideRelationSourcePicker(); return; }
+		if (actionId == ID_INVULN)          { DCO_GMMissionPanel.Get().Open(DCO_GMMissionTool.INVINCIBLE, m_CursorPos, e);            return; }
 		if (actionId == ID_FPS)             { DCO_GMTools.Get().ShowFps();                  return; }
 		if (actionId == ID_VISIBILITY)      { DCO_GMTools.Get().ToggleVisibility(e);        return; }
 		if (actionId == ID_MARK_TP)         { DCO_GMTools.Get().MarkForTeleport(e);         return; }
 		if (actionId == ID_TP_HERE)         { DCO_GMTools.Get().TeleportMarkedTo(m_CursorPos);return; }
+		if (actionId == ID_TELEPORT_PLAYERS){ DCO_GMTools.Get().MarkPlayersForTeleport(e); return; }
+		if (actionId == ID_TELEPORT_PLAYERS_HERE){ DCO_GMTools.Get().TeleportPlayersTo(m_CursorPos); return; }
 		if (actionId == ID_FLYBY)           { DCO_GMTools.Get().SendOnFlyby(e);             return; }
 		if (actionId == ID_EDIT_LOADOUT)    { if (e) DCO_GRSArmoryBridge.OpenForGameMaster(e.GetOwner()); return; }
 		if (actionId == ID_RESET_LOADOUT)   { if (e && e.GetOwner()) DCO_ArsenalServer.Route(DCO_ArsenalServer.VERB_RESET, e.GetOwner(), ""); return; }
@@ -443,5 +531,68 @@ class DCO_GMContextMenuBridge
 		}
 		if (DCO_GMGroupOrders.IsOrderAction(actionId))
 			m_GroupOrders.Apply(actionId, e);
+	}
+
+	protected void OpenSideRelationSourcePicker()
+	{
+		if (!m_Menu)
+			return;
+		array<string> labels = {};
+		array<int> ids = {};
+		int count = Math.Min(DCO_FactionCatalog.Count(), RELATION_FACTION_LIMIT);
+		for (int i = 0; i < count; i++)
+		{
+			labels.Insert(DCO_FactionCatalog.NameAt(i));
+			ids.Insert(ID_RELATION_SOURCE_BASE + i);
+		}
+		if (labels.IsEmpty())
+		{
+			Print("[DCO-GM] Change Side Relations unavailable: no factions found", LogLevel.WARNING);
+			return;
+		}
+		WidgetManager.GetMousePos(m_iRelationMenuX, m_iRelationMenuY);
+		m_Menu.ShowTitledDetailed(labels, ids, m_iRelationMenuX, m_iRelationMenuY,
+			"CHANGE SIDE RELATIONS", "SELECT FIRST SIDE", -1, m_MenuCb, null);
+	}
+
+	protected void SelectRelationSource(int index)
+	{
+		if (index < 0 || index >= DCO_FactionCatalog.Count() || !m_Menu)
+			return;
+		m_RelationSourceKey = DCO_FactionCatalog.KeyAt(index);
+		array<string> labels = {};
+		array<int> ids = {};
+		int count = Math.Min(DCO_FactionCatalog.Count(), RELATION_FACTION_LIMIT);
+		for (int i = 0; i < count; i++)
+		{
+			labels.Insert(DCO_FactionCatalog.NameAt(i));
+			ids.Insert(ID_RELATION_TARGET_BASE + i);
+		}
+		m_Menu.ShowTitledDetailed(labels, ids, m_iRelationMenuX, m_iRelationMenuY,
+			"CHANGE SIDE RELATIONS", DCO_FactionCatalog.NameFor(m_RelationSourceKey) + "  >  SELECT SECOND SIDE", -1, m_MenuCb, null);
+	}
+
+	protected void SelectRelationTarget(int index)
+	{
+		if (index < 0 || index >= DCO_FactionCatalog.Count() || !m_Menu || m_RelationSourceKey.IsEmpty())
+			return;
+		m_RelationTargetKey = DCO_FactionCatalog.KeyAt(index);
+		array<string> labels = {"Friendly", "Hostile"};
+		array<int> ids = {ID_RELATION_FRIENDLY, ID_RELATION_HOSTILE};
+		string pair = DCO_FactionCatalog.NameFor(m_RelationSourceKey) + "  <->  " + DCO_FactionCatalog.NameFor(m_RelationTargetKey);
+		m_Menu.ShowTitledDetailed(labels, ids, m_iRelationMenuX, m_iRelationMenuY,
+			"CHANGE SIDE RELATIONS", pair, -1, m_MenuCb, null);
+	}
+
+	protected void ApplySideRelation(bool friendly)
+	{
+		if (m_RelationSourceKey.IsEmpty() || m_RelationTargetKey.IsEmpty())
+			return;
+		SCR_PlayerController playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		if (!playerController)
+			return;
+		playerController.DCO_SendChangeSideRelations(m_RelationSourceKey, m_RelationTargetKey, friendly);
+		m_RelationSourceKey = "";
+		m_RelationTargetKey = "";
 	}
 }

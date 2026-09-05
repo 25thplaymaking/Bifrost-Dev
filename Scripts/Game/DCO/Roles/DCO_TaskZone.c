@@ -1,58 +1,3 @@
-class DCO_ZoneShape
-{
-	static const float GROUND_LIFT = 0.3;
-
-	static Shape FlatCircle(vector center, float radius, int colorARGB)
-	{
-		vector c = center + Vector(0, GROUND_LIFT, 0);
-		vector p[64];
-		for (int i = 0; i < 32; i++)
-		{
-			float a0 = (Math.PI2 * i) / 32.0;
-			float a1 = (Math.PI2 * (i + 1)) / 32.0;
-			p[i * 2]     = c + Vector(Math.Cos(a0) * radius, 0, Math.Sin(a0) * radius);
-			p[i * 2 + 1] = c + Vector(Math.Cos(a1) * radius, 0, Math.Sin(a1) * radius);
-		}
-		return Shape.CreateLines(colorARGB, ShapeFlags.NOZBUFFER, p, 64);
-	}
-
-	static Shape FlatArea(vector transform[4], float radiusX, float radiusZ, bool rectangle, int colorARGB)
-	{
-		vector center = transform[3] + Vector(0, GROUND_LIFT, 0);
-		vector axisX = transform[0];
-		vector axisZ = transform[2];
-		axisX[1] = 0;
-		axisZ[1] = 0;
-		axisX.Normalize();
-		axisZ.Normalize();
-		if (rectangle)
-		{
-			vector corners[4];
-			corners[0] = center - axisX * radiusX - axisZ * radiusZ;
-			corners[1] = center + axisX * radiusX - axisZ * radiusZ;
-			corners[2] = center + axisX * radiusX + axisZ * radiusZ;
-			corners[3] = center - axisX * radiusX + axisZ * radiusZ;
-			vector lines[8];
-			for (int corner = 0; corner < 4; corner++)
-			{
-				lines[corner * 2] = corners[corner];
-				lines[corner * 2 + 1] = corners[(corner + 1) % 4];
-			}
-			return Shape.CreateLines(colorARGB, ShapeFlags.NOZBUFFER, lines, 8);
-		}
-
-		vector ellipse[64];
-		for (int i = 0; i < 32; i++)
-		{
-			float a0 = (Math.PI2 * i) / 32.0;
-			float a1 = (Math.PI2 * (i + 1)) / 32.0;
-			ellipse[i * 2] = center + axisX * (Math.Cos(a0) * radiusX) + axisZ * (Math.Sin(a0) * radiusZ);
-			ellipse[i * 2 + 1] = center + axisX * (Math.Cos(a1) * radiusX) + axisZ * (Math.Sin(a1) * radiusZ);
-		}
-		return Shape.CreateLines(colorARGB, ShapeFlags.NOZBUFFER, ellipse, 64);
-	}
-}
-
 enum EDCO_ZoneRole
 {
 	NONE,
@@ -120,11 +65,6 @@ class DCO_TaskZoneComponent : ScriptComponent
 	[RplProp()]
 	protected bool m_bDCO_Tripped = false;
 
-	// GM-visible ground circle.
-	protected ref Shape m_DCO_VisualShape;
-	protected ref Shape m_DCO_TriggerRing;
-	protected static const float DCO_VISUAL_HEIGHT = 3.0;
-
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
@@ -132,8 +72,6 @@ class DCO_TaskZoneComponent : ScriptComponent
 		if (!GetGame() || !GetGame().InPlayMode())
 			return;
 
-		GetGame().GetCallqueue().CallLater(DCO_DrawVisual, 500, false);
-		GetGame().GetCallqueue().CallLater(DCO_DrawVisual, (int)(m_fCheckSec * 1000.0), true);
 		// Clients also need the objective catalog for synced-trigger Properties.
 		DCO_TaskZoneRegistry.Register(this);
 
@@ -148,11 +86,8 @@ class DCO_TaskZoneComponent : ScriptComponent
 		if (GetGame() && GetGame().GetCallqueue())
 		{
 			GetGame().GetCallqueue().Remove(DCO_Tick);
-			GetGame().GetCallqueue().Remove(DCO_DrawVisual);
 		}
 		DCO_ClearAllManaged();
-		m_DCO_VisualShape = null;
-		m_DCO_TriggerRing = null;
 	}
 
 	vector DCO_GetCenter()
@@ -186,7 +121,6 @@ class DCO_TaskZoneComponent : ScriptComponent
 		if (m_fRadius == radius)
 			return;
 		m_fRadius = radius;
-		DCO_DrawVisual();
 		if (Replication.IsServer())
 		{
 			Replication.BumpMe();
@@ -267,7 +201,7 @@ class DCO_TaskZoneComponent : ScriptComponent
 	}
 
 	// ARGB ground-circle colour per role, so a Defend zone no longer reads as a red kill marker.
-	protected int DCO_VisualColor()
+	int DCO_GetVisualColor()
 	{
 		switch (m_eRole)
 		{
@@ -279,39 +213,6 @@ class DCO_TaskZoneComponent : ScriptComponent
 			case EDCO_ZoneRole.REINFORCE:		return 0xFFFFD24A;	// yellow = reserve/reinforce.
 		}
 		return 0xFFFFFFFF;
-	}
-
-	protected void DCO_DrawVisual()
-	{
-		if (!DCO_GMRights.IsLocalGameMaster())
-		{
-			m_DCO_VisualShape = null;
-			m_DCO_TriggerRing = null;
-			return;
-		}
-
-		if (m_eRole == EDCO_ZoneRole.NONE || m_fRadius < 1.0)
-		{
-			m_DCO_VisualShape = null;
-			m_DCO_TriggerRing = null;
-			return;
-		}
-
-		IEntity owner = GetOwner();
-		if (!owner)
-			return;
-
-		int color = DCO_VisualColor();
-		m_DCO_VisualShape = DCO_ZoneShape.FlatCircle(owner.GetOrigin(), m_fRadius, color);
-
-		m_DCO_TriggerRing = null;
-		if (m_eRole == EDCO_ZoneRole.AMBUSH)
-		{
-			float triggerRadius = m_fPushRange;
-			if (triggerRadius <= 1.0)
-				triggerRadius = 50.0;
-			m_DCO_TriggerRing = DCO_ZoneShape.FlatCircle(owner.GetOrigin(), triggerRadius, 0xFFFF3030);
-		}
 	}
 
 	// Apply this zone's role to every group whose leader is inside the circle, and clear it from any group that has since left.

@@ -44,7 +44,7 @@ FrameWidgetClass "{D4C0000000000000}" {
         ButtonWidgetClass "{D4C0000000000034}" { Name "DCO_MarkerKind4" Slot LayoutSlot "{D4C0000000000035}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000036}" { Name "DCO_MarkerKind4_Label" Slot ButtonWidgetSlot "{D4C0000000000037}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "INTEL" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
         ButtonWidgetClass "{D4C0000000000038}" { Name "DCO_MarkerKind5" Slot LayoutSlot "{D4C0000000000039}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C000000000003A}" { Name "DCO_MarkerKind5_Label" Slot ButtonWidgetSlot "{D4C000000000003B}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "CIRCLE" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
         ButtonWidgetClass "{D4C000000000003C}" { Name "DCO_MarkerKind6" Slot LayoutSlot "{D4C000000000003D}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C000000000003E}" { Name "DCO_MarkerKind6_Label" Slot ButtonWidgetSlot "{D4C000000000003F}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "RECT" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
-        ButtonWidgetClass "{D4C0000000000040}" { Name "DCO_MarkerKind7" Slot LayoutSlot "{D4C0000000000041}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000042}" { Name "DCO_MarkerKind7_Label" Slot ButtonWidgetSlot "{D4C0000000000043}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "NOTE" Color 0.66 0.70 0.74 1 "Font Size" 15 } } }
+        ButtonWidgetClass "{D4C0000000000040}" { Name "DCO_MarkerKind7" Slot LayoutSlot "{D4C0000000000041}" { FillWeight 1 Padding 2 0 2 0 } style blank { TextWidgetClass "{D4C0000000000042}" { Name "DCO_MarkerKind7_Label" Slot ButtonWidgetSlot "{D4C0000000000043}" { HorizontalAlign 1 Padding 4 4 4 4 } Text "COMMENT" Color 0.66 0.70 0.74 1 "Font Size" 15 "Min Font Size" 10 } } }
        }
       }
       EditBoxWidgetClass "{D4C0000000000044}" { Name "DCO_MarkerName" Slot LayoutSlot "{D4C0000000000045}" { HorizontalAlign 3 Padding 14 1 14 3 } style blank Color 0.90 0.93 0.95 1 "Font Size" 18 "Use placeholder text" 1 "Placeholder text" "Marker / curator note name" }
@@ -102,4 +102,3 @@ FrameWidgetClass "{D4C0000000000000}" {
   }
  }
 }
-

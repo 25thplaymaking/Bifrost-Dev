@@ -605,6 +605,31 @@ class DCO_FxExplosionGunrunRoundsEditorAttribute : DCO_FxExplosionAttributeBase
 }
 
 [BaseContainerProps()]
+class DCO_FxGunrunRoundEditorAttribute : DCO_FxExplosionAttributeBase
+{
+	protected override int DCO_FamilyMask() { return (1 << EDCO_FxFamily.AIRSUPPORT) | (1 << EDCO_FxFamily.LOITER); }
+
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_FxExplosionComponent fx = GetEmitter(item);
+		if (!fx) return null;
+		return SCR_BaseEditorAttributeVar.CreateInt(fx.DCO_GetGunrunRound());
+	}
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		if (!var) return;
+		DCO_FxExplosionComponent fx = GetEmitter(item);
+		if (fx) fx.DCO_SetGunrunRound(var.GetInt());
+	}
+	override int GetEntries(notnull array<ref SCR_BaseEditorAttributeEntry> outEntries)
+	{
+		foreach (string name : DCO_TracerEmitterComponent.DCO_GetRoundNames())
+			outEntries.Insert(new SCR_BaseEditorAttributeEntryText(name));
+		return outEntries.Count();
+	}
+}
+
+[BaseContainerProps()]
 class DCO_FxExplosionGunrunRpmEditorAttribute : DCO_FxExplosionAttributeBase
 {
 	protected override int DCO_FamilyMask() { return (1 << EDCO_FxFamily.AIRSUPPORT) | (1 << EDCO_FxFamily.LOITER); }

@@ -12,6 +12,7 @@ class DCO_CatalogEntry
 	ResourceName m_App6Icon;
 	string m_SubCat;
 	string m_SearchMetadata;
+	int m_iMissionTool;
 }
 
 class DCO_CatalogRow
@@ -26,6 +27,7 @@ class DCO_CatalogRow
 	FactionKey m_Faction;
 	int m_Type;
 	ResourceName m_App6Icon;
+	int m_iMissionTool;
 
 	// Tree placement.
 	int m_Depth;
@@ -37,6 +39,8 @@ class DCO_PlacementCatalog
 {
 	static const ResourceName ANIMATION_FX_RESOURCE = "DCO_ANIMATIONS_FX";
 	static const ResourceName ARSENAL_ACCESS_RESOURCE = "DCO_ARSENAL_ACCESS";
+	static const string MISSION_TOOL_PREFIX = "DCO_MISSION_TOOL_";
+	static const ResourceName TERRAIN_AREA_RESOURCE = "{DCA6090410000000}Prefabs/E_DCO_TerrainArea.et";
 	static const ResourceName VEHICLE_SERVICE_RESOURCE = "{C6A17D4B92E83F50}Prefabs/E_DCO_VehicleServiceZone.et";
 	static const int CAT_ALL    = -1;
 	static const int CAT_MAN    = 0;	// CHARACTER.
@@ -63,7 +67,7 @@ class DCO_PlacementCatalog
 	static bool IsBifrostResource(ResourceName resource)
 	{
 		return resource.Contains("/E_DCO_") || resource.Contains("/E_AIWaypoint_DCO_")
-			|| IsAnimationFxResource(resource) || IsArsenalAccessResource(resource);
+			|| IsAnimationFxResource(resource) || IsArsenalAccessResource(resource) || resource.StartsWith(MISSION_TOOL_PREFIX);
 	}
 	static bool IsGlobalUtilityResource(ResourceName resource)
 	{
@@ -88,6 +92,7 @@ class DCO_PlacementCatalog
 			BuildFromPlacing(m_Placing);
 		AddAnimationFxEntry();
 		AddArsenalAccessEntry();
+		AddMissionToolEntries();
 
 		CollectFactions();
 		CaptureSourceIdentity(cb, m_Placing, m_SourceIdentity);
@@ -195,7 +200,7 @@ class DCO_PlacementCatalog
 		m_Entries.Insert(entry);
 	}
 
-	// Keep the object-targeted arsenal installer beside Animations FX in Effects > Units.
+	// Keep the object-targeted arsenal installer in the Bifrost utility folder.
 	protected void AddArsenalAccessEntry()
 	{
 		DCO_CatalogEntry entry = new DCO_CatalogEntry();
@@ -207,6 +212,25 @@ class DCO_PlacementCatalog
 		entry.m_SearchMetadata = "arsenal access inventory loadout equipment object vehicle prop interaction attachments";
 		entry.m_Icon = "{24C2C142CE0F1758}img/icons/ars-crate.edds";
 		m_Entries.Insert(entry);
+	}
+
+	protected void AddMissionToolEntries()
+	{
+		for (int tool = DCO_GMMissionTool.RESTORE; tool <= DCO_GMMissionTool.TARGET; tool++)
+		{
+			DCO_CatalogEntry entry = new DCO_CatalogEntry();
+			entry.m_Prefab = MISSION_TOOL_PREFIX + tool.ToString();
+			entry.m_iMissionTool = tool;
+			entry.m_Name = DCO_GMMissionTool.Name(tool);
+			entry.m_Type = EEditableEntityType.SYSTEM;
+			entry.m_Category = CAT_EFFECTS;
+			entry.m_SubCat = "Bifrost";
+			entry.m_BudgetText = "SETUP";
+			entry.m_SearchMetadata = "bifrost mission tool action " + entry.m_Name;
+			entry.m_SearchMetadata.ToLower();
+			entry.m_Icon = "{D6B46B6655BC3FD5}UI/Textures/Editor/ContextMenu/ContextAction_LightningStrike.edds";
+			m_Entries.Insert(entry);
+		}
 	}
 
 	protected int BuildFromPlacing(SCR_PlacingEditorComponent placing)
@@ -463,6 +487,7 @@ class DCO_PlacementCatalog
 		r.m_Label = e.m_Name;
 		r.m_Icon = e.m_Icon;
 		r.m_Prefab = e.m_Prefab;
+		r.m_iMissionTool = e.m_iMissionTool;
 		r.m_BudgetText = e.m_BudgetText;
 		r.m_SectionKey = path;
 		r.m_Faction = e.m_Faction;

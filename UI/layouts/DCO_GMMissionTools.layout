@@ -1,0 +1,378 @@
+FrameWidgetClass "{DCA609045000008B}" {
+ Name "DCO_MissionRoot"
+ Slot FrameWidgetSlot "{DCA609045000008C}" { Anchor 0 0 1 1 }
+ "Is Visible" 0
+ {
+  ButtonWidgetClass "{DCA6090450000089}" {
+   Name "DCO_MissionBackdrop"
+   Slot FrameWidgetSlot "{DCA609045000008A}" { Anchor 0 0 1 1 }
+   style blank
+   {
+    ImageWidgetClass "{DCA6090450000087}" {
+     Slot ButtonWidgetSlot "{DCA6090450000088}" { HorizontalAlign 3 VerticalAlign 3 }
+     Color 0 0 0 0.45
+    }
+   }
+  }
+  OverlayWidgetClass "{DCA6090450000085}" {
+   Name "DCO_MissionPanel"
+   Slot FrameWidgetSlot "{DCA6090450000086}" { Anchor 0.5 0.5 0.5 0.5 }
+   {
+    ImageWidgetClass "{DCA609045000007D}" {
+     Name "DCO_MissionBorder"
+     Slot OverlayWidgetSlot "{DCA609045000007E}" { HorizontalAlign 3 VerticalAlign 3 }
+     Color 0.851 0.537 0.169 1
+    }
+    ImageWidgetClass "{DCA609045000007F}" {
+     Name "DCO_MissionBg"
+     Slot OverlayWidgetSlot "{DCA6090450000080}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 }
+     Color 0.043 0.050 0.063 1
+    }
+    VerticalLayoutWidgetClass "{DCA6090450000083}" {
+     Slot OverlayWidgetSlot "{DCA6090450000084}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 }
+     {
+      TextWidgetClass "{DCA6090450000081}" {
+       Name "DCO_MissionHeading"
+       Slot LayoutSlot "{DCA6090450000082}" { HorizontalAlign 3 Padding 20 16 20 12 }
+       Text "MISSION TOOLS" Color 0.851 0.537 0.169 1 "Font Size" 24 "Min Font Size" 22 Wrap 1
+      }
+      ScrollLayoutWidgetClass "{DCA6090450000065}" {
+       Name "DCO_MissionScroll"
+       Slot LayoutSlot "{DCA6090450000066}" { HorizontalAlign 3 SizeMode Fill FillWeight 1 Padding 20 6 20 10 }
+       Clipping True
+       {
+        VerticalLayoutWidgetClass "{DCA6090450000063}" {
+         Name "DCO_MissionFields"
+         Slot AlignableSlot "{DCA6090450000064}" { HorizontalAlign 3 VerticalAlign 0 Padding 0 0 10 0 }
+         {
+          TextWidgetClass "{DCA6090450000001}" {
+           Name "DCO_MissionHelp"
+           Slot LayoutSlot "{DCA6090450000002}" { HorizontalAlign 3 Padding 0 0 0 18 }
+           Text "Choose an object or position, complete the fields below, then apply." Color 0.90 0.93 0.95 1 "Font Size" 17 "Min Font Size" 15 Wrap 1
+          }
+          VerticalLayoutWidgetClass "{DCA6090450000011}" {
+           Name "DCO_MissionTitleField"
+           Slot LayoutSlot "{DCA6090450000012}" { HorizontalAlign 3 Padding 0 0 0 16 }
+           {
+            TextWidgetClass "{DCA609045000000D}" {
+             Name "DCO_MissionTitle_Caption"
+             Slot LayoutSlot "{DCA609045000000E}" { HorizontalAlign 3 }
+             Text "Title" Color 0.90 0.93 0.95 1 "Font Size" 16 "Min Font Size" 14 Wrap 1
+            }
+            TextWidgetClass "{DCA609045000000F}" {
+             Name "DCO_MissionTitle_Help"
+             Slot LayoutSlot "{DCA6090450000010}" { HorizontalAlign 3 Padding 0 3 0 6 }
+             Text "Enter a short name. Up to 64 characters." Color 0.66 0.70 0.74 1 "Font Size" 14 "Min Font Size" 12 Wrap 1
+            }
+            SizeLayoutWidgetClass "{DCA609045000000B}" {
+             Name "DCO_MissionTitleFrame"
+             Slot LayoutSlot "{DCA609045000000C}" { HorizontalAlign 3 }
+             AllowHeightOverride 1 HeightOverride 42
+             {
+              OverlayWidgetClass "{DCA6090450000009}" {
+               Slot AlignableSlot "{DCA609045000000A}" { HorizontalAlign 3 VerticalAlign 3 }
+               {
+                ImageWidgetClass "{DCA6090450000005}" {
+                 Slot OverlayWidgetSlot "{DCA6090450000006}" { HorizontalAlign 3 VerticalAlign 3 }
+                 Color 0.30 0.38 0.42 1
+                }
+                ImageWidgetClass "{DCA6090450000007}" {
+                 Slot OverlayWidgetSlot "{DCA6090450000008}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 }
+                 Color 0.06 0.075 0.09 1
+                }
+                EditBoxWidgetClass "{DCA6090450000003}" {
+                 Name "DCO_MissionTitle"
+                 Slot OverlayWidgetSlot "{DCA6090450000004}" { HorizontalAlign 3 VerticalAlign 3 Padding 12 9 12 9 }
+                 style blank Color 0.90 0.93 0.95 1 "Font Size" 18 Clipping True
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+          VerticalLayoutWidgetClass "{DCA6090450000021}" {
+           Name "DCO_MissionBodyField"
+           Slot LayoutSlot "{DCA6090450000022}" { HorizontalAlign 3 Padding 0 0 0 16 }
+           {
+            TextWidgetClass "{DCA609045000001D}" {
+             Name "DCO_MissionBody_Caption"
+             Slot LayoutSlot "{DCA609045000001E}" { HorizontalAlign 3 }
+             Text "Text" Color 0.90 0.93 0.95 1 "Font Size" 16 "Min Font Size" 14 Wrap 1
+            }
+            TextWidgetClass "{DCA609045000001F}" {
+             Name "DCO_MissionBody_Help"
+             Slot LayoutSlot "{DCA6090450000020}" { HorizontalAlign 3 Padding 0 3 0 6 }
+             Text "Enter the text players will read. Up to 2048 characters." Color 0.66 0.70 0.74 1 "Font Size" 14 "Min Font Size" 12 Wrap 1
+            }
+            SizeLayoutWidgetClass "{DCA609045000001B}" {
+             Name "DCO_MissionBodyFrame"
+             Slot LayoutSlot "{DCA609045000001C}" { HorizontalAlign 3 }
+             AllowHeightOverride 1 HeightOverride 150
+             {
+              OverlayWidgetClass "{DCA6090450000019}" {
+               Slot AlignableSlot "{DCA609045000001A}" { HorizontalAlign 3 VerticalAlign 3 }
+               {
+                ImageWidgetClass "{DCA6090450000015}" {
+                 Slot OverlayWidgetSlot "{DCA6090450000016}" { HorizontalAlign 3 VerticalAlign 3 }
+                 Color 0.30 0.38 0.42 1
+                }
+                ImageWidgetClass "{DCA6090450000017}" {
+                 Slot OverlayWidgetSlot "{DCA6090450000018}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 }
+                 Color 0.06 0.075 0.09 1
+                }
+                MultilineEditBoxWidgetClass "{DCA6090450000013}" {
+                 Name "DCO_MissionBody"
+                 Slot OverlayWidgetSlot "{DCA6090450000014}" { HorizontalAlign 3 VerticalAlign 3 Padding 12 9 12 9 }
+                 style blank Color 0.90 0.93 0.95 1 "Font Size" 18 Clipping True Text ""
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+          VerticalLayoutWidgetClass "{DCA6090450000031}" {
+           Name "DCO_MissionValueField"
+           Slot LayoutSlot "{DCA6090450000032}" { HorizontalAlign 3 Padding 0 0 0 16 }
+           {
+            TextWidgetClass "{DCA609045000002D}" {
+             Name "DCO_MissionValue_Caption"
+             Slot LayoutSlot "{DCA609045000002E}" { HorizontalAlign 3 }
+             Text "Value" Color 0.90 0.93 0.95 1 "Font Size" 16 "Min Font Size" 14 Wrap 1
+            }
+            TextWidgetClass "{DCA609045000002F}" {
+             Name "DCO_MissionValue_Help"
+             Slot LayoutSlot "{DCA6090450000030}" { HorizontalAlign 3 Padding 0 3 0 6 }
+             Text "Enter a number." Color 0.66 0.70 0.74 1 "Font Size" 14 "Min Font Size" 12 Wrap 1
+            }
+            SizeLayoutWidgetClass "{DCA609045000002B}" {
+             Name "DCO_MissionValueFrame"
+             Slot LayoutSlot "{DCA609045000002C}" { HorizontalAlign 3 }
+             AllowHeightOverride 1 HeightOverride 42
+             {
+              OverlayWidgetClass "{DCA6090450000029}" {
+               Slot AlignableSlot "{DCA609045000002A}" { HorizontalAlign 3 VerticalAlign 3 }
+               {
+                ImageWidgetClass "{DCA6090450000025}" {
+                 Slot OverlayWidgetSlot "{DCA6090450000026}" { HorizontalAlign 3 VerticalAlign 3 }
+                 Color 0.30 0.38 0.42 1
+                }
+                ImageWidgetClass "{DCA6090450000027}" {
+                 Slot OverlayWidgetSlot "{DCA6090450000028}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 }
+                 Color 0.06 0.075 0.09 1
+                }
+                EditBoxWidgetClass "{DCA6090450000023}" {
+                 Name "DCO_MissionValue"
+                 Slot OverlayWidgetSlot "{DCA6090450000024}" { HorizontalAlign 3 VerticalAlign 3 Padding 12 9 12 9 }
+                 style blank Color 0.90 0.93 0.95 1 "Font Size" 18 Clipping True
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+          VerticalLayoutWidgetClass "{DCA609045000003F}" {
+           Name "DCO_MissionScopeField"
+           Slot LayoutSlot "{DCA6090450000040}" { HorizontalAlign 3 Padding 0 0 0 14 }
+           {
+            TextWidgetClass "{DCA6090450000033}" {
+             Name "DCO_MissionScope_Caption"
+             Slot LayoutSlot "{DCA6090450000034}" { HorizontalAlign 3 }
+             Text "Audience" Color 0.90 0.93 0.95 1 "Font Size" 16 "Min Font Size" 14 Wrap 1
+            }
+            TextWidgetClass "{DCA6090450000035}" {
+             Name "DCO_MissionScope_Help"
+             Slot LayoutSlot "{DCA6090450000036}" { HorizontalAlign 3 Padding 0 3 0 6 }
+             Text "Click below to cycle through the available choices." Color 0.66 0.70 0.74 1 "Font Size" 14 "Min Font Size" 12 Wrap 1
+            }
+            ButtonWidgetClass "{DCA609045000003D}" {
+             Name "DCO_MissionScope"
+             Slot LayoutSlot "{DCA609045000003E}" { HorizontalAlign 3 }
+             style blank
+             {
+              OverlayWidgetClass "{DCA609045000003B}" {
+               Slot ButtonWidgetSlot "{DCA609045000003C}" { HorizontalAlign 3 VerticalAlign 3 }
+               {
+                ImageWidgetClass "{DCA6090450000037}" {
+                 Name "DCO_MissionScope_Bg"
+                 Slot OverlayWidgetSlot "{DCA6090450000038}" { HorizontalAlign 3 VerticalAlign 3 }
+                 Color 0.10 0.13 0.16 1
+                }
+                TextWidgetClass "{DCA6090450000039}" {
+                 Name "DCO_MissionScope_Label"
+                 Slot OverlayWidgetSlot "{DCA609045000003A}" { HorizontalAlign 3 VerticalAlign 1 Padding 14 10 14 10 }
+                 Text "Finder only" Color 0.90 0.93 0.95 1 "Font Size" 17 "Min Font Size" 15 Wrap 1
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+          ButtonWidgetClass "{DCA6090450000047}" {
+           Name "DCO_MissionInclude"
+           Slot LayoutSlot "{DCA6090450000048}" { HorizontalAlign 3 Padding 0 0 0 14 }
+           style blank
+           {
+            OverlayWidgetClass "{DCA6090450000045}" {
+             Slot ButtonWidgetSlot "{DCA6090450000046}" { HorizontalAlign 3 VerticalAlign 3 }
+             {
+              ImageWidgetClass "{DCA6090450000041}" {
+               Name "DCO_MissionInclude_Bg"
+               Slot OverlayWidgetSlot "{DCA6090450000042}" { HorizontalAlign 3 VerticalAlign 3 }
+               Color 0.10 0.13 0.16 1
+              }
+              TextWidgetClass "{DCA6090450000043}" {
+               Name "DCO_MissionInclude_Label"
+               Slot OverlayWidgetSlot "{DCA6090450000044}" { HorizontalAlign 3 VerticalAlign 1 Padding 14 10 14 10 }
+               Text "[ ] Include crew" Color 0.90 0.93 0.95 1 "Font Size" 17 "Min Font Size" 15 Wrap 1
+              }
+             }
+            }
+           }
+          }
+          VerticalLayoutWidgetClass "{DCA6090450000061}" {
+           Name "DCO_MissionNamedField"
+           Slot LayoutSlot "{DCA6090450000062}" { HorizontalAlign 3 Padding 0 0 0 14 }
+           {
+            TextWidgetClass "{DCA6090450000049}" {
+             Name "DCO_MissionNamed_Caption"
+             Slot LayoutSlot "{DCA609045000004A}" { HorizontalAlign 3 }
+             Text "Saved position" Color 0.90 0.93 0.95 1 "Font Size" 16 "Min Font Size" 14 Wrap 1
+            }
+            TextWidgetClass "{DCA609045000004B}" {
+             Name "DCO_MissionNamed_Help"
+             Slot LayoutSlot "{DCA609045000004C}" { HorizontalAlign 3 Padding 0 3 0 6 }
+             Text "Use Previous and Next to choose a saved LZ, RP or Target." Color 0.66 0.70 0.74 1 "Font Size" 14 "Min Font Size" 12 Wrap 1
+            }
+            HorizontalLayoutWidgetClass "{DCA609045000005F}" {
+             Name "DCO_MissionNamedRow"
+             Slot LayoutSlot "{DCA6090450000060}" { HorizontalAlign 3 }
+             {
+              ButtonWidgetClass "{DCA6090450000053}" {
+               Name "DCO_MissionPrevious"
+               Slot LayoutSlot "{DCA6090450000054}" { HorizontalAlign 3 }
+               style blank
+               {
+                OverlayWidgetClass "{DCA6090450000051}" {
+                 Slot ButtonWidgetSlot "{DCA6090450000052}" { HorizontalAlign 3 VerticalAlign 3 }
+                 {
+                  ImageWidgetClass "{DCA609045000004D}" {
+                   Name "DCO_MissionPrevious_Bg"
+                   Slot OverlayWidgetSlot "{DCA609045000004E}" { HorizontalAlign 3 VerticalAlign 3 }
+                   Color 0.10 0.13 0.16 1
+                  }
+                  TextWidgetClass "{DCA609045000004F}" {
+                   Name "DCO_MissionPrevious_Label"
+                   Slot OverlayWidgetSlot "{DCA6090450000050}" { HorizontalAlign 3 VerticalAlign 1 Padding 14 10 14 10 }
+                   Text "PREVIOUS" Color 0.90 0.93 0.95 1 "Font Size" 17 "Min Font Size" 15 Wrap 1
+                  }
+                 }
+                }
+               }
+              }
+              TextWidgetClass "{DCA6090450000055}" {
+               Name "DCO_MissionNamed"
+               Slot LayoutSlot "{DCA6090450000056}" { HorizontalAlign 3 VerticalAlign 1 SizeMode Fill FillWeight 1 Padding 14 0 14 0 }
+               Text "No saved positions" Color 0.90 0.93 0.95 1 "Font Size" 17 "Min Font Size" 15 Wrap 1
+              }
+              ButtonWidgetClass "{DCA609045000005D}" {
+               Name "DCO_MissionNext"
+               Slot LayoutSlot "{DCA609045000005E}" { HorizontalAlign 3 }
+               style blank
+               {
+                OverlayWidgetClass "{DCA609045000005B}" {
+                 Slot ButtonWidgetSlot "{DCA609045000005C}" { HorizontalAlign 3 VerticalAlign 3 }
+                 {
+                  ImageWidgetClass "{DCA6090450000057}" {
+                   Name "DCO_MissionNext_Bg"
+                   Slot OverlayWidgetSlot "{DCA6090450000058}" { HorizontalAlign 3 VerticalAlign 3 }
+                   Color 0.10 0.13 0.16 1
+                  }
+                  TextWidgetClass "{DCA6090450000059}" {
+                   Name "DCO_MissionNext_Label"
+                   Slot OverlayWidgetSlot "{DCA609045000005A}" { HorizontalAlign 3 VerticalAlign 1 Padding 14 10 14 10 }
+                   Text "NEXT" Color 0.90 0.93 0.95 1 "Font Size" 17 "Min Font Size" 15 Wrap 1
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+      SizeLayoutWidgetClass "{DCA609045000007B}" {
+       Name "DCO_MissionStatusFrame"
+       Slot LayoutSlot "{DCA609045000007C}" { HorizontalAlign 3 Padding 20 0 20 0 }
+       AllowHeightOverride 1 HeightOverride 42
+       {
+        TextWidgetClass "{DCA6090450000079}" {
+         Name "DCO_MissionStatus"
+         Slot AlignableSlot "{DCA609045000007A}" { HorizontalAlign 3 VerticalAlign 1 }
+         Text "Ready." Color 0.66 0.70 0.74 1 "Font Size" 15 "Min Font Size" 13 Wrap 1
+        }
+       }
+      }
+      HorizontalLayoutWidgetClass "{DCA6090450000077}" {
+       Name "DCO_MissionFooter"
+       Slot LayoutSlot "{DCA6090450000078}" { HorizontalAlign 3 Padding 20 6 20 18 }
+       {
+        ButtonWidgetClass "{DCA609045000006D}" {
+         Name "DCO_MissionClose"
+         Slot LayoutSlot "{DCA609045000006E}" { HorizontalAlign 3 SizeMode Fill FillWeight 1 Padding 0 0 6 0 }
+         style blank
+         {
+          OverlayWidgetClass "{DCA609045000006B}" {
+           Slot ButtonWidgetSlot "{DCA609045000006C}" { HorizontalAlign 3 VerticalAlign 3 }
+           {
+            ImageWidgetClass "{DCA6090450000067}" {
+             Name "DCO_MissionClose_Bg"
+             Slot OverlayWidgetSlot "{DCA6090450000068}" { HorizontalAlign 3 VerticalAlign 3 }
+             Color 0.10 0.13 0.16 1
+            }
+            TextWidgetClass "{DCA6090450000069}" {
+             Name "DCO_MissionClose_Label"
+             Slot OverlayWidgetSlot "{DCA609045000006A}" { HorizontalAlign 3 VerticalAlign 1 Padding 14 10 14 10 }
+             Text "CLOSE" Color 0.90 0.93 0.95 1 "Font Size" 17 "Min Font Size" 15 Wrap 1
+            }
+           }
+          }
+         }
+        }
+        ButtonWidgetClass "{DCA6090450000075}" {
+         Name "DCO_MissionApply"
+         Slot LayoutSlot "{DCA6090450000076}" { HorizontalAlign 3 SizeMode Fill FillWeight 2 Padding 6 0 0 0 }
+         style blank
+         {
+          OverlayWidgetClass "{DCA6090450000073}" {
+           Slot ButtonWidgetSlot "{DCA6090450000074}" { HorizontalAlign 3 VerticalAlign 3 }
+           {
+            ImageWidgetClass "{DCA609045000006F}" {
+             Name "DCO_MissionApply_Bg"
+             Slot OverlayWidgetSlot "{DCA6090450000070}" { HorizontalAlign 3 VerticalAlign 3 }
+             Color 0.10 0.13 0.16 1
+            }
+            TextWidgetClass "{DCA6090450000071}" {
+             Name "DCO_MissionApply_Label"
+             Slot OverlayWidgetSlot "{DCA6090450000072}" { HorizontalAlign 3 VerticalAlign 1 Padding 14 10 14 10 }
+             Text "APPLY" Color 0.851 0.537 0.169 1 "Font Size" 17 "Min Font Size" 15 Wrap 1
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

@@ -38,15 +38,17 @@ class DCO_GMCompositionPanel
 	protected TextWidget m_wStatus;
 	protected TextWidget m_wPage;
 	protected TextWidget m_wLibrarySummary;
+	protected TextWidget m_wSelection;
 	protected Widget m_wEmpty;
+	protected Widget m_wScroll;
 	protected Widget m_wPagination;
 	protected ref array<ButtonWidget> m_aRowButtons = {};
 	protected ref array<TextWidget> m_aRowLabels = {};
+	protected ref array<TextWidget> m_aRowMetadata = {};
 	protected ref array<ImageWidget> m_aRowBackgrounds = {};
 	protected ref array<ref DCO_GMCompositionPanelButtonHandler> m_aHandlers = {};
 	protected ref array<DCO_GMCompositionCatalogEntry> m_aEntries = {};
 	protected bool m_bOpen;
-	protected vector m_vPosition;
 	protected int m_iPage;
 	protected int m_iSelectedId;
 	protected int m_iPlacementId;
@@ -75,12 +77,14 @@ class DCO_GMCompositionPanel
 		FrameSlot.SetAnchorMin(m_wRoot, 0, 0);
 		FrameSlot.SetAnchorMax(m_wRoot, 1, 1);
 		FrameSlot.SetOffsets(m_wRoot, 0, 0, 0, 0);
+		m_wRoot.SetZOrder(9800);
+		m_wRoot.SetVisible(false);
 		m_wPanel = m_wRoot.FindAnyWidget("DCO_CompositionPanel");
 		if (m_wPanel)
 		{
 			FrameSlot.SetAnchor(m_wPanel, 0.5, 0.5);
 			FrameSlot.SetAlignment(m_wPanel, 0.5, 0.5);
-			FrameSlot.SetSize(m_wPanel, 920, 820);
+			FrameSlot.SetSize(m_wPanel, 840, 620);
 			FrameSlot.SetPos(m_wPanel, 0, 0);
 			m_wPanel.SetVisible(false);
 		}
@@ -91,7 +95,9 @@ class DCO_GMCompositionPanel
 		m_wStatus = TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_CompositionStatus"));
 		m_wPage = TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_CompositionPage"));
 		m_wLibrarySummary = TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_CompositionLibrarySummary"));
+		m_wSelection = TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_CompositionSelection"));
 		m_wEmpty = m_wRoot.FindAnyWidget("DCO_CompositionEmpty");
+		m_wScroll = m_wRoot.FindAnyWidget("DCO_CompositionScroll");
 		m_wPagination = m_wRoot.FindAnyWidget("DCO_CompositionPagination");
 		Bind("DCO_CompositionClose", ACTION_CLOSE);
 		Bind("DCO_CompositionCapture", ACTION_CAPTURE);
@@ -107,6 +113,7 @@ class DCO_GMCompositionPanel
 			ImageWidget rowBackground = ImageWidget.Cast(m_wRoot.FindAnyWidget("DCO_CompositionRow" + rowIndex.ToString() + "_Bg"));
 			m_aRowButtons.Insert(rowButton);
 			m_aRowLabels.Insert(rowLabel);
+			m_aRowMetadata.Insert(TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_CompositionRow" + rowIndex.ToString() + "_Metadata")));
 			m_aRowBackgrounds.Insert(rowBackground);
 			Bind("DCO_CompositionRow" + rowIndex.ToString(), ACTION_ROW_BASE + rowIndex);
 		}
@@ -114,6 +121,8 @@ class DCO_GMCompositionPanel
 		DCO_GMCompositionService.Get().GetOnResult().Insert(OnResult);
 		DCO_GMCompositionService.Get().Initialize();
 		DCO_GMTheme.Get().ApplyAccent(m_wRoot);
+		DCO_GMTheme.Get().ApplyOpacity(m_wRoot);
+		DCO_GMTheme.Get().ApplyDisplayFont(m_wRoot);
 		SetStatus(true, "Persistent server library ready. Captures are saved to this server profile.");
 		RefreshLibrary();
 	}
@@ -125,6 +134,7 @@ class DCO_GMCompositionPanel
 		m_aHandlers.Clear();
 		m_aRowButtons.Clear();
 		m_aRowLabels.Clear();
+		m_aRowMetadata.Clear();
 		m_aRowBackgrounds.Clear();
 		m_aEntries.Clear();
 		if (m_wRoot)
@@ -140,9 +150,26 @@ class DCO_GMCompositionPanel
 		m_wStatus = null;
 		m_wPage = null;
 		m_wLibrarySummary = null;
+		m_wSelection = null;
 		m_wEmpty = null;
+		m_wScroll = null;
 		m_wPagination = null;
 		m_bOpen = false;
+	}
+
+	void ApplyLayout(bool compactViewport)
+	{
+		if (!m_wPanel || !m_wRoot)
+			return;
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (!workspace)
+			return;
+		float width = workspace.DPIUnscale(workspace.GetWidth());
+		float height = workspace.DPIUnscale(workspace.GetHeight());
+		float desiredHeight = 620;
+		if (!m_aEntries.IsEmpty())
+			desiredHeight = 760;
+		FrameSlot.SetSize(m_wPanel, Math.Min(840, Math.Max(320, width - 40)), Math.Min(desiredHeight, Math.Max(400, height - 40)));
 	}
 
 	protected void Bind(string widgetName, int action)
@@ -157,22 +184,19 @@ class DCO_GMCompositionPanel
 
 	void Open(vector position)
 	{
+		OpenInternal(position, false);
+	}
+
+	void OpenForCapture(vector position)
+	{
+		OpenInternal(position, true);
+	}
+
+	protected void OpenInternal(vector position, bool captureFocus)
+	{
 		if (!m_wPanel)
 			return;
 		DCO_GMCompositionService.Get().RequestSnapshot();
-		if (position == vector.Zero)
-		{
-			SCR_MenuLayoutEditorComponent menuLayout = SCR_MenuLayoutEditorComponent.Cast(
-				SCR_MenuLayoutEditorComponent.GetInstance(SCR_MenuLayoutEditorComponent, false));
-			if (menuLayout)
-				menuLayout.GetCursorWorldPos(position);
-		}
-		if (!SCR_Global.IsPositionWithinTerrainBounds(position))
-		{
-			SetStatus(false, "Move the GM cursor onto valid terrain before placing a composition.");
-			position = vector.Zero;
-		}
-		m_vPosition = position;
 		m_iPage = 0;
 		m_iSelectedId = 0;
 		if (m_wName)
@@ -183,8 +207,27 @@ class DCO_GMCompositionPanel
 			m_wAuthor.SetText("Game Master");
 		RefreshLibrary();
 		RefreshPosition();
+		RefreshCaptureSelection();
+		ApplyLayout(false);
+		m_wRoot.SetVisible(true);
 		m_wPanel.SetVisible(true);
 		m_bOpen = true;
+		if (!captureFocus)
+		{
+			SetStatus(true, "Select an entry, choose PLACE IN WORLD, then click terrain. Escape cancels placement.");
+			return;
+		}
+
+		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
+		SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
+		if (selected.IsEmpty())
+			SetStatus(false, "No editable objects are selected. Close this panel, select the base objects, then try again.");
+		else
+			SetStatus(true, string.Format("%1 objects selected. Enter a name and choose SAVE SELECTED. Category and author are optional.", selected.Count()));
+
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (workspace && m_wName)
+			workspace.SetFocusedWidget(m_wName);
 	}
 
 	bool CloseForBack()
@@ -203,6 +246,8 @@ class DCO_GMCompositionPanel
 	protected void Close()
 	{
 		m_bOpen = false;
+		if (m_wRoot)
+			m_wRoot.SetVisible(false);
 		if (m_wPanel)
 			m_wPanel.SetVisible(false);
 		DCO_GMUIController.ReleaseMenuFocus();
@@ -226,6 +271,19 @@ class DCO_GMCompositionPanel
 				category = m_wCategory.GetText();
 			if (m_wAuthor)
 				author = m_wAuthor.GetText();
+			name.TrimInPlace();
+			if (name.Length() > 48 || category.Length() > 32 || author.Length() > 32)
+			{
+				SetStatus(false, "Use up to 48 characters for the name, and 32 each for category and author.");
+				return true;
+			}
+			if (name.IsEmpty())
+			{
+				SetStatus(false, "Enter a name for this composition before saving.");
+				if (m_wName)
+					GetGame().GetWorkspace().SetFocusedWidget(m_wName);
+				return true;
+			}
 			DCO_GMCompositionService.Get().CaptureSelected(name, category, author);
 			return true;
 		}
@@ -274,6 +332,7 @@ class DCO_GMCompositionPanel
 	{
 		return m_iPlacementId > 0;
 	}
+	bool IsOpen() { return m_bOpen; }
 
 	bool PlaceAtWorldCursor(vector position)
 	{
@@ -326,12 +385,37 @@ class DCO_GMCompositionPanel
 	{
 		if (!m_wPosition)
 			return;
-		if (!SCR_Global.IsPositionWithinTerrainBounds(m_vPosition))
+		DCO_GMCompositionCatalogEntry selected = DCO_GMCompositionService.Get().Find(m_iSelectedId);
+		if (selected)
+			m_wPosition.SetText("Selected: " + selected.m_sName);
+		else
+			m_wPosition.SetText("Select a saved composition to place or delete.");
+	}
+
+	protected void RefreshCaptureSelection()
+	{
+		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
+		SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
+		if (m_wSelection)
 		{
-			m_wPosition.SetText("PLACEMENT  ·  INVALID TERRAIN CURSOR");
-			return;
+			if (selected.IsEmpty())
+				m_wSelection.SetText("No objects selected");
+			else
+				m_wSelection.SetText(selected.Count().ToString() + " objects selected");
 		}
-		m_wPosition.SetText(string.Format("PLACEMENT  ·  %1 / %2 / %3", Math.Round(m_vPosition[0]), Math.Round(m_vPosition[1]), Math.Round(m_vPosition[2])));
+		SetActionEnabled("DCO_CompositionCapture", !selected.IsEmpty());
+	}
+
+	protected void SetActionEnabled(string name, bool enabled)
+	{
+		Widget button = m_wRoot.FindAnyWidget(name);
+		if (!button)
+			return;
+		button.SetEnabled(enabled);
+		if (enabled)
+			button.SetOpacity(1);
+		else
+			button.SetOpacity(0.4);
 	}
 
 	protected void RefreshLibrary()
@@ -340,6 +424,7 @@ class DCO_GMCompositionPanel
 		int pageCount = Math.Max(1, (m_aEntries.Count() + ROW_COUNT - 1) / ROW_COUNT);
 		m_iPage = Math.ClampInt(m_iPage, 0, pageCount - 1);
 		RefreshRows();
+		ApplyLayout(false);
 	}
 
 	protected void RefreshRows()
@@ -351,14 +436,22 @@ class DCO_GMCompositionPanel
 		if (m_wLibrarySummary)
 		{
 			if (m_aEntries.Count() == 1)
-				m_wLibrarySummary.SetText("1 SAVED COMPOSITION");
+				m_wLibrarySummary.SetText("1 saved");
 			else
-				m_wLibrarySummary.SetText(m_aEntries.Count().ToString() + " SAVED COMPOSITIONS");
+				m_wLibrarySummary.SetText(m_aEntries.Count().ToString() + " saved");
 		}
 		if (m_wEmpty)
 			m_wEmpty.SetVisible(isEmpty);
+		if (m_wScroll)
+			m_wScroll.SetVisible(!isEmpty);
 		if (m_wPagination)
-			m_wPagination.SetVisible(!isEmpty);
+			m_wPagination.SetVisible(pageCount > 1);
+		SetActionEnabled("DCO_CompositionPrev", m_iPage > 0);
+		SetActionEnabled("DCO_CompositionNext", m_iPage < pageCount - 1);
+		bool hasSelection = m_iSelectedId > 0 && DCO_GMCompositionService.Get().Find(m_iSelectedId);
+		SetActionEnabled("DCO_CompositionPlace", hasSelection);
+		SetActionEnabled("DCO_CompositionDelete", hasSelection);
+		RefreshPosition();
 		for (int rowIndex = 0; rowIndex < ROW_COUNT; rowIndex++)
 		{
 			ButtonWidget button = m_aRowButtons[rowIndex];
@@ -373,7 +466,9 @@ class DCO_GMCompositionPanel
 			}
 			button.SetVisible(true);
 			DCO_GMCompositionCatalogEntry entry = m_aEntries[entryIndex];
-			label.SetText(string.Format("%1  /  %2  /  %3  /  %4 OBJECTS", entry.m_sCategory, entry.m_sName, entry.m_sAuthor, entry.m_iItemCount));
+			label.SetText(entry.m_sName);
+			if (m_aRowMetadata[rowIndex])
+				m_aRowMetadata[rowIndex].SetText(string.Format("%1  |  %2  |  %3 objects", entry.m_sCategory, entry.m_sAuthor, entry.m_iItemCount));
 			label.SetColor(DCO_GMTheme.Get().m_TextColor);
 			if (background)
 				background.SetColor(Color.FromRGBA(28, 31, 36, 250));
@@ -381,7 +476,7 @@ class DCO_GMCompositionPanel
 			{
 				label.SetColor(DCO_GMTheme.Get().m_AccentColor);
 				if (background)
-					background.SetColor(Color.FromRGBA(57, 46, 31, 255));
+					background.SetColor(Color.FromRGBA(42, 53, 62, 255));
 			}
 		}
 	}

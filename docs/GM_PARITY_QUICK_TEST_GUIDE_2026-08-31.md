@@ -6,20 +6,20 @@ For the current feedback pass, run **section 1 (Compositions)** and then **secti
 
 ## 1. Compositions
 
-**Where:** GM world view, select editable objects, then open the Compositions action.
+**Where:** GM world view, select editable objects, then right-click and choose **Save Selection as Composition**. To browse saved entries at any time, use **Open Composition Library** in the action menu. CREATE intentionally has no composition shortcut.
 
-**Changed:** the former bundled action was replaced by a centered GRS-styled **Composition Library** with three explicit stages: capture, choose, and place/manage. It includes a saved-count summary, selected-row treatment, pagination, an empty state, status feedback, and a short FAQ at the bottom. Captures are stored in the server profile as the versioned `$profile:BifrostGM_compositions.json` library, so they remain available across sessions on that server. The server validates GM rights, selected replicated entities, prefab availability, hierarchy, and placement bounds. A failed placement rolls back the entire spawn.
+**Changed:** the former bundled action was replaced by a centered Bifrost-styled **Composition Library** with three explicit stages: capture, choose, and place/manage. It includes a saved-count summary, selected-row treatment, pagination, an empty state, status feedback, and labeled fields with persistent examples. Captures are stored in the server profile as the versioned `$profile:BifrostGM_compositions.json` library, so they remain available across sessions on that server. The server validates GM rights, selected replicated entities, prefab availability, hierarchy, and placement bounds. A failed placement rolls back the entire spawn.
 
 **Test:**
 
-1. Select two or more props, enter a name, and choose **Capture Selected**.
-2. Confirm the new row shows the name and object count, select it, and choose **Place at Cursor**.
+1. Select two or more props, right-click the selection, and choose **Save Selection as Composition**. Confirm the panel reports the selected count and puts typing focus in the name field.
+2. Enter name/category/author, choose **Save Selected**, confirm the new row shows the name and object count, select it, and choose **Place in World**.
 3. Place enough entries to use the library pagination, then close and reopen the panel.
-4. Restart the world/server, reopen Compositions, and confirm the entry remains.
+4. Start a later mission or restart the world/server, open the context menu > **Open Composition Library**, and confirm the entry remains.
 5. Place it again, then choose **Undo Last Place**.
 6. Copy the JSON library to a second server profile with the same addons and confirm the composition is available there.
 
-**Expected:** the workflow is readable without opening another menu, the selected row is unambiguous, the composition persists after restart, all objects retain their relative arrangement, and undo removes only that GM's latest placement. A server missing any captured prefab refuses the placement without leaving partial objects.
+**Expected:** the workflow is readable without opening another menu, the selected row is unambiguous, and every library control has Bifrost hover feedback. At compact viewport size the panel remains centered and unclipped while omitting only its long help footer. The composition persists after restart, all objects retain their relative arrangement, and undo removes only that GM's latest placement. A server missing any captured prefab refuses the placement without leaving partial objects.
 
 ## 2. Multi-selection actions
 

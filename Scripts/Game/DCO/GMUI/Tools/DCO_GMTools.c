@@ -16,11 +16,10 @@ class DCO_GMTools
 		return s_Inst;
 	}
 
-	protected ref array<IEntity> m_HiddenTerrain = {};	// currently-hidden entities, for restore.
-	protected ref array<IEntity> m_QueryBuf = {};	// QueryEntitiesBySphere collect buffer.
 	protected int m_FpsFrames;	// frame counter for the 1-second FPS measurement.
 	protected ref array<IEntity> m_HiddenUnits = {};
 	protected IEntity m_TeleportMark;
+	protected ref array<int> m_TeleportPlayerIds = {};
 	protected ref array<ref DCO_GMFlyby> m_Flybys = {};	// vehicles currently on a flyby.
 
 	// SIM OPTIONS panel state.
@@ -80,58 +79,10 @@ class DCO_GMTools
 	static const int   FREEZE_RETIRE_MS = 3000;	// how long a finishing command is kept alive before release.
 	protected bool m_FlybyTickOn;	// true while the flyby mover tick is running.
 
-	static const float HIDE_RADIUS = 35.0;
-
-	void HideTerrainAt(vector pos)
-	{
-		BaseWorld world = GetGame().GetWorld();
-		if (!world)
-			return;
-		m_QueryBuf.Clear();
-		world.QueryEntitiesBySphere(pos, HIDE_RADIUS, CollectHideable);
-		int n = 0;
-		foreach (IEntity e : m_QueryBuf)
-		{
-			if (!e)
-				continue;
-			e.ClearFlags(EntityFlags.VISIBLE, true);	// recursive to child meshes.
-			if (!m_HiddenTerrain.Contains(e))
-			{
-				m_HiddenTerrain.Insert(e);
-				n++;
-			}
-		}
-		Print(string.Format("[DCO-GM] Hide Terrain: hid %1 entities within %2 m (total hidden=%3)", n, HIDE_RADIUS, m_HiddenTerrain.Count()), LogLevel.NORMAL);
-	}
-
-	// QueryEntitiesBySphere callback: collect building/destructible-structure entities.
-	protected bool CollectHideable(IEntity e)
-	{
-		if (!e)
-			return true;
-		if (Building.Cast(e) || e.FindComponent(SCR_DestructibleBuildingComponent))
-			m_QueryBuf.Insert(e);
-		return true;	// keep iterating.
-	}
-
-	void RestoreTerrain()
-	{
-		int n = 0;
-		foreach (IEntity e : m_HiddenTerrain)
-		{
-			if (e)
-			{
-				e.SetFlags(EntityFlags.VISIBLE, true);
-				n++;
-			}
-		}
-		m_HiddenTerrain.Clear();
-		Print(string.Format("[DCO-GM] Restore Terrain: re-shown %1 entities", n), LogLevel.NORMAL);
-	}
 
 	bool HasHiddenTerrain()
 	{
-		return !m_HiddenTerrain.IsEmpty();
+		return DCO_GMTerrainAreaComponent.Count() > 0;
 	}
 
 	// FX: TRACER EMITTER helpers.
@@ -229,7 +180,11 @@ class DCO_GMTools
 			return;
 		}
 		bool makeVulnerable = !dmg.IsDamageHandlingEnabled();	// flip current state.
-		dmg.EnableDamageHandling(makeVulnerable);
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(owner.FindComponent(SCR_EditableEntityComponent));
+		if (editable)
+			editable.DCO_SetMissionInvincible(!makeVulnerable);
+		else
+			dmg.EnableDamageHandling(makeVulnerable);
 		string state = "OFF (god mode)";
 		if (makeVulnerable)
 			state = "ON (vulnerable)";
@@ -766,6 +721,70 @@ class DCO_GMTools
 		if (!e || !DCO_FxAircraftCatalog.IsSupportedHelicopter(e.GetOwner()))
 			return;
 		DCO_GMToolsServer.Route(DCO_GMToolsServer.TOOL_FLYBY, e.GetOwner(), vector.Zero);
+	}
+
+	bool HasSelectedPlayers(notnull set<SCR_EditableEntityComponent> selected, SCR_EditableEntityComponent fallback)
+	{
+		foreach (SCR_EditableEntityComponent editable : selected)
+		{
+			if (editable && editable.GetPlayerID() > 0)
+				return true;
+		}
+		return fallback && fallback.GetPlayerID() > 0;
+	}
+
+	void MarkPlayersForTeleport(SCR_EditableEntityComponent fallback)
+	{
+		m_TeleportPlayerIds.Clear();
+		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
+		SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
+		foreach (SCR_EditableEntityComponent editable : selected)
+		{
+			if (!editable)
+				continue;
+			int playerId = editable.GetPlayerID();
+			if (playerId > 0 && !m_TeleportPlayerIds.Contains(playerId))
+				m_TeleportPlayerIds.Insert(playerId);
+		}
+		if (m_TeleportPlayerIds.IsEmpty() && fallback && fallback.GetPlayerID() > 0)
+			m_TeleportPlayerIds.Insert(fallback.GetPlayerID());
+
+		if (m_TeleportPlayerIds.IsEmpty())
+		{
+			Print("[DCO-GM] Teleport Players: select at least one player.", LogLevel.WARNING);
+			return;
+		}
+		Print(string.Format("[DCO-GM] Teleport Players armed for %1 player(s); right-click empty ground to place them.", m_TeleportPlayerIds.Count()), LogLevel.NORMAL);
+	}
+
+	bool HasPendingPlayerTeleport()
+	{
+		return !m_TeleportPlayerIds.IsEmpty();
+	}
+
+	void TeleportPlayersTo(vector pos)
+	{
+		if (m_TeleportPlayerIds.IsEmpty() || !SCR_Global.IsPositionWithinTerrainBounds(pos))
+			return;
+
+		int count = m_TeleportPlayerIds.Count();
+		int columns = 1;
+		while (columns * columns < count)
+			columns++;
+		int rows = (count + columns - 1) / columns;
+
+		SCR_PlayerController controller = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		if (!controller)
+			return;
+		for (int i = 0; i < count; i++)
+		{
+			int column = i % columns;
+			int row = i / columns;
+			vector destination = pos + Vector((column - (columns - 1) * 0.5) * 1.25, 0.1, (row - (rows - 1) * 0.5) * 1.25);
+			controller.DCO_SendGMTeleportPlayer(m_TeleportPlayerIds[i], destination);
+		}
+		Print(string.Format("[DCO-GM] Teleport Players requested for %1 player(s).", count), LogLevel.NORMAL);
+		m_TeleportPlayerIds.Clear();
 	}
 
 	void FlybyEntity(IEntity v)

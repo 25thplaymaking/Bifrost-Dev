@@ -8,7 +8,7 @@ GenericEntity : "{52BB1377E8B65369}Prefabs/E_DCO_FxExplosion.et" {
   SCR_EditableSystemComponent "{DC0F000000000022}" {
    m_UIInfo SCR_EditableEntityUIInfo "{DC0F000000000023}" {
     Name "FX: Loiter"
-    Description "Bifrost loitering air support: the helicopter makes a tangent ingress, establishes a constant-radius orbit around the target for Time on Station, then exits on the orbit tangent. Observation Orbit = presence only; Armed Orbit = circles and fires until its Rounds run dry, or for the full station time with Continuous Fire. Pilot and configured turret crews are seated before launch. Pick any loaded helicopter (modded included) in FX Aircraft; Target Faction centers the orbit on the nearest member of that faction. LIVE arms real rounds, COSMETIC stages audio only. Max four simultaneous airframes."
+    Description "Bifrost loitering air support: the helicopter makes a tangent ingress, establishes a constant-radius orbit around the target for Time on Station, then exits on the orbit tangent. Observation Orbit = presence only; Armed Orbit = circles and fires the selected Armament until its Rounds run dry, or for the full station time with Continuous Fire. Pilot and configured turret crews are seated before launch. Pick any loaded helicopter (modded included) in FX Aircraft; Target Faction centers the orbit on the nearest member of that faction. LIVE arms real rounds; COSMETIC keeps tracers and sound without damage. Max four simultaneous airframes."
    }
   }
  }

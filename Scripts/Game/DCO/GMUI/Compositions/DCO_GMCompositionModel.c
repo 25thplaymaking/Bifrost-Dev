@@ -639,6 +639,8 @@ class DCO_GMCompositionServer
 				{
 					entity.SetScale(item.m_fScale);
 					editable = SCR_EditableEntityComponent.Cast(entity.FindComponent(SCR_EditableEntityComponent));
+					if (editable && SCR_EditableEntityComponent.DCO_CanScale(entity))
+						editable.DCO_SetMissionScale(item.m_fScale);
 				}
 				if (!entity || !editable)
 				{

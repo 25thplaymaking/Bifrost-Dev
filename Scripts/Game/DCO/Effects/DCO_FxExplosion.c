@@ -94,6 +94,8 @@ class DCO_FxAircraftPass
 	bool m_bGunrun;
 	bool m_bGunrunStarted;
 	bool m_bContinuousFire;	// snapshotted per pass: once on station, fire until the station clock expires.
+	EDCO_TracerRound m_eGunrunRound;
+	ref Resource m_GunrunRound;
 	bool m_bCrewReady;	// mission movement starts only after pilot/turret occupants finish seating.
 	float m_fCrewWaitSec = 5.0;	// malformed third-party prefab fail-safe; the live-sim airframe is held meanwhile.
 	float m_fCruiseSpeed;	// snapshotted ingress/egress speed.
@@ -195,6 +197,9 @@ class DCO_FxExplosionComponent : ScriptComponent
 	[Attribute("900", UIWidgets.Slider, "Gunrun cyclic rate.", "300 1200 50", category: "Bifrost"), RplProp()]
 	float m_fGunrunRpm;
 
+	[Attribute("1", UIWidgets.ComboBox, "Gunrun ammunition class. Bifrost fires this projectile independently of the selected helicopter's mounted weapons.", "", ParamEnumArray.FromEnum(EDCO_TracerRound), category: "Bifrost"), RplProp()]
+	EDCO_TracerRound m_eGunrunRound;
+
 	[Attribute("", UIWidgets.EditBox, "Aircraft prefab for this emitter's passes. Empty = stock UH-1H. Picked from the GM 'FX Aircraft' row (runtime helicopter catalog - modded helis included).", category: "Bifrost"), RplProp()]
 	ResourceName m_sAircraftPrefab;
 
@@ -220,7 +225,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 	static const float GROUND_LIFT = 0.1;
 	static const float ROCKET_SPAWN_HEIGHT = 150.0;
 	static const float MARKER_HEIGHT = 1.5;
-	static const int VISUAL_MS = 1000;
 	static const float GUNRUN_START_DISTANCE = 350.0;
 	static const float LOITER_ORBIT_RADIUS = 250.0;	// orbit circle around the target point.
 	static const float LOITER_MAX_ORBIT_SPEED = 37.5;
@@ -230,8 +234,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 	static const float LOITER_ENTRY_CAPTURE = 15.0;	// max tangent-entry correction; normal frame crossing is much smaller.
 	static const int LOITER_RING_SAMPLES = 24;	// terrain samples around the ring for the fixed orbit altitude.
 	static const ResourceName FLYBY_AIRCRAFT = "{70BAEEFC2D3FEE64}Prefabs/Vehicles/Helicopters/UH1H/UH1H.et";
-	static const ResourceName GUNRUN_ROUND = "{9CCBDD2ACB73FFA9}Prefabs/Weapons/Ammo/Ammo_762x51_Tracer_M62.et";
-	static const ResourceName GUNRUN_ACP = "{FE8279CA292FC6EE}Sounds/Weapons/Machineguns/M60/Weapons_Machineguns_M60_Shot.acp";
 	static const string GUNRUN_EVENT = "SOUND_SHOT";
 	static const int GUNRUN_DANGER_EVERY = 8;
 	static const float GUNRUN_DANGER_RADIUS = 20.0;
@@ -248,13 +250,8 @@ class DCO_FxExplosionComponent : ScriptComponent
 	protected EDCO_FxExplosionSize m_eLoadedFor;
 	protected ref Resource m_LoadedRocket;
 	protected EDCO_FxExplosionDelivery m_eLoadedRocketFor;
-	protected ref Shape m_MarkerShape;
-	protected ref Shape m_ScatterShape;
-	protected ref Shape m_TrackingShape;
-	protected ref Shape m_SoundRadiusShape;
 	protected ref Resource m_LoadedAircraft;
 	protected ResourceName m_LoadedAircraftFor;
-	protected ref Resource m_LoadedGunrunRound;
 	protected ref array<ref Shape> m_CosmeticTracers = {};
 	protected Faction m_FacQueryFaction;
 	protected vector m_vFacQueryCenter;
@@ -277,8 +274,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 			if (DCO_ClampDeliveryToFamily())
 				DCO_ReplicateState();
 		}
-		GetGame().GetCallqueue().CallLater(DCO_DrawMarker, 500, false);
-		GetGame().GetCallqueue().CallLater(DCO_DrawMarker, VISUAL_MS, true);
 		DCO_TriggerFxRegistry.Register(owner);
 
 		if (!Replication.IsServer())
@@ -295,7 +290,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 		{
 			GetGame().GetCallqueue().Remove(DCO_BarrageTick);
 			GetGame().GetCallqueue().Remove(DCO_NextBarrage);
-			GetGame().GetCallqueue().Remove(DCO_DrawMarker);
 			GetGame().GetCallqueue().Remove(DCO_FlushPassDeletions);
 			GetGame().GetCallqueue().Remove(DCO_ApplyFiringAfterAttributes);
 		}
@@ -315,10 +309,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 		m_AircraftPasses = null;
 		m_PendingDeletePasses = null;
 		DCO_TriggerFxRegistry.Unregister(GetOwner());
-		m_MarkerShape = null;
-		m_ScatterShape = null;
-		m_TrackingShape = null;
-		m_SoundRadiusShape = null;
 	}
 
 	bool DCO_IsFiring() { return m_bFiring; }
@@ -455,6 +445,22 @@ class DCO_FxExplosionComponent : ScriptComponent
 	void DCO_SetParticleScale(float v) { m_fParticleScale = Math.Clamp(v, 0.25, 4); DCO_ReplicateState(); }
 	float DCO_GetCustomSoundRadius() { return m_fCustomSoundRadius; }
 	void DCO_SetCustomSoundRadius(float v) { m_fCustomSoundRadius = Math.Clamp(v, 25, 3000); DCO_ReplicateState(); }
+	int DCO_GetVisualColor()
+	{
+		if (m_bLive)
+			return 0xFFFF3030;
+		return 0xFFD9892B;
+	}
+	float DCO_GetVisualMarkerHeight() { return MARKER_HEIGHT; }
+	float DCO_GetVisualSoundRadius()
+	{
+		if (m_eDelivery == EDCO_FxExplosionDelivery.SOUND_EMITTER && !m_CustomSoundBank.IsEmpty())
+			return Math.Clamp(m_fCustomSoundRadius, 25, 3000);
+		if (!m_bLive && !m_bSound)
+			return 0;
+		int sizeIdx = Math.Clamp(m_eSize, 0, StaticData().m_NominalSoundRadius.Count() - 1);
+		return StaticData().m_NominalSoundRadius[sizeIdx];
+	}
 	float DCO_GetFlybySpeed() { return m_fFlybySpeed; }
 	void DCO_SetFlybySpeed(float v) { m_fFlybySpeed = Math.Clamp(v, 25, 100); DCO_ReplicateState(); }
 	float DCO_GetFlybyHeight() { return m_fFlybyHeight; }
@@ -465,6 +471,8 @@ class DCO_FxExplosionComponent : ScriptComponent
 	void DCO_SetGunrunRounds(int v) { m_iGunrunRounds = Math.Clamp(v, 5, 100); DCO_ReplicateState(); }
 	float DCO_GetGunrunRpm() { return m_fGunrunRpm; }
 	void DCO_SetGunrunRpm(float v) { m_fGunrunRpm = Math.Clamp(v, 300, 1200); DCO_ReplicateState(); }
+	int DCO_GetGunrunRound() { return m_eGunrunRound; }
+	void DCO_SetGunrunRound(int v) { m_eGunrunRound = Math.Clamp(v, 0, DCO_TracerEmitterComponent.DCO_GetRoundCount() - 1); DCO_ReplicateState(); }
 	float DCO_GetLoiterSec() { return m_fLoiterSec; }
 	void DCO_SetLoiterSec(float v) { m_fLoiterSec = Math.Clamp(v, 10, 600); DCO_ReplicateState(); }
 	int DCO_GetAircraftIndex() { return DCO_FxAircraftCatalog.IndexOf(m_sAircraftPrefab); }
@@ -818,6 +826,9 @@ class DCO_FxExplosionComponent : ScriptComponent
 		pass.m_bGunrun = gunrun;
 		pass.m_bLoiter = loiter;
 		pass.m_bContinuousFire = loiter && gunrun && m_bContinuousFire;
+		pass.m_eGunrunRound = Math.Clamp(m_eGunrunRound, 0, DCO_TracerEmitterComponent.DCO_GetRoundCount() - 1);
+		if (gunrun && m_bLive)
+			pass.m_GunrunRound = Resource.Load(DCO_TracerEmitterComponent.DCO_GetRoundPrefab(pass.m_eGunrunRound));
 		if (pass.m_bContinuousFire)
 			pass.m_iRoundsLeft = 0;	// deliberately no ammo budget; Time on Station is the sole stop condition.
 		else
@@ -833,8 +844,9 @@ class DCO_FxExplosionComponent : ScriptComponent
 		string passKind = "flyby";
 		if (loiter)
 			passKind = "loiter";
-		Print(string.Format("[DCO-FX] %1 started: armed=%2 live=%3 rounds=%4 station=%5s",
-			passKind, gunrun, m_bLive, pass.m_iRoundsLeft, pass.m_fStationSec), LogLevel.NORMAL);
+		string roundName = DCO_TracerEmitterComponent.DCO_GetRoundNames()[pass.m_eGunrunRound];
+		Print(string.Format("[DCO-FX] %1 started: armed=%2 live=%3 armament=%4 rounds=%5 station=%6s",
+			passKind, gunrun, m_bLive, roundName, pass.m_iRoundsLeft, pass.m_fStationSec), LogLevel.NORMAL);
 
 		// Crew is mission-ready at launch: ask engine to fill every PILOT and TURRET slot configured by the selected helicopter.
 		SCR_BaseCompartmentManagerComponent compartments = SCR_BaseCompartmentManagerComponent.Cast(aircraft.FindComponent(SCR_BaseCompartmentManagerComponent));
@@ -1057,8 +1069,8 @@ class DCO_FxExplosionComponent : ScriptComponent
 				pass.m_fShotClockMs -= dt * 1000.0;
 				if (pass.m_fShotClockMs <= 0)
 				{
-					DCO_FireGunrunRound(pass, velocity);
-					pass.m_iRoundsLeft--;
+					if (DCO_FireGunrunRound(pass, velocity))
+						pass.m_iRoundsLeft--;
 					pass.m_fShotClockMs = 60000.0 / Math.Clamp(m_fGunrunRpm, 300, 1200);
 				}
 			}
@@ -1137,8 +1149,8 @@ class DCO_FxExplosionComponent : ScriptComponent
 				pass.m_fShotClockMs -= dt * 1000.0;
 				if (pass.m_fShotClockMs <= 0)
 				{
-					DCO_FireGunrunRound(pass, orbitVelocity);
-					if (!pass.m_bContinuousFire)
+					bool fired = DCO_FireGunrunRound(pass, orbitVelocity);
+					if (fired && !pass.m_bContinuousFire)
 						pass.m_iRoundsLeft--;
 					pass.m_fShotClockMs = 60000.0 / Math.Clamp(m_fGunrunRpm, 300, 1200);
 				}
@@ -1164,7 +1176,7 @@ class DCO_FxExplosionComponent : ScriptComponent
 		return vector.DistanceXZ(exitPos, pass.m_Start) >= Math.Clamp(m_fFlybyDistance, 500, 4000);
 	}
 
-	protected void DCO_FireGunrunRound(DCO_FxAircraftPass pass, vector aircraftVelocity)
+	protected bool DCO_FireGunrunRound(DCO_FxAircraftPass pass, vector aircraftVelocity)
 	{
 		vector target = SCR_Math2D.GenerateRandomPointInRadius(0, Math.Max(5, m_fScatterRadius), Vector(pass.m_Target[0], 0, pass.m_Target[2]), false);
 		target[1] = GetOwner().GetWorld().GetSurfaceY(target[0], target[2]);
@@ -1174,43 +1186,46 @@ class DCO_FxExplosionComponent : ScriptComponent
 		direction.Normalize();
 		vector muzzle = origin + direction * GUNRUN_MUZZLE_CLEARANCE;
 
+		if (m_bLive)
+		{
+			if (!pass.m_GunrunRound)
+			{
+				Print("[DCO-FX] gunrun round failed to load", LogLevel.WARNING);
+				return false;
+			}
+
+			IEntity projectile = DCO_SpawnProjectile(pass.m_GunrunRound, muzzle, direction);
+			if (!projectile)
+			{
+				Print("[DCO-FX] gunrun projectile spawn failed", LogLevel.WARNING);
+				return false;
+			}
+			if (!DCO_LaunchProjectile(projectile, direction, aircraftVelocity, pass.m_Aircraft))
+			{
+				Print("[DCO-FX] gunrun projectile has no move component", LogLevel.WARNING);
+				return false;
+			}
+		}
+
+		int roundIndex = Math.Clamp(pass.m_eGunrunRound, 0, DCO_TracerEmitterComponent.DCO_GetRoundCount() - 1);
 		if (m_bSound)
 		{
-			RpcDo_DCO_GunrunSound(muzzle);
-			Rpc(RpcDo_DCO_GunrunSound, muzzle);
+			RpcDo_DCO_GunrunSound(muzzle, roundIndex);
+			Rpc(RpcDo_DCO_GunrunSound, muzzle, roundIndex);
 		}
+		RpcDo_DCO_CosmeticTracer(muzzle, direction, roundIndex);
+		Rpc(RpcDo_DCO_CosmeticTracer, muzzle, direction, roundIndex);
+
 		pass.m_iGunrunShotsFired++;
+		if (pass.m_iGunrunShotsFired == 1)
+			Print(string.Format("[DCO-FX] armed loiter fired its first round (%1)", DCO_TracerEmitterComponent.DCO_GetRoundNames()[roundIndex]), LogLevel.NORMAL);
 		// Broadcast danger periodically so nearby AI reacts to the pass.
 		if ((pass.m_iGunrunShotsFired % GUNRUN_DANGER_EVERY) == 0)
 		{
 			DCO_BroadcastGunrunDanger(target);
 			DCO_ReassertGunnerSilence(pass);	// keep door gunners deactivated - LOD can re-wake them near the enemy.
 		}
-
-		if (!m_bLive)
-		{
-			RpcDo_DCO_CosmeticTracer(muzzle, direction);
-			Rpc(RpcDo_DCO_CosmeticTracer, muzzle, direction);
-			return;
-		}
-
-		if (!m_LoadedGunrunRound)
-			m_LoadedGunrunRound = Resource.Load(GUNRUN_ROUND);
-		if (!m_LoadedGunrunRound)
-		{
-			Print("[DCO-FX] gunrun round failed to load", LogLevel.WARNING);
-			return;
-		}
-
-		IEntity projectile = DCO_SpawnProjectile(m_LoadedGunrunRound, muzzle, direction);
-		if (!projectile)
-		{
-			Print("[DCO-FX] gunrun projectile spawn failed", LogLevel.WARNING);
-			return;
-		}
-		if (pass.m_iGunrunShotsFired == 1)
-			Print("[DCO-FX] armed loiter fired its first live round", LogLevel.NORMAL);
-		DCO_LaunchProjectile(projectile, direction, aircraftVelocity, pass.m_Aircraft);
+		return true;
 	}
 
 	protected void DCO_BroadcastGunrunDanger(vector center)
@@ -1239,25 +1254,25 @@ class DCO_FxExplosionComponent : ScriptComponent
 	}
 
 	[RplRpc(RplChannel.Unreliable, RplRcver.Broadcast)]
-	protected void RpcDo_DCO_GunrunSound(vector pos)
+	protected void RpcDo_DCO_GunrunSound(vector pos, int roundIndex)
 	{
 		if (System.IsConsoleApp())
 			return;
 		vector mat[4];
 		Math3D.MatrixIdentity4(mat);
 		mat[3] = pos;
-		AudioSystem.PlayEvent(GUNRUN_ACP, GUNRUN_EVENT, mat);
+		AudioSystem.PlayEvent(DCO_TracerEmitterComponent.DCO_GetRoundSound(roundIndex), GUNRUN_EVENT, mat);
 	}
 
 	[RplRpc(RplChannel.Unreliable, RplRcver.Broadcast)]
-	protected void RpcDo_DCO_CosmeticTracer(vector muzzle, vector direction)
+	protected void RpcDo_DCO_CosmeticTracer(vector muzzle, vector direction, int roundIndex)
 	{
 		if (System.IsConsoleApp())
 			return;
 		vector points[2];
 		points[0] = muzzle;
 		points[1] = muzzle + direction * GUNRUN_COSMETIC_TRACER_LENGTH;
-		Shape tracer = Shape.CreateLines(0xFFFFC66D, ShapeFlags.NOZBUFFER, points, 2);
+		Shape tracer = Shape.CreateLines(DCO_TracerEmitterComponent.DCO_GetRoundVisualColor(roundIndex), ShapeFlags.NOZBUFFER, points, 2);
 		if (tracer)
 		{
 			m_CosmeticTracers.Insert(tracer);
@@ -1359,42 +1374,4 @@ class DCO_FxExplosionComponent : ScriptComponent
 		}
 	}
 
-	protected void DCO_DrawMarker()
-	{
-		// GM-only: players must not see strike markers/rings, and a dedicated server has no renderer.
-		if (!DCO_GMRights.IsLocalGameMaster())
-		{
-			m_MarkerShape = null;
-			m_ScatterShape = null;
-			m_TrackingShape = null;
-			m_SoundRadiusShape = null;
-			return;
-		}
-
-		IEntity owner = GetOwner();
-		if (!owner)
-			return;
-		int color = 0xFFD9892B;
-		if (m_bLive)
-			color = 0xFFFF3030;
-		vector base = owner.GetOrigin();
-		vector pts[2];
-		pts[0] = base;
-		pts[1] = base + Vector(0, MARKER_HEIGHT, 0);
-		m_MarkerShape = Shape.CreateLines(color, ShapeFlags.NOZBUFFER, pts, 2);
-		m_ScatterShape = null;
-		m_TrackingShape = null;
-		m_SoundRadiusShape = null;
-		if (m_fScatterRadius > 0)
-			m_ScatterShape = DCO_ZoneShape.FlatCircle(base, m_fScatterRadius, color);
-		if (m_bTrackPlayers)
-			m_TrackingShape = DCO_ZoneShape.FlatCircle(base, m_fTrackingRadius, 0xFF3FBFD9);
-		if (m_eDelivery == EDCO_FxExplosionDelivery.SOUND_EMITTER && !m_CustomSoundBank.IsEmpty())
-			m_SoundRadiusShape = DCO_ZoneShape.FlatCircle(base, Math.Clamp(m_fCustomSoundRadius, 25, 3000), 0x6680D8FF);
-		else if (m_bLive || m_bSound)
-		{
-			int sizeIdx = Math.Clamp(m_eSize, 0, StaticData().m_NominalSoundRadius.Count() - 1);
-			m_SoundRadiusShape = DCO_ZoneShape.FlatCircle(base, StaticData().m_NominalSoundRadius[sizeIdx], 0x6680D8FF);
-		}
-	}
 }

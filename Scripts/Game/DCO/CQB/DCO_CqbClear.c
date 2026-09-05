@@ -25,8 +25,6 @@ modded class SCR_AIGroupUtilityComponent
 	protected ref DCO_CqbJob	m_DCO_CqbJob;
 	protected float				m_fDCO_LastCqbClearTime = -1;
 	protected bool				m_bDCO_CqbOwnsMove = false;
-	protected ref array<ref Shape>	m_aDCO_CqbDebugShapes;
-	protected ref array<ref Shape>	m_aDCO_CqbHighlightShapes;
 	protected ref array<IEntity> m_aDCO_CqbBuildings;
 
 	protected static const float DCO_CQB_CELL_ARRIVE_M = 1.5;
@@ -98,10 +96,6 @@ modded class SCR_AIGroupUtilityComponent
 		if (!DCO_CqbApplies(cfg))
 		{
 			DCO_CqbAbort();
-			if (m_aDCO_CqbHighlightShapes)
-				m_aDCO_CqbHighlightShapes.Clear();
-			if (m_aDCO_CqbDebugShapes)
-				m_aDCO_CqbDebugShapes.Clear();
 			return;
 		}
 
@@ -139,12 +133,6 @@ modded class SCR_AIGroupUtilityComponent
 			}
 		}
 
-		// The white building outline is GM-facing and always on while a job exists; the detail shapes stay behind the debug toggle.
-		DCO_CqbDrawHighlight();
-		if (cfg.m_bDebugCqbClear)
-			DCO_CqbClearDebug();
-		else if (m_aDCO_CqbDebugShapes)
-			m_aDCO_CqbDebugShapes.Clear();
 	}
 
 	protected AIPathfindingComponent DCO_CqbGetPathfinding(IEntity leader)
@@ -1309,145 +1297,4 @@ modded class SCR_AIGroupUtilityComponent
 		m_bDCO_CqbOwnsMove = false;
 	}
 
-	// The eight corners of a mins/maxs box: bottom ring 0-3, top ring 4-7.
-	protected void DCO_CqbCollectBoxCorners(IEntity orient, vector mins, vector maxs, array<vector> corners)
-	{
-		corners.Clear();
-		corners.Insert(Vector(mins[0], mins[1], mins[2]));
-		corners.Insert(Vector(maxs[0], mins[1], mins[2]));
-		corners.Insert(Vector(maxs[0], mins[1], maxs[2]));
-		corners.Insert(Vector(mins[0], mins[1], maxs[2]));
-		corners.Insert(Vector(mins[0], maxs[1], mins[2]));
-		corners.Insert(Vector(maxs[0], maxs[1], mins[2]));
-		corners.Insert(Vector(maxs[0], maxs[1], maxs[2]));
-		corners.Insert(Vector(mins[0], maxs[1], maxs[2]));
-		if (orient)
-		{
-			for (int i = 0; i < 8; i++)
-				corners[i] = orient.CoordToParent(corners[i]);
-		}
-	}
-
-	protected void DCO_CqbDrawBoxEdge(array<vector> corners, int a, int b, int color, ShapeFlags flags, array<ref Shape> outShapes)
-	{
-		Shape line = Shape.Create(ShapeType.LINE, color, flags, corners[a], corners[b]);
-		if (line)
-			outShapes.Insert(line);
-	}
-
-	protected void DCO_CqbDrawBoxOutline(array<vector> corners, int color, ShapeFlags flags, array<ref Shape> outShapes)
-	{
-		if (corners.Count() < 8)
-			return;
-		DCO_CqbDrawBoxEdge(corners, 0, 1, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 1, 2, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 2, 3, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 3, 0, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 4, 5, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 5, 6, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 6, 7, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 7, 4, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 0, 4, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 1, 5, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 2, 6, color, flags, outShapes);
-		DCO_CqbDrawBoxEdge(corners, 3, 7, color, flags, outShapes);
-	}
-
-	protected void DCO_CqbDrawHighlight()
-	{
-		if (m_aDCO_CqbHighlightShapes)
-			m_aDCO_CqbHighlightShapes.Clear();
-		else
-			m_aDCO_CqbHighlightShapes = {};
-		if (!DCO_GMRights.IsLocalGameMaster())
-			return;
-		if (!m_DCO_CqbJob || !m_DCO_CqbJob.m_Building)
-			return;
-		vector mins;
-		vector maxs;
-		m_DCO_CqbJob.m_Building.GetBounds(mins, maxs);
-		array<vector> corners = {};
-		DCO_CqbCollectBoxCorners(m_DCO_CqbJob.m_Building, mins, maxs, corners);
-		DCO_CqbDrawBoxOutline(corners, 0xFFFFFFFF, ShapeFlags.NOZBUFFER, m_aDCO_CqbHighlightShapes);
-	}
-
-	// Debug draw: sector boxes + cells + assignments + planned flow.
-	protected void DCO_CqbClearDebug()
-	{
-		if (m_aDCO_CqbDebugShapes)
-			m_aDCO_CqbDebugShapes.Clear();
-		else
-			m_aDCO_CqbDebugShapes = {};
-		if (System.IsConsoleApp())
-			return;	// headless dedi: debug shapes render nowhere - don't churn them.
-		if (!m_DCO_CqbJob || !m_DCO_CqbJob.m_Plan)
-			return;
-		DCO_CqbPlan plan = m_DCO_CqbJob.m_Plan;
-		ShapeFlags flags = ShapeFlags.NOZBUFFER;
-
-		for (int s = 0; s < plan.m_aSectors.Count(); s++)
-		{
-			DCO_CqbSector sector = plan.m_aSectors[s];
-			if (!sector)
-				continue;
-			int sectorColor = 0xff808080;
-			switch (sector.m_eState)
-			{
-				case EDCO_CqbSectorState.STACK: sectorColor = 0xffffaa00; break;
-				case EDCO_CqbSectorState.FLOW: sectorColor = 0xffffaa00; break;
-				case EDCO_CqbSectorState.DWELL: sectorColor = 0xff00ffff; break;
-				case EDCO_CqbSectorState.CLEARED: sectorColor = 0xff00ff00; break;
-				case EDCO_CqbSectorState.SKIPPED: sectorColor = 0xffff00ff; break;
-			}
-			array<vector> corners = {};
-			DCO_CqbCollectBoxCorners(null, sector.m_vMins, sector.m_vMaxs, corners);
-			DCO_CqbDrawBoxOutline(corners, sectorColor, flags, m_aDCO_CqbDebugShapes);
-			if (s > 0)
-			{
-				vector fromPos = DCO_CqbClearUtil.SectorCentroid(plan, s - 1) + Vector(0, 2, 0);
-				vector toPos = DCO_CqbClearUtil.SectorCentroid(plan, s) + Vector(0, 2, 0);
-				Shape flowArrow = Shape.CreateArrow(fromPos, toPos, 0.3, 0xff8888ff, flags);
-				if (flowArrow)
-					m_aDCO_CqbDebugShapes.Insert(flowArrow);
-			}
-		}
-
-		foreach (DCO_CqbCell cell : plan.m_aCells)
-		{
-			if (!cell)
-				continue;
-			int cellColor = 0xff808080;
-			if (cell.m_bDoor)
-			{
-				cellColor = 0xffffffff;
-			}
-			else
-			{
-				switch (cell.m_eState)
-				{
-					case EDCO_CqbCellState.MOVING: cellColor = 0xffffaa00; break;
-					case EDCO_CqbCellState.CLEARED: cellColor = 0xff00ff00; break;
-					case EDCO_CqbCellState.SKIPPED: cellColor = 0xffff00ff; break;
-				}
-			}
-			Shape cellShape = Shape.CreateSphere(cellColor, flags, cell.m_vPos + Vector(0, 0.5, 0), 0.3);
-			if (cellShape)
-				m_aDCO_CqbDebugShapes.Insert(cellShape);
-		}
-
-		DCO_CqbSector active = DCO_CqbActiveSector();
-		if (active)
-		{
-			foreach (int cellIdx : active.m_aCellIdx)
-			{
-				DCO_CqbCell moving = plan.m_aCells[cellIdx];
-				if (!moving || moving.m_eState != EDCO_CqbCellState.MOVING || !DCO_CqbCanUseAgent(moving.m_Assignee))
-					continue;
-				vector memberPos = moving.m_Assignee.GetControlledEntity().GetOrigin() + Vector(0, 1, 0);
-				Shape assignArrow = Shape.CreateArrow(memberPos, moving.m_vPos + Vector(0, 1, 0), 0.2, 0xffffff00, flags);
-				if (assignArrow)
-					m_aDCO_CqbDebugShapes.Insert(assignArrow);
-			}
-		}
-	}
 }

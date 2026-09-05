@@ -152,7 +152,7 @@ class DCO_GMOptionsPanel
 			0, 360, DCO_GMTheme.Get().m_AccentHue, "");
 		m_HueSlider.GetOnChange().Insert(OnAccentHueChanged);
 
-		for (int i = 0; i < StaticData().m_SwatchHues.Count(); i++)
+		for (int i = 0; i < StaticData().m_SwatchHues.Count() + 2; i++)
 		{
 			ButtonWidget sw = ButtonWidget.Cast(root.FindAnyWidget("DCO_OptSwatch" + i.ToString()));
 			if (sw)
@@ -191,17 +191,35 @@ class DCO_GMOptionsPanel
 		RefreshFontMode();
 	}
 
-	// Preset swatch clicked: jump the accent to that hue and sync the hue slider.
 	bool OnSwatch(int index)
 	{
-		if (index < 0 || index >= StaticData().m_SwatchHues.Count())
+		int hueCount = StaticData().m_SwatchHues.Count();
+		if (index < 0 || index >= hueCount + 2)
 			return false;
-		float hue = StaticData().m_SwatchHues[index];
-		if (m_HueSlider)
-			m_HueSlider.SetValue(hue);
-		DCO_GMTheme.Get().SetAccentHue(hue, m_wRoot);
+		if (index < hueCount)
+		{
+			float hue = StaticData().m_SwatchHues[index];
+			if (m_HueSlider)
+				m_HueSlider.SetValue(hue);
+			DCO_GMTheme.Get().SetAccentHue(hue, m_wRoot);
+		}
+		else
+			DCO_GMTheme.Get().SetAccentMode(index - hueCount + DCO_GMTheme.ACCENT_BLACK, m_wRoot);
+		RefreshAccentValue();
 		RefreshFontMode();
 		return true;
+	}
+
+	protected void RefreshAccentValue()
+	{
+		TextWidget value = TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_OptHue_Value"));
+		if (!value)
+			return;
+		DCO_GMTheme theme = DCO_GMTheme.Get();
+		if (theme.m_AccentMode == DCO_GMTheme.ACCENT_BLACK)
+			value.SetText("BLACK");
+		else if (theme.m_AccentMode == DCO_GMTheme.ACCENT_WHITE)
+			value.SetText("WHITE");
 	}
 
 	bool ToggleVisibility(int index)
@@ -261,6 +279,7 @@ class DCO_GMOptionsPanel
 			m_OpacitySlider.SetValue((1.0 - DCO_GMTheme.Get().m_PanelOpacity) * 100);
 		if (m_HueSlider)
 			m_HueSlider.SetValue(DCO_GMTheme.Get().m_AccentHue);	// reflect the saved/current hue + re-size its fill.
+		RefreshAccentValue();
 		RefreshVisibility();
 		RefreshFontMode();
 	}

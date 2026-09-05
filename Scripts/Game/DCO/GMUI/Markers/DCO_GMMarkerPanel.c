@@ -239,6 +239,13 @@ class DCO_GMMarkerPanel
 		m_bOpen = true;
 	}
 
+	void OpenForKind(vector position, int kind)
+	{
+		Open(position);
+		m_iKind = Math.ClampInt(kind, 0, DCO_GMMarkerKind.COUNT - 1);
+		RefreshState();
+	}
+
 	void OpenManager()
 	{
 		Open(vector.Zero);

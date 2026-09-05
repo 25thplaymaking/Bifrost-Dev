@@ -15,9 +15,6 @@ class DCO_GMTacticsFlow
 	protected static const ResourceName PREFAB_ZONE_DEFEND   = "{1D28FFA184C2D8EC}Prefabs/E_DCO_TaskZone_Defend.et";
 	protected static const ResourceName PREFAB_WP_CQBCLEAR   = "{4C7A6BF3CF7D9D89}Prefabs/E_AIWaypoint_DCO_CqbClear.et";
 
-	protected static const int PREVIEW_TICK_MS = 100;	// 10 Hz, the render-pillar rate the gizmo also uses.
-	protected static const float PREVIEW_HEIGHT = 3.0;
-
 	protected Widget m_wRoot;
 	protected SCR_PlacingEditorComponent m_Placing;
 	protected SCR_PreviewEntityEditorComponent m_Preview;
@@ -30,7 +27,8 @@ class DCO_GMTacticsFlow
 	protected float m_fPendingRadius;
 	protected int m_iPendingColor;
 	protected float m_fPendingExpireMs = -1;
-	protected ref Shape m_PreviewCircle;
+	protected vector m_vPreviewCenter;
+	protected bool m_bPreviewVisible;
 
 	protected static const float PENDING_GRACE_MS = 2000.0;
 
@@ -43,14 +41,13 @@ class DCO_GMTacticsFlow
 
 	void Shutdown()
 	{
-		GetGame().GetCallqueue().Remove(TickPreview);
 		if (m_Placing && m_bSubscribed)
 		{
 			m_Placing.GetOnPlaceEntity().Remove(OnPlaced);
 			m_Placing.GetOnSelectedPrefabChange().Remove(OnPrefabChange);
 		}
 		m_bSubscribed = false;
-		m_PreviewCircle = null;
+		m_bPreviewVisible = false;
 		m_iPendingTac = -1;
 		m_PendingPrefab = ResourceName.Empty;
 		m_PendingGroup = null;
@@ -153,9 +150,7 @@ class DCO_GMTacticsFlow
 		m_iPendingColor = color;
 		m_fPendingExpireMs = -1;	// actively placing.
 
-		GetGame().GetCallqueue().Remove(TickPreview);
-		if (isZone)
-			GetGame().GetCallqueue().CallLater(TickPreview, PREVIEW_TICK_MS, true);	// waypoints keep their native preview.
+		m_bPreviewVisible = isZone;
 		Print(string.Format("[DCO-GM] tactics placement armed: action=%1 prefab=%2 groups=%3", tacId, prefab, pendingGroups.Count()), LogLevel.NORMAL);
 		return true;
 	}
@@ -186,19 +181,18 @@ class DCO_GMTacticsFlow
 		cb.FilterEntries();
 	}
 
-	protected void TickPreview()
+	void DrawPreview(DCO_GMRenderManager render)
 	{
-		if (!m_Placing || m_iPendingTac < 0 || m_Placing.GetSelectedPrefab().IsEmpty())
+		if (!m_bPreviewVisible || !render || !m_Placing || m_iPendingTac < 0 || m_Placing.GetSelectedPrefab().IsEmpty())
 		{
-			// Placement over - just stop drawing; OnPrefabChange owns whether the context grace-expires or clears.
-			GetGame().GetCallqueue().Remove(TickPreview);
-			m_PreviewCircle = null;
+			m_bPreviewVisible = false;
 			return;
 		}
 		vector t[4];
 		if (!m_Preview || !m_Preview.GetPreviewTransform(t))
-			return;	// preview momentarily unavailable - keep the last circle.
-		m_PreviewCircle = DCO_ZoneShape.FlatCircle(t[3], m_fPendingRadius, m_iPendingColor);
+			return;
+		m_vPreviewCenter = t[3];
+		render.DrawRing(m_vPreviewCenter + Vector(0, 0.3, 0), Vector(1, 0, 0), Vector(0, 0, 1), m_fPendingRadius, m_iPendingColor);
 	}
 
 	protected void OnPlaced(int prefabID, SCR_EditableEntityComponent entity)
@@ -216,7 +210,7 @@ class DCO_GMTacticsFlow
 		if (zone)
 		{
 			Print(string.Format("[DCO-GM] tactics zone placed: action=%1 role=%2 position=%3", m_iPendingTac, zone.DCO_GetRole(), owner.GetOrigin()), LogLevel.NORMAL);
-			m_PreviewCircle = null;	// the placed zone draws its own circle from here.
+			m_bPreviewVisible = false;	// the placed zone draws its own circle from here.
 			SCR_EditableEntityComponent grp;
 			array<SCR_EditableEntityComponent> grps;
 			if (armed)
@@ -247,8 +241,7 @@ class DCO_GMTacticsFlow
 		if (newPrefab == m_PendingPrefab)
 			return;
 
-		GetGame().GetCallqueue().Remove(TickPreview);
-		m_PreviewCircle = null;
+		m_bPreviewVisible = false;
 
 		if (newPrefab.IsEmpty())
 		{
@@ -262,8 +255,7 @@ class DCO_GMTacticsFlow
 
 	protected void CancelPending()
 	{
-		GetGame().GetCallqueue().Remove(TickPreview);
-		m_PreviewCircle = null;
+		m_bPreviewVisible = false;
 		m_iPendingTac = -1;
 		m_PendingPrefab = ResourceName.Empty;
 		m_PendingGroup = null;

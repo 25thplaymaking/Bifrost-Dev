@@ -22,7 +22,7 @@ class DCO_GMMarkerKind
 			case INTEL: return "INTEL";
 			case CIRCLE: return "CIRCLE";
 			case RECTANGLE: return "RECT";
-			case COMMENT: return "NOTE";
+			case COMMENT: return "COMMENT";
 		}
 		return "POINT";
 	}
@@ -315,6 +315,16 @@ class DCO_GMMarkerService
 
 class DCO_GMMarkerServer
 {
+	static bool ResolveNamedPosition(int id, out vector position, out int kind)
+	{
+		if (!Replication.IsServer()) return false;
+		DCO_GMMarkerRecord record = Find(id);
+		if (!record || record.m_iKind < 1 || record.m_iKind > 3) return false;
+		position = record.m_vPosition;
+		kind = record.m_iKind;
+		return SCR_Global.IsPositionWithinTerrainBounds(position);
+	}
+
 	protected static ref array<ref DCO_GMMarkerRecord> s_Records;
 	protected static int s_iNextId = 1;
 	protected static int s_iSnapshotSerial;

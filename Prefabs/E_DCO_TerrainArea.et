@@ -1,0 +1,39 @@
+GenericEntity {
+ ID "DCA6090410000001"
+ components {
+  DCO_GMTerrainAreaComponent "{DCA6090410000002}" {
+   m_fRadius 35
+   m_bEnabled 1
+  }
+  SCR_EditableEntityVisibilityChildComponent "{DCA6090410000004}" {
+   m_State 96
+  }
+  SCR_EditableSystemComponent "{DCA6090410000005}" {
+   m_EntityType SYSTEM
+   m_UIInfo SCR_EditableEntityUIInfo "{DCA6090410000006}" {
+    Name "Hide Terrain Objects"
+    Description "Place this system over scenery to hide it inside the circle. Select the system and open Edit Properties to change Radius or switch hiding off. Move it to move the area; delete it to restore that area's objects. Terrain height and baked AI navigation are unchanged."
+    Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
+    m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
+    m_aAuthoredLabels {
+     ENTITYTYPE_SYSTEM
+    }
+    m_EntityBudgetCost {
+     SCR_EntityBudgetValue "{DCA6090410000007}" {
+      m_BudgetType SYSTEMS
+      m_BudgetValue 1
+     }
+    }
+   }
+   m_bAutoRegister ALWAYS
+   m_bStatic 1
+   m_Flags 67
+  }
+  Hierarchy "{DCA6090410000008}" {
+  }
+  RplComponent "{DCA6090410000003}" {
+   "Rpl State Override" Runtime
+   Streamable Disabled
+  }
+ }
+}

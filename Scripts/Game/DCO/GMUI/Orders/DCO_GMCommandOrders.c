@@ -48,6 +48,7 @@ class DCO_GMCommandOrders
 		AddExtra("Wait", "PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_Wait.et");
 		AddExtra("Load supplies", "PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_LoadSupplies.et");
 		AddExtra("Unload supplies", "PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_UnloadSupplies.et");
+		AddExtra("Suppressive Fire", "PrefabsEditable/Auto/AI/Waypoints/E_AIWaypoint_Suppress_Editor.et");
 	}
 
 	protected void EnsureBuilt()

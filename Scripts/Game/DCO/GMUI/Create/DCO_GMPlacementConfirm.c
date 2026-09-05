@@ -13,6 +13,7 @@ class DCO_GMPlacementConfirm
 		if (!im)
 			return;
 		im.AddActionListener("EditorPlaceAndCancel", EActionTrigger.DOWN, OnPlaceOnce);
+		im.AddActionListener("EditorSetSelection", EActionTrigger.DOWN, OnTargetClick);
 		m_bActive = true;
 	}
 
@@ -22,6 +23,7 @@ class DCO_GMPlacementConfirm
 		if (im)
 		{
 			im.RemoveActionListener("EditorPlaceAndCancel", EActionTrigger.DOWN, OnPlaceOnce);
+			im.RemoveActionListener("EditorSetSelection", EActionTrigger.DOWN, OnTargetClick);
 		}
 		GetGame().GetCallqueue().Remove(ClearConfirmGuard);
 		m_bActive = false;
@@ -39,6 +41,23 @@ class DCO_GMPlacementConfirm
 		if (!m_bActive)
 			return;
 		DCO_GMCompositionPanel compositions = DCO_GMCompositionPanel.Get();
+		DCO_GMMissionPanel missionTools = DCO_GMMissionPanel.Get();
+		if (compositions.IsOpen() || missionTools.IsOpen())
+			return;
+		if (missionTools.IsTargeting())
+		{
+			if (IsCursorOverPanels())
+				return;
+			SCR_MenuLayoutEditorComponent missionLayout = SCR_MenuLayoutEditorComponent.Cast(SCR_MenuLayoutEditorComponent.GetInstance(SCR_MenuLayoutEditorComponent, false));
+			SCR_ContextActionsEditorComponent context = SCR_ContextActionsEditorComponent.Cast(SCR_ContextActionsEditorComponent.GetInstance(SCR_ContextActionsEditorComponent, false));
+			vector missionPosition;
+			SCR_EditableEntityComponent target;
+			if (context)
+				target = context.GetHoveredEntity();
+			if (missionLayout && missionLayout.GetCursorWorldPos(missionPosition))
+				missionTools.ConfirmTarget(missionPosition, target);
+			return;
+		}
 		if (compositions.IsTargetingPlacement())
 		{
 			if (IsCursorOverPanels())
@@ -91,6 +110,11 @@ class DCO_GMPlacementConfirm
 		cb.SetCurrentSearch("");
 		cb.FilterEntries();
 	}
+	protected void OnTargetClick(float value, EActionTrigger reason)
+	{
+		if (DCO_GMMissionPanel.Get().IsTargeting() || DCO_GMCompositionPanel.Get().IsTargetingPlacement())
+			TryConfirm(true);
+	}
 
 	protected bool IsCursorOverPanels()
 	{
@@ -107,7 +131,7 @@ class DCO_GMPlacementConfirm
 	protected bool CursorIn(string widgetName, int mx, int my)
 	{
 		Widget w = m_wRoot.FindAnyWidget(widgetName);
-		if (!w || !w.IsVisible())
+		if (!w || !w.IsVisibleInHierarchy())
 			return false;
 		float x, y, sx, sy;
 		w.GetScreenPos(x, y);

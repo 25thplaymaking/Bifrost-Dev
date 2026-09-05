@@ -317,6 +317,8 @@ class DCO_GMUIController
 			DCO_GMArsenalPanel.Get().CloseSilent();
 			return true;
 		}
+		if (DCO_GMMissionPanel.Get().CloseForBack())
+			return true;
 		if (DCO_GMMarkerPanel.Get().CloseForBack())
 			return true;
 		if (DCO_GMCompositionPanel.Get().CloseForBack())
@@ -400,6 +402,7 @@ class DCO_GMUIController
 		m_Render.Start(m_wRoot);
 		DCO_GMMarkerPanel.Get().Init(m_wRoot, m_Render);
 		DCO_GMCompositionPanel.Get().Init(m_wRoot);
+		DCO_GMMissionPanel.Get().Init(m_wRoot);
 		DCO_TriggerSyncDrag.Get().Start(m_Render);
 
 		m_Nametags = new DCO_GMNametags();
@@ -488,6 +491,14 @@ class DCO_GMUIController
 
 		DCO_GMHover.Wire(m_wRoot, "DCO_Tab_Edit",         "DCO_Tab_Edit_Label");
 		DCO_GMHover.Wire(m_wRoot, "DCO_Tab_Create",       "DCO_Tab_Create_Label");
+		array<string> compositionButtons = {
+			"DCO_CompositionClose", "DCO_CompositionCapture", "DCO_CompositionPrev", "DCO_CompositionNext",
+			"DCO_CompositionPlace", "DCO_CompositionUndo", "DCO_CompositionDelete"
+		};
+		foreach (string compositionButton : compositionButtons)
+			DCO_GMHover.Wire(m_wRoot, compositionButton, compositionButton + "_Label");
+		DCO_GMHover.WirePool(m_wRoot, "DCO_CompositionRow%1", "DCO_CompositionRow%1_Label", 0, 8);
+		DCO_GMMissionPanel.Get().WireHover();
 		DCO_GMHover.Wire(m_wRoot, "DCO_ScenarioCog",      "DCO_ScenarioCogIcon");
 		DCO_GMHover.Wire(m_wRoot, "DCO_OptionsBtn",       "DCO_OptionsBtnIcon");
 		DCO_GMHover.Wire(m_wRoot, "DCO_OptMasterBtn",     "DCO_OptMasterIcon");
@@ -617,6 +628,8 @@ class DCO_GMUIController
 		m_iViewportH = viewportH;
 
 		bool compactViewport = viewportW > 0 && viewportH > 0 && (viewportW < 1600 || viewportH < 900);
+		DCO_GMCompositionPanel.Get().ApplyLayout(compactViewport);
+		DCO_GMMissionPanel.Get().ApplyLayout();
 		float BOT_BAR_H = 42;
 		float TOP_Y = 54;
 		float EDIT_W = 270;
@@ -1077,6 +1090,7 @@ class DCO_GMUIController
 		}
 		DCO_GMMarkerPanel.Get().Shutdown();
 		DCO_GMCompositionPanel.Get().Shutdown();
+		DCO_GMMissionPanel.Get().Shutdown();
 		if (m_Render)
 		{
 			m_Render.Stop();

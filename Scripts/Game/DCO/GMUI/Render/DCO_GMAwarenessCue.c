@@ -425,6 +425,7 @@ class DCO_GMAwarenessCue
 			return;
 		}
 		DrawCqbBuildingCues(render);
+		DrawReplicatedActionCues(render);
 		int now = System.GetTickCount();
 		float frameSeconds = Math.Clamp((now - m_iLastRenderAt) * 0.001, 0.01, 0.2);
 		m_iLastRenderAt = now;
@@ -474,6 +475,80 @@ class DCO_GMAwarenessCue
 			}
 		}
 		FinishDestinationMarkers();
+	}
+
+	protected void DrawReplicatedActionCues(DCO_GMRenderManager render)
+	{
+		DCO_GMTerrainAreaComponent.DrawCues(render);
+		DCO_GMMissionInteractionComponent.DrawCues(render);
+		if (!DCO_GMRights.IsLocalGameMaster())
+			return;
+
+		foreach (DCO_TriggerComponent trigger : DCO_TriggerRegistry.GetTriggers())
+		{
+			if (!trigger || !trigger.GetOwner())
+				continue;
+			vector triggerTransform[4];
+			trigger.GetOwner().GetWorldTransform(triggerTransform);
+			render.DrawArea(triggerTransform, trigger.DCO_GetRadius(), trigger.DCO_GetRadiusZ(), trigger.DCO_GetShape() == EDCO_TriggerShape.RECTANGLE, trigger.DCO_GetVisualColor(), trigger.DCO_GetHeight());
+		}
+
+		foreach (DCO_TaskZoneComponent zone : DCO_TaskZoneRegistry.GetZones())
+		{
+			if (!zone || !zone.GetOwner() || zone.DCO_GetRole() == EDCO_ZoneRole.NONE || zone.DCO_GetRadius() < 1.0)
+				continue;
+			vector zoneCenter = zone.GetOwner().GetOrigin() + Vector(0, 0.3, 0);
+			render.DrawRing(zoneCenter, Vector(1, 0, 0), Vector(0, 0, 1), zone.DCO_GetRadius(), zone.DCO_GetVisualColor());
+			if (zone.DCO_GetRole() == EDCO_ZoneRole.AMBUSH)
+			{
+				float triggerRadius = zone.DCO_GetPushRange();
+				if (triggerRadius <= 1.0)
+					triggerRadius = 50.0;
+				render.DrawRing(zoneCenter, Vector(1, 0, 0), Vector(0, 0, 1), triggerRadius, 0xFFFF3030);
+			}
+		}
+
+		foreach (IEntity emitter : DCO_TriggerFxRegistry.GetEmitters())
+		{
+			if (!emitter)
+				continue;
+			vector center = emitter.GetOrigin();
+			vector ringCenter = center + Vector(0, 0.3, 0);
+			DCO_TracerEmitterComponent tracer = DCO_TracerEmitterComponent.Cast(emitter.FindComponent(DCO_TracerEmitterComponent));
+			if (tracer)
+			{
+				vector aimFrom;
+				vector aimTo;
+				if (tracer.DCO_GetAimLine(aimFrom, aimTo))
+					render.DrawArrow(aimFrom, aimTo, 0.2, tracer.DCO_GetVisualColor());
+				float tracerSoundRadius = tracer.DCO_GetVisualSoundRadius();
+				if (tracerSoundRadius > 0)
+					render.DrawRing(ringCenter, Vector(1, 0, 0), Vector(0, 0, 1), tracerSoundRadius, 0x6680D8FF);
+			}
+
+			DCO_FxExplosionComponent explosion = DCO_FxExplosionComponent.Cast(emitter.FindComponent(DCO_FxExplosionComponent));
+			if (explosion)
+			{
+				int explosionColor = explosion.DCO_GetVisualColor();
+				render.DrawLine(center, center + Vector(0, explosion.DCO_GetVisualMarkerHeight(), 0), explosionColor, 3.0);
+				if (explosion.DCO_GetScatter() > 0)
+					render.DrawRing(ringCenter, Vector(1, 0, 0), Vector(0, 0, 1), explosion.DCO_GetScatter(), explosionColor);
+				if (explosion.DCO_GetTrackPlayers())
+					render.DrawRing(ringCenter, Vector(1, 0, 0), Vector(0, 0, 1), explosion.DCO_GetTrackingRadius(), 0xFF3FBFD9);
+				float explosionSoundRadius = explosion.DCO_GetVisualSoundRadius();
+				if (explosionSoundRadius > 0)
+					render.DrawRing(ringCenter, Vector(1, 0, 0), Vector(0, 0, 1), explosionSoundRadius, 0x6680D8FF);
+			}
+
+			DCO_FxMortarComponent mortar = DCO_FxMortarComponent.Cast(emitter.FindComponent(DCO_FxMortarComponent));
+			if (mortar)
+			{
+				render.DrawRing(ringCenter, Vector(1, 0, 0), Vector(0, 0, 1), mortar.DCO_GetSpread(), mortar.DCO_GetVisualColor());
+				float mortarSoundRadius = mortar.DCO_GetVisualSoundRadius();
+				if (mortarSoundRadius > 0)
+					render.DrawRing(ringCenter, Vector(1, 0, 0), Vector(0, 0, 1), mortarSoundRadius, 0x6680D8FF);
+			}
+		}
 	}
 
 	protected void DrawCqbBuildingCues(DCO_GMRenderManager render)

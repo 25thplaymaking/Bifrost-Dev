@@ -57,6 +57,13 @@ class DCO_CreatePanelButtonHandler : ScriptedWidgetEventHandler
 			return m_Owner.OnBarMouseUp(w, button);
 		return false;
 	}
+
+	override bool OnFocusLost(Widget w, int x, int y)
+	{
+		if (m_Owner)
+			m_Owner.OnBarFocusLost(w);
+		return false;
+	}
 }
 
 // A bare EditBoxWidget does not perform the engine widget-library focus handoff on its own.
@@ -105,6 +112,7 @@ class DCO_GMCreateSessionState
 class DCO_GMCreatePanelComponent
 {
 	static const int ROWS = 22;
+	static const int ROW_FONT_SIZE = 18;
 	static const int FAC_SLOTS = 7;
 	static const int CUSTOM_FAC_SLOTS = 6;
 	static const ResourceName WORKSHOP_ICONS = "{3262679C50EF4F01}UI/Textures/Icons/icons_wrapperUI.imageset";
@@ -121,7 +129,7 @@ class DCO_GMCreatePanelComponent
 	static const ResourceName CAT_ICON_FX = "{D6B46B6655BC3FD5}UI/Textures/Editor/ContextMenu/ContextAction_LightningStrike.edds";
 
 	static const int HOVER_DELAY_MS = 450;
-	static const float HOVER_W = 210;
+	static const float HOVER_W = 320;
 	static const float HOVER_H = 234;
 
 	protected Widget m_wRoot;
@@ -181,7 +189,7 @@ class DCO_GMCreatePanelComponent
 	protected int m_TotalRows;	// last Repaint's row count; clamps the offset and sizes the scrollbar.
 
 	protected Widget m_wBar;
-	protected Widget m_wBarSpacer;
+	protected ButtonWidget m_wBarTrack;
 	protected Widget m_wBarThumb;
 
 	// Thumb DRAG state.
@@ -189,7 +197,7 @@ class DCO_GMCreatePanelComponent
 	protected int m_BarStartMouseY;	// cursor Y at drag start, native px.
 	protected int m_BarStartOffset;	// m_ScrollOffset at drag start.
 
-	static const float BAR_W = 5;	// bar width in reference px — must match the layout's Size.
+	static const float BAR_W = 14;	// Must match the thumb image width in the layout.
 	static const float BAR_MIN_THUMB = 24;	// keep the thumb grabbable/visible on very long lists.
 	protected bool m_bCatalogReady;
 	protected bool m_bCatalogSubscribed;
@@ -199,6 +207,7 @@ class DCO_GMCreatePanelComponent
 	protected bool m_bSearchFocused;
 	protected bool m_bAnimationFxTargeting;
 	protected bool m_bArsenalAccessTargeting;
+	protected bool m_bMissionTargeting;
 	protected static BaseWorld s_StateWorld;
 	protected static ref DCO_GMCreateSessionState s_State;
 
@@ -231,7 +240,8 @@ class DCO_GMCreatePanelComponent
 		SaveSessionState();
 		GetGame().GetCallqueue().Remove(PollSearch);
 		GetGame().GetCallqueue().Remove(ShowHoverPreview);
-		GetGame().GetCallqueue().Remove(BarDragTick);
+		StopBarDrag();
+		GetGame().GetCallqueue().Remove(FinishListLayout);
 		if (m_bCatalogSubscribed)
 		{
 			SCR_EntityCatalogManagerComponent.GetOnEntityCatalogInitialized().Remove(OnEntityCatalogInitialized);
@@ -247,6 +257,7 @@ class DCO_GMCreatePanelComponent
 		m_Browser = null;
 		m_bAnimationFxTargeting = false;
 		m_bArsenalAccessTargeting = false;
+		m_bMissionTargeting = false;
 		GetGame().GetInputManager().RemoveActionListener(UIConstants.MENU_ACTION_BACK, EActionTrigger.PRESSED, OnSearchCancel);
 		ReleaseSearchFocus();
 		HideHover();
@@ -262,8 +273,10 @@ class DCO_GMCreatePanelComponent
 	{
 		m_wSearch     = EditBoxWidget.Cast(m_wBrowser.FindAnyWidget("DCO_Search"));
 		m_wBar        = m_wBrowser.FindAnyWidget("DCO_ListBar");
-		m_wBarSpacer  = m_wBrowser.FindAnyWidget("DCO_ListBar_Spacer");
+		m_wBarTrack   = ButtonWidget.Cast(m_wBrowser.FindAnyWidget("DCO_ListBar_Track"));
 		m_wBarThumb   = m_wBrowser.FindAnyWidget("DCO_ListBar_Thumb");
+		if (m_wBarThumb)
+			FrameSlot.SetSize(m_wBarThumb, BAR_W, BAR_MIN_THUMB);
 		m_wBudgetLine = TextWidget.Cast(m_wBrowser.FindAnyWidget("DCO_BudgetLine"));
 		m_wCrewVehicles = BindButton("DCO_CrewVehicles");
 		m_wCrewVehiclesTick = m_wBrowser.FindAnyWidget("DCO_CrewVehiclesTick");
@@ -285,8 +298,18 @@ class DCO_GMCreatePanelComponent
 		}
 		if (m_wBudgetLine)
 			m_wBudgetLine.SetText("READY  ·  SELECT ASSET");
-		if (m_wBarThumb)
-			m_wBarThumb.AddHandler(m_Handler);
+		if (m_wBarTrack)
+		{
+			m_wBarTrack.ClearFlags(WidgetFlags.IGNORE_CURSOR | WidgetFlags.NOFOCUS);
+			m_wBarTrack.AddHandler(m_Handler);
+			Widget surface = m_wBarTrack.GetChildren();
+			if (surface)
+			{
+				surface.SetFlags(WidgetFlags.IGNORE_CURSOR);
+				for (Widget child = surface.GetChildren(); child; child = child.GetSibling())
+					child.SetFlags(WidgetFlags.IGNORE_CURSOR);
+			}
+		}
 
 		// Stable category buttons.
 		array<string> catNames = {"DCO_Cat_ALL", "DCO_Cat_MEN", "DCO_Cat_GRP", "DCO_Cat_OBJ", "DCO_Cat_SYS", "DCO_Cat_FX"};
@@ -437,6 +460,16 @@ class DCO_GMCreatePanelComponent
 			m_RowIcons.Insert(ico);
 			m_RowLoadedIcons.Insert(ResourceName.Empty);
 			m_RowFold.Insert(fold);
+			if (lbl)
+			{
+				lbl.SetExactFontSize(ROW_FONT_SIZE);
+				lbl.SetTextWrapping(false);
+			}
+			if (bud)
+			{
+				bud.SetExactFontSize(ROW_FONT_SIZE);
+				bud.SetTextWrapping(false);
+			}
 		}
 	}
 
@@ -467,6 +500,7 @@ class DCO_GMCreatePanelComponent
 		m_bShown = show;
 		if (!show)
 		{
+			StopBarDrag();
 			SaveSessionState();
 			ReleaseSearchFocus();
 			GetGame().GetCallqueue().Remove(ShowHoverPreview);
@@ -759,6 +793,7 @@ class DCO_GMCreatePanelComponent
 	// Re-run the query and repaint from the top.
 	void Refresh(bool resetScroll = true)
 	{
+		StopBarDrag();
 		if (!m_bCatalogReady || !m_Catalog)
 			return;
 		m_QueryRows = m_Catalog.Query(m_Category, m_Faction, m_Search);
@@ -842,7 +877,10 @@ class DCO_GMCreatePanelComponent
 		bool needed = m_TotalRows > ROWS;
 		m_wBar.SetVisible(needed);
 		if (!needed)
+		{
+			StopBarDrag();
 			return;
+		}
 
 		float trackH = BarHeightRef();
 		if (trackH < 1)
@@ -855,21 +893,20 @@ class DCO_GMCreatePanelComponent
 		if (maxOff > 0)
 			t = m_ScrollOffset / (float)maxOff;
 
-		ImageWidget sp = ImageWidget.Cast(m_wBarSpacer);
-		if (sp)
-			sp.SetSize(BAR_W, (trackH - thumbH) * t);
-		ImageWidget th = ImageWidget.Cast(m_wBarThumb);
-		if (th)
-			th.SetSize(BAR_W, thumbH);
+		if (m_wBarThumb)
+		{
+			FrameSlot.SetSize(m_wBarThumb, BAR_W, thumbH);
+			FrameSlot.SetPos(m_wBarThumb, 0, (trackH - thumbH) * t);
+		}
 	}
 
 	// Bar height in REFERENCE px.
 	protected float BarHeightRef()
 	{
-		if (!m_wBar)
+		if (!m_wBarTrack)
 			return 0;
 		float w, h;
-		m_wBar.GetScreenSize(w, h);
+		m_wBarTrack.GetScreenSize(w, h);
 		WorkspaceWidget ws = GetGame().GetWorkspace();
 		if (ws)
 			return ws.DPIUnscale(h);
@@ -890,6 +927,7 @@ class DCO_GMCreatePanelComponent
 
 	void ScrollBy(int rows)
 	{
+		StopBarDrag();
 		int before = m_ScrollOffset;
 		m_ScrollOffset += rows;
 		ClampScroll();
@@ -902,29 +940,54 @@ class DCO_GMCreatePanelComponent
 
 	bool OnBarMouseDown(Widget w, int button)
 	{
-		if (button != 0 || !m_wBarThumb || w != m_wBarThumb || m_TotalRows <= ROWS)
+		if (button != 0 || !m_wBarThumb || w != m_wBarTrack || m_TotalRows <= ROWS)
 			return false;
+		UpdateScrollBar();
 		int mx, my;
 		WidgetManager.GetMousePos(mx, my);
+		float thumbX, thumbY, thumbW, thumbH;
+		m_wBarThumb.GetScreenPos(thumbX, thumbY);
+		m_wBarThumb.GetScreenSize(thumbW, thumbH);
+		if (my < thumbY || my > thumbY + thumbH)
+		{
+			float trackX, trackY;
+			m_wBarTrack.GetScreenPos(trackX, trackY);
+			WorkspaceWidget ws = GetGame().GetWorkspace();
+			float travel = BarHeightRef() - ws.DPIUnscale(thumbH);
+			if (travel > 0)
+				m_ScrollOffset = Math.Round(ws.DPIUnscale(my - trackY - thumbH * 0.5) / travel * (m_TotalRows - ROWS));
+			ClampScroll();
+			Repaint();
+		}
 		m_BarStartMouseY = my;
 		m_BarStartOffset = m_ScrollOffset;
+		ReleaseSearchFocus();
+		GetGame().GetWorkspace().SetFocusedWidget(m_wBarTrack);
 		m_bBarDragging = true;
 		GetGame().GetCallqueue().Remove(BarDragTick);
 		GetGame().GetCallqueue().CallLater(BarDragTick, 0, true);
-		return true;
+		// Let the native button retain its mouse press/release handling.
+		return false;
 	}
 
 	bool OnBarMouseUp(Widget w, int button)
 	{
-		if (!m_bBarDragging)
+		if (button != 0 || !m_bBarDragging)
 			return false;
+		BarDragTick();
 		StopBarDrag();
-		return true;
+		return false;
+	}
+
+	void OnBarFocusLost(Widget w)
+	{
+		if (w == m_wBarTrack)
+			StopBarDrag();
 	}
 
 	protected void BarDragTick()
 	{
-		if (!m_bBarDragging || !m_wBar || m_TotalRows <= ROWS)
+		if (!m_bBarDragging || !m_wBar || !m_wBar.IsVisibleInHierarchy() || !m_bShown || m_TotalRows <= ROWS)
 		{
 			StopBarDrag();
 			return;
@@ -958,6 +1021,10 @@ class DCO_GMCreatePanelComponent
 
 	protected void StopBarDrag()
 	{
+		if (m_bBarDragging)
+		{
+			SaveSessionState();
+		}
 		m_bBarDragging = false;
 		GetGame().GetCallqueue().Remove(BarDragTick);
 	}
@@ -1057,11 +1124,7 @@ class DCO_GMCreatePanelComponent
 				}
 				if (bud)
 				{
-					bud.SetMinFontSize(10);
-					if (targetingActive)
-						bud.SetDesiredFontSize(11);
-					else
-						bud.SetDesiredFontSize(19);
+					bud.SetExactFontSize(ROW_FONT_SIZE);
 					if (animationFxActive)
 						bud.SetText("SELECT AI");
 					else if (arsenalAccessActive)
@@ -1118,7 +1181,7 @@ class DCO_GMCreatePanelComponent
 				emptyRow.SetVisible(true);
 			if (!m_RowLabels.IsEmpty() && m_RowLabels[0])
 			{
-				m_RowLabels[0].SetText("NO ASSETS MATCH THESE FILTERS");
+				m_RowLabels[0].SetText("No matching assets");
 				m_RowLabels[0].SetColor(theme.m_MutedColor);
 			}
 			if (!m_RowBudgets.IsEmpty() && m_RowBudgets[0])
@@ -1130,10 +1193,71 @@ class DCO_GMCreatePanelComponent
 		}
 
 		UpdateScrollBar();
+		GetGame().GetCallqueue().Remove(FinishListLayout);
+		GetGame().GetCallqueue().CallLater(FinishListLayout, 1, false);
+	}
+
+	// Widget widths settle after visibility and row contents change.
+	protected void FinishListLayout()
+	{
+		if (!m_bShown || !m_wBrowser || !m_wBrowser.IsVisibleInHierarchy())
+			return;
+		UpdateScrollBar();
+		for (int r = 0; r < m_RowLabels.Count(); r++)
+		{
+			int idx = m_ScrollOffset + r;
+			if (idx >= m_QueryRows.Count())
+				break;
+			DCO_CatalogRow row = m_QueryRows[idx];
+			string name = Indent(row.m_Depth) + row.m_Label;
+			if (row.m_bHeader)
+				name = FolderLabel(row);
+			FitRowLabel(m_RowLabels[r], name);
+		}
+	}
+
+	protected void FitRowLabel(TextWidget label, string name)
+	{
+		if (!label)
+			return;
+		name.Replace("\n", " ");
+		name.Replace("\r", " ");
+		label.SetText(name);
+		label.Update();
+		float width, height, textWidth, textHeight;
+		label.GetScreenSize(width, height);
+		width = GetGame().GetWorkspace().DPIUnscale(width) - 2;
+		label.GetTextSize(textWidth, textHeight);
+		if (width <= 0 || textWidth <= width)
+			return;
+		int low = 0;
+		int high = name.Length();
+		while (low < high)
+		{
+			int mid = (low + high + 1) / 2;
+			label.SetText(LabelPrefix(name, mid) + "...");
+			label.Update();
+			label.GetTextSize(textWidth, textHeight);
+			if (textWidth <= width)
+				low = mid;
+			else
+				high = mid - 1;
+		}
+		label.SetText(LabelPrefix(name, low) + "...");
+	}
+
+	protected string LabelPrefix(string name, int length)
+	{
+		// Avoid splitting a UTF-8 character at the ellipsis.
+		while (length > 0 && length < name.Length() && (name.ToAscii(length) & 0xC0) == 0x80)
+			length--;
+		return name.Substring(0, length);
 	}
 
 	bool OnButton(Widget w)
 	{
+		if (w == m_wBarTrack)
+			return true;
 		// A click elsewhere in CREATE is an explicit handoff away from text entry.
 		ReleaseSearchFocus();
 		if (w == m_wCrewVehicles)
@@ -1221,6 +1345,21 @@ class DCO_GMCreatePanelComponent
 			return;
 		}
 		DCO_VehicleServiceAccessPlacement.Get().Cancel();
+		DCO_GMMissionPanel.Get().CancelTargeting();
+		m_bMissionTargeting = false;
+		if (row.m_iMissionTool > 0)
+		{
+			m_Catalog.CancelPlacement();
+			DCO_AIAnimationFxTool.Get().Cancel();
+			DCO_ArsenalAccessPlacement.Get().Cancel();
+			DCO_GMMissionPanel.Get().BeginFromCatalog(row.m_iMissionTool);
+			m_bMissionTargeting = DCO_GMMissionPanel.Get().IsTargeting();
+			if (m_bMissionTargeting)
+				ShowPlacementStatus(DCO_GMMissionPanel.Get().TargetingInstruction(), "ESC CANCEL", "");
+			else
+				ShowPlacementStatus("SETUP", row.m_Label, "");
+			return;
+		}
 		if (DCO_PlacementCatalog.IsAnimationFxResource(row.m_Prefab))
 		{
 			m_Catalog.CancelPlacement();
@@ -1298,20 +1437,21 @@ class DCO_GMCreatePanelComponent
 		if (idx < 0 || idx >= m_QueryRows.Count())
 			return;
 		DCO_CatalogRow row = m_QueryRows[idx];
-		if (row.m_bHeader)
-			return;
-
 		ResourceName img = row.m_Icon;
 		string ext;
 		FilePath.StripExtension(img, ext);
 		if (img.IsEmpty() || ext == "imageset")	// no quad name available for a set - use the APP-6 symbol instead.
 			img = row.m_App6Icon;
-		if (img.IsEmpty())
-			return;
-		if (!m_wHoverImg.LoadImageTexture(0, img))
-			return;
+		bool hasImage = !row.m_bHeader && row.m_iMissionTool == 0 && !img.IsEmpty();
+		if (hasImage)
+			hasImage = m_wHoverImg.LoadImageTexture(0, img);
+		m_wHoverImg.SetVisible(hasImage);
 		if (m_wHoverName)
-			m_wHoverName.SetText(BoundDisplay(row.m_Label, 34));
+		{
+			m_wHoverName.SetExactFontSize(ROW_FONT_SIZE);
+			m_wHoverName.SetTextWrapping(true);
+			m_wHoverName.SetText(row.m_Label);
+		}
 
 		WorkspaceWidget ws = GetGame().GetWorkspace();
 		ButtonWidget btn = m_RowBtns[r];
@@ -1333,6 +1473,20 @@ class DCO_GMCreatePanelComponent
 		FrameSlot.SetAnchor(m_wHover, 0, 0);
 		FrameSlot.SetAlignment(m_wHover, 0, 0);
 		FrameSlot.SetSize(m_wHover, HOVER_W, HOVER_H);
+		m_wHover.SetVisible(true);
+		m_wHover.Update();
+		float nameWidth, nameHeight;
+		if (m_wHoverName)
+		{
+			m_wHoverName.Update();
+			m_wHoverName.GetTextSize(nameWidth, nameHeight);
+		}
+		OverlaySlot.SetPadding(m_wHoverImg, 8, 8, 8, nameHeight + 16);
+		float hoverHeight = nameHeight + 20;
+		if (hasImage)
+			hoverHeight += 180;
+		FrameSlot.SetSize(m_wHover, HOVER_W, hoverHeight);
+		py = Math.Clamp(py, rootY, Math.Max(rootY, rootY + rootH - hoverHeight));
 		FrameSlot.SetPos(m_wHover, px, py);
 		m_wHover.SetVisible(true);
 	}
@@ -1443,6 +1597,10 @@ class DCO_GMCreatePanelComponent
 			return;
 		bool targetingChanged = SyncAnimationFxTargeting();
 		targetingChanged = SyncArsenalAccessTargeting() || targetingChanged;
+		bool missionTargeting = DCO_GMMissionPanel.Get().IsTargeting();
+		if (m_bMissionTargeting && !missionTargeting && m_wBudgetLine)
+			m_wBudgetLine.SetText("READY  ·  SELECT ASSET");
+		m_bMissionTargeting = missionTargeting;
 		EnsureBrowserSubscription();
 		string cur = m_wSearch.GetText();
 		if (cur == m_LastSearch)

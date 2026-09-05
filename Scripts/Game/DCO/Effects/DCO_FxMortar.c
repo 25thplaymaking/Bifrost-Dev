@@ -27,9 +27,7 @@ class DCO_FxMortarComponent : ScriptComponent
 	bool m_bFiring;
 
 	static const float SPAWN_HEIGHT = 200.0;
-	static const float RING_HEIGHT = 2.0;
 	static const float NOMINAL_SOUND_RADIUS = 800.0;	// documented visualization, not an engine attenuation query.
-	static const int VISUAL_MS = 1000;
 	static const int DUD_POLL_MS = 200;	// cosmetic dud impact watch.
 	static const float DUD_IMPACT_HEIGHT = 1.0;	// height above terrain that counts as ground contact.
 	static const int DUD_TIMEOUT_MS = 60000;	// safety: a dud that never lands is detonated cosmetically.
@@ -49,18 +47,12 @@ class DCO_FxMortarComponent : ScriptComponent
 	protected ref array<vector> m_aDudLastPos = {};
 	protected ref array<int> m_aDudAgeMs = {};	// parallel to m_aDuds: airborne time for the never-lands safety valve.
 	protected bool m_bDudPollRunning;
-	protected ref Shape m_RingShape;
-	protected ref Shape m_SoundRadiusShape;
-
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
 
 		if (!GetGame() || !GetGame().InPlayMode())
 			return;
-
-		GetGame().GetCallqueue().CallLater(DCO_DrawRing, 500, false);
-		GetGame().GetCallqueue().CallLater(DCO_DrawRing, VISUAL_MS, true);
 
 		DCO_TriggerFxRegistry.Register(owner);
 
@@ -79,7 +71,6 @@ class DCO_FxMortarComponent : ScriptComponent
 			GetGame().GetCallqueue().Remove(DCO_SalvoTick);
 			GetGame().GetCallqueue().Remove(DCO_NextSalvo);
 			GetGame().GetCallqueue().Remove(DCO_DudTick);
-			GetGame().GetCallqueue().Remove(DCO_DrawRing);
 		}
 
 		// Emitter deleted mid-strike: cosmetic duds still in the air would otherwise litter the field as unarmed pickup shells.
@@ -94,8 +85,6 @@ class DCO_FxMortarComponent : ScriptComponent
 		m_aDuds = null;
 		m_aDudLastPos = null;
 		m_aDudAgeMs = null;
-		m_RingShape = null;
-		m_SoundRadiusShape = null;
 
 		DCO_TriggerFxRegistry.Unregister(GetOwner());
 	}
@@ -138,6 +127,18 @@ class DCO_FxMortarComponent : ScriptComponent
 	void DCO_SetLive(bool v)		{ m_bLive = v; DCO_ReplicateState(); }
 	bool DCO_GetSound()				{ return m_bSound; }
 	void DCO_SetSound(bool v)		{ m_bSound = v; DCO_ReplicateState(); }
+	int DCO_GetVisualColor()
+	{
+		if (m_bLive)
+			return 0xFFFF3030;
+		return 0xFFD9892B;
+	}
+	float DCO_GetVisualSoundRadius()
+	{
+		if (m_bLive || m_bSound)
+			return NOMINAL_SOUND_RADIUS;
+		return 0;
+	}
 
 	protected void DCO_ReplicateState()
 	{
@@ -334,27 +335,4 @@ class DCO_FxMortarComponent : ScriptComponent
 		}
 	}
 
-	protected void DCO_DrawRing()
-	{
-		// GM-only: players must not see the strike ring, and a dedicated server has no renderer.
-		if (!DCO_GMRights.IsLocalGameMaster())
-		{
-			m_RingShape = null;
-			m_SoundRadiusShape = null;
-			return;
-		}
-
-		IEntity owner = GetOwner();
-		if (!owner)
-			return;
-
-		int color = 0xFFD9892B;	// amber - cosmetic.
-		if (m_bLive)
-			color = 0xFFFF3030;	// red - live shells.
-
-		m_RingShape = DCO_ZoneShape.FlatCircle(owner.GetOrigin(), m_fSpreadRadius, color);
-		m_SoundRadiusShape = null;
-		if (m_bLive || m_bSound)
-			m_SoundRadiusShape = DCO_ZoneShape.FlatCircle(owner.GetOrigin(), NOMINAL_SOUND_RADIUS, 0x6680D8FF);
-	}
 }

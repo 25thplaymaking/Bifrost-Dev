@@ -85,6 +85,10 @@ class DCO_GMTheme
 	ref Color m_TrackColor;
 	float m_PanelOpacity;
 	float m_AccentHue;
+	int m_AccentMode;
+	static const int ACCENT_HUE = 0;
+	static const int ACCENT_BLACK = 1;
+	static const int ACCENT_WHITE = 2;
 	int m_DisplayFontMode;	// compact condensed or heavier command readouts - PERSISTED.
 
 	// The accent's fixed saturation/brightness.
@@ -141,6 +145,7 @@ class DCO_GMTheme
 		m_DividerColor = Color.FromRGBA(ACCENT_DEF_R, ACCENT_DEF_G, ACCENT_DEF_B, 77);	// amber @ ~0.30.
 		m_PanelOpacity = 1.0;
 		m_AccentHue    = ACCENT_DEF_HUE;
+		m_AccentMode   = ACCENT_HUE;
 		m_DisplayFontMode = FONT_COMPACT;
 		m_AccentColor  = Color.FromRGBA(ACCENT_DEF_R, ACCENT_DEF_G, ACCENT_DEF_B, 255);	// #D9892B amber.
 		m_LabelColor    = Color.FromRGBA(204, 214, 224, 255);	// secondary/interactive label grey.
@@ -166,6 +171,7 @@ class DCO_GMTheme
 			return;	// no saved theme yet - keep defaults.
 		ctx.ReadValue("opacity", m_PanelOpacity);
 		ctx.ReadValue("accentHue", m_AccentHue);
+		ctx.ReadValue("accentMode", m_AccentMode);
 		ctx.ReadValue("displayFontMode", m_DisplayFontMode);
 		for (int vi = 0; vi < UI_ELEMENT_COUNT; vi++)
 		{
@@ -188,7 +194,8 @@ class DCO_GMTheme
 		}
 		m_PanelOpacity = Math.Clamp(m_PanelOpacity, OPACITY_MIN, 1.0);
 		m_DisplayFontMode = Math.Clamp(m_DisplayFontMode, FONT_COMPACT, FONT_COMMAND);
-		m_AccentColor  = AccentFromHue(m_AccentHue);	// derive the live colour from the saved hue.
+		m_AccentMode = Math.Clamp(m_AccentMode, ACCENT_HUE, ACCENT_WHITE);
+		m_AccentColor = SelectedAccent();
 	}
 
 	protected void SaveDeferred()
@@ -202,6 +209,7 @@ class DCO_GMTheme
 		JsonSaveContext ctx = new JsonSaveContext();
 		ctx.WriteValue("opacity", m_PanelOpacity);
 		ctx.WriteValue("accentHue", m_AccentHue);
+		ctx.WriteValue("accentMode", m_AccentMode);
 		ctx.WriteValue("displayFontMode", m_DisplayFontMode);
 	// Persists explicit options without session-only overrides.
 		for (int vi = 0; vi < UI_ELEMENT_COUNT; vi++)
@@ -548,7 +556,22 @@ class DCO_GMTheme
 	void SetAccentHue(float hue, Widget root)
 	{
 		m_AccentHue = hue;
-		m_AccentColor = AccentFromHue(hue);
+		SetAccentMode(ACCENT_HUE, root);
+	}
+
+	protected Color SelectedAccent()
+	{
+		if (m_AccentMode == ACCENT_BLACK)
+			return Color.FromRGBA(0, 0, 0, 255);
+		if (m_AccentMode == ACCENT_WHITE)
+			return Color.FromRGBA(255, 255, 255, 255);
+		return AccentFromHue(m_AccentHue);
+	}
+
+	void SetAccentMode(int mode, Widget root)
+	{
+		m_AccentMode = Math.Clamp(mode, ACCENT_HUE, ACCENT_WHITE);
+		m_AccentColor = SelectedAccent();
 		ApplyAccent(root);
 		OnThemeChanged.Invoke();
 		SaveDeferred();

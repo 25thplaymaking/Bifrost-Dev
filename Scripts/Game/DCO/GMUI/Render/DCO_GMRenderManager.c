@@ -72,6 +72,8 @@ class DCO_GMRenderManager
 		}
 
 		m_OnRender.Invoke(this);
+		DCO_QRFRangeVisual.Draw(this);
+		DCO_GMTacticsFlow.Get().DrawPreview(this);
 		DrawPlacementHelpers();
 		DCO_GMAttach.DrawHoverHighlight(this);
 		RefreshSelectionIfNeeded();
@@ -259,6 +261,72 @@ class DCO_GMRenderManager
 		{
 			float angle = Math.PI2 * i / 24.0;
 			vector next = center + u * (Math.Cos(angle) * radius) + v * (Math.Sin(angle) * radius);
+			DrawLine(previous, next, colorARGB);
+			previous = next;
+		}
+	}
+
+	void DrawArea(vector transform[4], float radiusX, float radiusZ, bool rectangle, int colorARGB, float height = 0)
+	{
+		radiusX = Math.Max(radiusX, 0.1);
+		radiusZ = Math.Max(radiusZ, 0.1);
+		vector axisX = transform[0];
+		vector axisZ = transform[2];
+		axisX[1] = 0;
+		axisZ[1] = 0;
+		if (axisX.LengthSq() < 0.001)
+			axisX = Vector(1, 0, 0);
+		else
+			axisX.Normalize();
+		if (axisZ.LengthSq() < 0.001)
+			axisZ = Vector(0, 0, 1);
+		else
+			axisZ.Normalize();
+
+		vector center = transform[3];
+		if (height <= 0.1)
+		{
+			DrawAreaPlane(center + Vector(0, 0.3, 0), axisX, axisZ, radiusX, radiusZ, rectangle, colorARGB);
+			return;
+		}
+
+		vector bottom = center - Vector(0, height * 0.5, 0);
+		vector top = center + Vector(0, height * 0.5, 0);
+		DrawAreaPlane(bottom, axisX, axisZ, radiusX, radiusZ, rectangle, colorARGB);
+		DrawAreaPlane(top, axisX, axisZ, radiusX, radiusZ, rectangle, colorARGB);
+		if (rectangle)
+		{
+			DrawLine(bottom - axisX * radiusX - axisZ * radiusZ, top - axisX * radiusX - axisZ * radiusZ, colorARGB);
+			DrawLine(bottom + axisX * radiusX - axisZ * radiusZ, top + axisX * radiusX - axisZ * radiusZ, colorARGB);
+			DrawLine(bottom + axisX * radiusX + axisZ * radiusZ, top + axisX * radiusX + axisZ * radiusZ, colorARGB);
+			DrawLine(bottom - axisX * radiusX + axisZ * radiusZ, top - axisX * radiusX + axisZ * radiusZ, colorARGB);
+		}
+		else
+		{
+			DrawLine(bottom + axisX * radiusX, top + axisX * radiusX, colorARGB);
+			DrawLine(bottom - axisX * radiusX, top - axisX * radiusX, colorARGB);
+			DrawLine(bottom + axisZ * radiusZ, top + axisZ * radiusZ, colorARGB);
+			DrawLine(bottom - axisZ * radiusZ, top - axisZ * radiusZ, colorARGB);
+		}
+	}
+
+	protected void DrawAreaPlane(vector center, vector axisX, vector axisZ, float radiusX, float radiusZ, bool rectangle, int colorARGB)
+	{
+		if (rectangle)
+		{
+			vector p0 = center - axisX * radiusX - axisZ * radiusZ;
+			vector p1 = center + axisX * radiusX - axisZ * radiusZ;
+			vector p2 = center + axisX * radiusX + axisZ * radiusZ;
+			vector p3 = center - axisX * radiusX + axisZ * radiusZ;
+			DrawQuad(p0, p1, p2, p3, colorARGB);
+			return;
+		}
+
+		vector previous = center + axisX * radiusX;
+		for (int i = 1; i <= 32; i++)
+		{
+			float angle = Math.PI2 * i / 32.0;
+			vector next = center + axisX * (Math.Cos(angle) * radiusX) + axisZ * (Math.Sin(angle) * radiusZ);
 			DrawLine(previous, next, colorARGB);
 			previous = next;
 		}

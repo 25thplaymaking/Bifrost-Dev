@@ -384,6 +384,85 @@ modded class SCR_PlayerController
 			DCO_GMTools.Get().MirrorAuthorityState(rpl.GetEntity(), toolId, confirmedState);
 	}
 
+	void DCO_SendGMTeleportPlayer(int targetPlayerId, vector position)
+	{
+		if (Replication.IsServer())
+		{
+			DCO_ApplyGMTeleportPlayer(targetPlayerId, position);
+			return;
+		}
+		Rpc(DCO_RpcGMTeleportPlayer, targetPlayerId, position);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcGMTeleportPlayer(int targetPlayerId, vector position)
+	{
+		DCO_ApplyGMTeleportPlayer(targetPlayerId, position);
+	}
+
+	protected bool DCO_ApplyGMTeleportPlayer(int targetPlayerId, vector position)
+	{
+		if (!Replication.IsServer() || !DCO_GMRights.Allow(GetPlayerId(), "Teleport Players"))
+			return false;
+		if (targetPlayerId <= 0 || !SCR_Global.IsPositionWithinTerrainBounds(position))
+			return false;
+		PlayerManager playerManager = GetGame().GetPlayerManager();
+		IEntity target = null;
+		if (playerManager)
+			target = playerManager.GetPlayerControlledEntity(targetPlayerId);
+		if (!target)
+			return false;
+		SCR_PlayersManagerEditorComponent playersManager = SCR_PlayersManagerEditorComponent.Cast(
+			SCR_PlayersManagerEditorComponent.GetInstance(SCR_PlayersManagerEditorComponent));
+		if (!playersManager)
+			return false;
+		playersManager.TeleportPlayerToPositionServer(target, targetPlayerId, position);
+		return true;
+	}
+
+	void DCO_SendChangeSideRelations(string sourceKey, string targetKey, bool friendly)
+	{
+		if (Replication.IsServer())
+		{
+			DCO_ApplyChangeSideRelations(sourceKey, targetKey, friendly);
+			return;
+		}
+		Rpc(DCO_RpcChangeSideRelations, sourceKey, targetKey, friendly);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void DCO_RpcChangeSideRelations(string sourceKey, string targetKey, bool friendly)
+	{
+		DCO_ApplyChangeSideRelations(sourceKey, targetKey, friendly);
+	}
+
+	protected bool DCO_ApplyChangeSideRelations(string sourceKey, string targetKey, bool friendly)
+	{
+		if (!Replication.IsServer() || !DCO_GMRights.Allow(GetPlayerId(), "Change Side Relations"))
+			return false;
+		if (sourceKey.IsEmpty() || targetKey.IsEmpty())
+			return false;
+
+		SCR_FactionManager factionManager = SCR_FactionManager.Cast(GetGame().GetFactionManager());
+		if (!factionManager)
+			return false;
+		SCR_Faction sourceFaction = SCR_Faction.Cast(factionManager.GetFactionByKey(sourceKey));
+		SCR_Faction targetFaction = SCR_Faction.Cast(factionManager.GetFactionByKey(targetKey));
+		if (!sourceFaction || !targetFaction)
+			return false;
+
+		if (friendly)
+			factionManager.SetFactionsFriendly(sourceFaction, targetFaction, GetPlayerId(), true);
+		else
+			factionManager.SetFactionsHostile(sourceFaction, targetFaction, GetPlayerId(), true);
+		string relationName = "hostile";
+		if (friendly)
+			relationName = "friendly";
+		Print(string.Format("[DCO-GM] Change Side Relations: %1 and %2 are now %3", sourceKey, targetKey,
+			relationName), LogLevel.NORMAL);
+		return true;
+	}
+
 	void DCO_SendClearGarbage()
 	{
 		if (Replication.IsServer())

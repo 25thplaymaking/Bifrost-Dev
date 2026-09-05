@@ -24,7 +24,7 @@ Open the project in Arma Reforger Workbench or install the published addon throu
 
 ## Release state
 
-Current release: **1.0.28** (candidate), targeting the public Bohemia Workshop package for Arma Reforger 1.8.0.10. The public Workshop build remains 1.0.27 until this candidate passes its multiplayer acceptance run and is published. See [docs/TESTING.md](docs/TESTING.md).
+Current release: **1.0.29**. GitHub source is prepared for the operator's Bohemia Workshop upload under addon GUID `6A0C2D6CE9809C6E`. Compilation and static replication review passed; dedicated-server, remote-client, join-in-progress, and final UI testing remain with the operator. See [release evidence and upload handoff](docs/RELEASE_1.0.29.md) and [docs/TESTING.md](docs/TESTING.md).
 
 ## License and credits
 

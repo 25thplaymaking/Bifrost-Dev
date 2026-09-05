@@ -305,7 +305,6 @@ class DCO_TriggerComponent : ScriptComponent
 	[Attribute("2", UIWidgets.Slider, "How often (s) the trigger re-evaluates its condition. Keep at 2+ with many triggers placed.", "0.5 15 0.5", category: "Bifrost"), RplProp()]
 	float m_fCheckSec;
 
-	protected static const float DCO_VISUAL_HEIGHT = 3.0;
 	protected static const int COLOR_ARMED = 0xFFFF3030;
 	protected static const int COLOR_DISABLED = 0xFF707070;	// grey - not armed.
 	protected static const int COLOR_PENDING = 0xFFFFB340;
@@ -324,8 +323,6 @@ class DCO_TriggerComponent : ScriptComponent
 	protected IEntity m_PendingTripper;
 	protected int m_iPendingCount;
 	protected IEntity m_FxTarget;	// emitter this trigger switched ON in Repeat mode.
-	protected ref Shape m_DCO_VisualShape;
-
 	protected vector m_vFxSearchCenter;
 	protected float m_fFxBestSq;
 	protected IEntity m_FxBest;
@@ -339,14 +336,12 @@ class DCO_TriggerComponent : ScriptComponent
 		if (!GetGame() || !GetGame().InPlayMode())
 			return;
 
-		GetGame().GetCallqueue().CallLater(DCO_DrawVisual, 500, false);
-		GetGame().GetCallqueue().CallLater(DCO_DrawVisual, (int)(m_fCheckSec * 1000.0), true);
+		DCO_TriggerRegistry.Register(this);
 
 		if (!Replication.IsServer())
 			return;
 
 		DCO_MigrateLegacySelections();
-		DCO_TriggerRegistry.Register(this);
 		GetGame().GetCallqueue().CallLater(DCO_Tick, (int)(m_fCheckSec * 1000.0), true);
 	}
 
@@ -361,10 +356,8 @@ class DCO_TriggerComponent : ScriptComponent
 		if (GetGame() && GetGame().GetCallqueue())
 		{
 			GetGame().GetCallqueue().Remove(DCO_Tick);
-			GetGame().GetCallqueue().Remove(DCO_DrawVisual);
 			DCO_FxStop();
 		}
-		m_DCO_VisualShape = null;
 	}
 
 	vector DCO_GetCenter()
@@ -513,6 +506,16 @@ class DCO_TriggerComponent : ScriptComponent
 	bool DCO_GetEnabled()				{ return m_bEnabled; }
 	bool DCO_IsTripped()				{ return m_bTripped; }
 	int DCO_GetRuntimeState()			{ return m_eRuntimeState; }
+	int DCO_GetVisualColor()
+	{
+		if (!m_bEnabled)
+			return COLOR_DISABLED;
+		if (m_eRuntimeState == EDCO_TriggerRuntimeState.PENDING)
+			return COLOR_PENDING;
+		if (m_eRuntimeState == EDCO_TriggerRuntimeState.ACTIVE)
+			return COLOR_ACTIVE;
+		return COLOR_ARMED;
+	}
 	int DCO_GetLinkedUnitMode()		{ return m_eLinkedUnitMode; }
 	int DCO_GetSyncedGroupCount()
 	{
@@ -1578,34 +1581,4 @@ class DCO_TriggerComponent : ScriptComponent
 		m_FxTarget = null;
 	}
 
-	// The GM-visible circle.
-	protected void DCO_DrawVisual()
-	{
-		// GM-only: players must not see trigger circles, and a dedicated server has no renderer.
-		if (!DCO_GMRights.IsLocalGameMaster())
-		{
-			m_DCO_VisualShape = null;
-			return;
-		}
-
-		if (m_fRadius < 1.0)
-			return;
-
-		IEntity owner = GetOwner();
-		if (!owner)
-			return;
-
-		int color = COLOR_ARMED;
-		if (!m_bEnabled)
-			color = COLOR_DISABLED;
-		else if (m_eRuntimeState == EDCO_TriggerRuntimeState.PENDING)
-			color = COLOR_PENDING;
-		else if (m_eRuntimeState == EDCO_TriggerRuntimeState.ACTIVE)
-			color = COLOR_ACTIVE;
-
-		DCO_MigrateLegacySelections();
-		vector transform[4];
-		owner.GetWorldTransform(transform);
-		m_DCO_VisualShape = DCO_ZoneShape.FlatArea(transform, m_fRadius, m_fRadiusZ, m_eShape == EDCO_TriggerShape.RECTANGLE, color);
-	}
 }

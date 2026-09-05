@@ -1,0 +1,40 @@
+GenericEntity {
+ ID "DCA6090420000010"
+ components {
+  DCO_GMMissionInteractionComponent "{DCA6090420000001}" {
+  }
+  ActionsManagerComponent "{DCA6090420000002}" {
+   Enabled 1
+   ActionContexts {
+    UserActionContext "{DCA6090420000003}" {
+     UIInfo SCR_ActionContextUIInfo "{DCA6090420000004}" : "{7CD00B230573CAC6}Prefabs/Vehicles/Core/Configs/Actions/ActionUIInfo/SCR_ActionContextUIInfo.conf" {
+     }
+     ContextName "default"
+     Position PointInfo "{DCA6090420000005}" {
+     }
+     Radius 1.5
+    }
+   }
+   additionalActions {
+    DCO_UseMissionInteractionAction "{DCA6090420000006}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{DCA6090420000007}" {
+      Name "Use mission interaction"
+      Description "Read intel or travel through a linked endpoint."
+     }
+    }
+   }
+  }
+  RplComponent "{DCA6090420000008}" {
+   Enabled 1
+   "Rpl State Override" Runtime
+   Streamable Disabled
+  }
+  Hierarchy "{DCA6090420000009}" {
+   Enabled 1
+  }
+ }
+ Flags 0x403 0
+}

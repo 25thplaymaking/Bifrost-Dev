@@ -65,6 +65,21 @@ class DCO_TracerEmitterComponent : ScriptComponent
 	}
 
 	static array<string> DCO_GetRoundNames() { return StaticData().m_RoundNames; }
+	static int DCO_GetRoundCount() { return StaticData().m_RoundPrefabs.Count(); }
+	static ResourceName DCO_GetRoundPrefab(int roundIndex)
+	{
+		return StaticData().m_RoundPrefabs[Math.Clamp(roundIndex, 0, StaticData().m_RoundPrefabs.Count() - 1)];
+	}
+	static ResourceName DCO_GetRoundSound(int roundIndex)
+	{
+		return StaticData().m_ShotAcps[Math.Clamp(roundIndex, 0, StaticData().m_ShotAcps.Count() - 1)];
+	}
+	static int DCO_GetRoundVisualColor(int roundIndex)
+	{
+		if (roundIndex >= EDCO_TracerRound.SOV_545_RIFLE)
+			return 0xFF78E86E;
+		return 0xFFFF6B52;
+	}
 
 	[Attribute("0", UIWidgets.ComboBox, "Round type fired by this stream (tracer variants of the vanilla calibers).", "", ParamEnumArray.FromEnum(EDCO_TracerRound), category: "Bifrost"), RplProp()]
 	EDCO_TracerRound m_eRound;
@@ -92,8 +107,6 @@ class DCO_TracerEmitterComponent : ScriptComponent
 
 	static const float MUZZLE_HEIGHT = 1.4;
 	static const float AIM_LINE_LEN = 12.0;
-	static const int VISUAL_MS = 1000;
-
 	static const string SHOT_EVENT = "SOUND_SHOT";
 	protected int m_iBurstLeft;
 	protected int m_iShotCounter;	// running shot index driving the every-Nth tracer pick.
@@ -101,9 +114,6 @@ class DCO_TracerEmitterComponent : ScriptComponent
 	protected ref Resource m_LoadedTracer;	// cached per round type; re-loaded when m_eRound changes.
 	protected ref Resource m_LoadedBall;
 	protected EDCO_TracerRound m_eLoadedFor;
-	protected ref Shape m_AimShape;
-	protected ref Shape m_SoundRadiusShape;
-
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
@@ -111,8 +121,7 @@ class DCO_TracerEmitterComponent : ScriptComponent
 		if (!GetGame() || !GetGame().InPlayMode())
 			return;
 
-		GetGame().GetCallqueue().CallLater(DCO_DrawAim, 500, false);
-		GetGame().GetCallqueue().CallLater(DCO_DrawAim, VISUAL_MS, true);
+		DCO_TriggerFxRegistry.Register(owner);
 
 		if (!Replication.IsServer())
 			return;
@@ -125,12 +134,8 @@ class DCO_TracerEmitterComponent : ScriptComponent
 	void ~DCO_TracerEmitterComponent()
 	{
 		if (GetGame() && GetGame().GetCallqueue())
-		{
 			GetGame().GetCallqueue().Remove(DCO_FireTick);
-			GetGame().GetCallqueue().Remove(DCO_DrawAim);
-		}
-		m_AimShape = null;
-		m_SoundRadiusShape = null;
+		DCO_TriggerFxRegistry.Unregister(GetOwner());
 	}
 
 	bool DCO_IsFiring()
@@ -174,6 +179,34 @@ class DCO_TracerEmitterComponent : ScriptComponent
 	void DCO_SetLive(bool v)			{ m_bLive = v; DCO_ReplicateState(); }
 	bool DCO_GetSound()					{ return m_bSound; }
 	void DCO_SetSound(bool v)			{ m_bSound = v; DCO_ReplicateState(); }
+	int DCO_GetVisualColor()
+	{
+		if (m_bLive)
+			return 0xFFFF3030;
+		return 0xFFD9892B;
+	}
+	float DCO_GetVisualSoundRadius()
+	{
+		if (!m_bSound)
+			return 0;
+		int roundIdx = Math.Clamp(m_eRound, 0, StaticData().m_NominalSoundRadius.Count() - 1);
+		return StaticData().m_NominalSoundRadius[roundIdx];
+	}
+	bool DCO_GetAimLine(out vector from, out vector to)
+	{
+		IEntity owner = GetOwner();
+		if (!owner)
+			return false;
+		vector transform[4];
+		owner.GetWorldTransform(transform);
+		vector direction = transform[2];
+		if (direction.LengthSq() < 0.001)
+			return false;
+		direction.Normalize();
+		from = transform[3] + Vector(0, MUZZLE_HEIGHT, 0);
+		to = from + direction * AIM_LINE_LEN;
+		return true;
+	}
 
 	protected void DCO_ReplicateState()
 	{
@@ -287,40 +320,4 @@ class DCO_TracerEmitterComponent : ScriptComponent
 			AudioSystem.PlayEvent(StaticData().m_ShotAcps[roundIdx], SHOT_EVENT, sp.Transform);	// positional, engine attenuation.
 	}
 
-	// Aim line: muzzle -> forward.
-	protected void DCO_DrawAim()
-	{
-		// GM-only: players must not see the aim line or sound ring, and a dedicated server has no renderer.
-		if (!DCO_GMRights.IsLocalGameMaster())
-		{
-			m_AimShape = null;
-			m_SoundRadiusShape = null;
-			return;
-		}
-
-		IEntity owner = GetOwner();
-		if (!owner)
-			return;
-
-		vector mat[4];
-		owner.GetWorldTransform(mat);
-		vector dir = mat[2];
-		dir.Normalize();
-		vector muzzle = mat[3] + Vector(0, MUZZLE_HEIGHT, 0);
-
-		int color = 0xFFD9892B;	// amber - cosmetic.
-		if (m_bLive)
-			color = 0xFFFF3030;	// red - live rounds.
-
-		vector pts[2];
-		pts[0] = muzzle;
-		pts[1] = muzzle + dir * AIM_LINE_LEN;
-		m_AimShape = Shape.CreateLines(color, ShapeFlags.NOZBUFFER, pts, 2);
-		m_SoundRadiusShape = null;
-		if (m_bSound)
-		{
-			int roundIdx = Math.Clamp(m_eRound, 0, StaticData().m_NominalSoundRadius.Count() - 1);
-			m_SoundRadiusShape = DCO_ZoneShape.FlatCircle(owner.GetOrigin(), StaticData().m_NominalSoundRadius[roundIdx], 0x6680D8FF);
-		}
-	}
 }
