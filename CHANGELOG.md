@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.0.30 - 2026-09-05
+
+- Fixed trigger-controlled audio so stopping or deactivating a trigger stops the recording, and firing status follows the replicated playback state.
+- Fixed teleporter settings reopening with a stale activation mode after changing the native Automatic teleporter attribute.
+- Added freely placeable, editable paired teleporters with manual or automatic entry, configurable travel delay and radius, checked arrival positions, cancellation and return-loop protection.
+- Added six positional audio recordings with preset, playback, volume, range, fade, loop, wall-obstruction and reverb controls. Source terms and provenance are retained under Sounds/Bifrost.
+- Added passive GM hints with selected-player and selected-faction audiences and configurable duration.
+- Extended scaled-character movement, proportional health and third-person camera handling. Movement assistance is bounded and excludes airborne, linked, vehicle, ragdoll and stance-transition motion.
+- Kept compound object attributes editable inside Bifrost's property panel.
+- The operator confirmed local movement-speed and teleporter behavior and cleared the reported UI delay. Dedicated-server, remote-client and join-in-progress testing remain separate.
+
 - Reviewed mission actions and changed feature groups against installed native source through PAC1CLI and checked their layout bindings. Corrected non-primary action clicks across the affected panels, player-delegate invincibility, and Chatter text focus.
 - Corrected composition spawn rollback and malformed-parent validation, plus a missing-resource guard in vehicle rocket servicing.
 - Separated FX Tracer cosmetic cues from damaging ammunition and broadcast its shot audio/visuals to clients. Added a repeatable layout checker and a per-feature click/selection guide; runtime and multiplayer acceptance remain with the operator.

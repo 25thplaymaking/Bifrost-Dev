@@ -1708,6 +1708,14 @@ class DCO_GMScenarioPanel
 		RenderAttributes(m_aSessionAttributes, true);
 	}
 
+	void CancelPropertySession()
+	{
+		EndEditing(false);
+		m_bOpen = false;
+		if (m_wPanel) m_wPanel.SetVisible(false);
+		if (m_wBackdrop) m_wBackdrop.SetVisible(false);
+	}
+
 	bool CloseForBack()
 	{
 		if (!m_bOpen)
@@ -1741,16 +1749,14 @@ class DCO_GMScenarioPanel
 		SetOpen(false);
 	}
 
-	// The native dialog remains the compatibility fallback for attribute layouts
-	// Bifrost cannot faithfully render. Fully supported sessions are handed off
-	// after the native menu completes its own opening lifecycle.
+	// Adopt the session after the native menu finishes opening.
 	bool CanOwnPropertySession()
 	{
 		if (!m_bOpen || !m_bEditing || !m_aSessionAttributes || m_aSessionAttributes.IsEmpty())
 			return false;
 		foreach (SCR_BaseEditorAttribute attribute : m_aSessionAttributes)
 		{
-			if (attribute && !SupportsLayout(attribute))
+			if (attribute && attribute.GetLayout().IsEmpty())
 				return false;
 		}
 		return true;
@@ -1935,9 +1941,7 @@ class DCO_GMScenarioPanel
 
 	protected void OnAttributesStart(array<SCR_BaseEditorAttribute> attributes)
 	{
-		// The stock manager asks the server for the authoritative list before this
-		// callback. If even one layout is outside Bifrost's renderer, keep the
-		// native dialog as the sole owner instead of exposing a partial duplicate.
+		// The server supplies the complete attribute list before the panel opens.
 		if (!CanRenderAttributeSession(attributes))
 		{
 			DCO_GMUIController.SetPropertyOverlaysSuppressed(false);
@@ -2001,9 +2005,9 @@ class DCO_GMScenarioPanel
 			return false;
 		foreach (SCR_BaseEditorAttribute attribute : attributes)
 		{
-			if (attribute && !SupportsLayout(attribute))
+			if (attribute && attribute.GetLayout().IsEmpty())
 			{
-				Print(string.Format("[DCO-GM] native properties retained for unsupported layout: %1", attribute.GetLayout()), LogLevel.WARNING);
+				Print(string.Format("[DCO-GM] attribute has no layout: %1", attribute.GetLayout()), LogLevel.WARNING);
 				return false;
 			}
 		}
@@ -2241,7 +2245,7 @@ class DCO_GMScenarioPanel
 
 	protected bool ShouldRenderAttribute(SCR_BaseEditorAttribute attribute)
 	{
-		if (!SupportsLayout(attribute))
+		if (!attribute || attribute.GetLayout().IsEmpty())
 			return false;
 		if (m_bHasContinuousFire && m_bContinuousFire && DCO_FxExplosionGunrunRoundsEditorAttribute.Cast(attribute))
 			return false;
@@ -2491,8 +2495,9 @@ class DCO_GMScenarioPanel
 		if (SCR_TimePresetsEditorAttribute.Cast(attribute) || SCR_GameOverTypeEditorAttribute.Cast(attribute))
 			return true;
 		string layout = attribute.GetLayout();
+		if (layout.Contains("SliderVector") || layout.Contains("DropdownWithParam") || layout.Contains("CharacterBloodSlider")) return false;
 		return layout.Contains("Checkbox") || layout.Contains("MultiSelection") || layout.Contains("Slider")
-			|| layout.Contains("Date.layout") || layout.Contains("ButtonBox_Selection") || layout.Contains("Spinbox");
+			|| layout.Contains("Date.layout") || layout.Contains("ButtonBox_Selection") || layout.Contains("Spinbox") || layout.Contains("Dropdown.layout");
 	}
 
 	protected void BuildOrderedCategories(notnull array<SCR_BaseEditorAttribute> attributes, notnull array<ResourceName> categoryConfigs, notnull array<ref SCR_EditorAttributeCategory> categories)
@@ -2544,6 +2549,21 @@ class DCO_GMScenarioPanel
 	// Create one Bifrost-owned row.
 	protected bool RenderOneAttribute(WorkspaceWidget workspace, SCR_BaseEditorAttribute attribute)
 	{
+		if (!SupportsLayout(attribute))
+		{
+			Widget compound = workspace.CreateWidgets(attribute.GetLayout(), m_wContent);
+			if (!compound) return false;
+			SCR_BaseEditorAttributeUIComponent nativeControl = SCR_BaseEditorAttributeUIComponent.Cast(compound.FindHandler(SCR_BaseEditorAttributeUIComponent));
+			if (!nativeControl)
+			{
+				delete compound;
+				return false;
+			}
+			nativeControl.Init(compound, attribute);
+			nativeControl.GetOnAttributeChanged().Insert(OnAttributeChanged);
+			VerticalLayoutSlot.SetPadding(compound, 8, 8, 8, 12);
+			return true;
+		}
 		Widget attributeWidget = workspace.CreateWidgets(OPTION_LAYOUT, m_wContent);
 		if (!attributeWidget)
 		{

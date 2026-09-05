@@ -173,6 +173,47 @@ FrameWidgetClass "{DCA609045000008B}" {
             }
            }
           }
+          VerticalLayoutWidgetClass "{DCA6090550000031}" {
+           Name "DCO_MissionSecondaryField"
+           Slot LayoutSlot "{DCA6090550000032}" { HorizontalAlign 3 Padding 0 0 0 16 }
+           {
+            TextWidgetClass "{DCA609055000002D}" {
+             Name "DCO_MissionSecondary_Caption"
+             Slot LayoutSlot "{DCA609055000002E}" { HorizontalAlign 3 }
+             Text "Value" Color 0.90 0.93 0.95 1 "Font Size" 16 "Min Font Size" 14 Wrap 1
+            }
+            TextWidgetClass "{DCA609055000002F}" {
+             Name "DCO_MissionSecondary_Help"
+             Slot LayoutSlot "{DCA6090550000030}" { HorizontalAlign 3 Padding 0 3 0 6 }
+             Text "Enter a number." Color 0.66 0.70 0.74 1 "Font Size" 14 "Min Font Size" 12 Wrap 1
+            }
+            SizeLayoutWidgetClass "{DCA609055000002B}" {
+             Name "DCO_MissionSecondaryFrame"
+             Slot LayoutSlot "{DCA609055000002C}" { HorizontalAlign 3 }
+             AllowHeightOverride 1 HeightOverride 42
+             {
+              OverlayWidgetClass "{DCA6090550000029}" {
+               Slot AlignableSlot "{DCA609055000002A}" { HorizontalAlign 3 VerticalAlign 3 }
+               {
+                ImageWidgetClass "{DCA6090550000025}" {
+                 Slot OverlayWidgetSlot "{DCA6090550000026}" { HorizontalAlign 3 VerticalAlign 3 }
+                 Color 0.30 0.38 0.42 1
+                }
+                ImageWidgetClass "{DCA6090550000027}" {
+                 Slot OverlayWidgetSlot "{DCA6090550000028}" { HorizontalAlign 3 VerticalAlign 3 Padding 1 1 1 1 }
+                 Color 0.06 0.075 0.09 1
+                }
+                EditBoxWidgetClass "{DCA6090550000023}" {
+                 Name "DCO_MissionSecondary"
+                 Slot OverlayWidgetSlot "{DCA6090550000024}" { HorizontalAlign 3 VerticalAlign 3 Padding 12 9 12 9 }
+                 style blank Color 0.90 0.93 0.95 1 "Font Size" 18 Clipping True
+                }
+               }
+              }
+             }
+            }
+           }
+          }
           VerticalLayoutWidgetClass "{DCA609045000003F}" {
            Name "DCO_MissionScopeField"
            Slot LayoutSlot "{DCA6090450000040}" { HorizontalAlign 3 Padding 0 0 0 14 }

@@ -1,0 +1,965 @@
+AudioClass {
+version 1
+signals {
+SignalClass {
+id 1037
+name "BifrostControls"
+tl -1100 0
+res "{DCA6090590000000}Sounds/Bifrost/Controls.sig"
+path "{DCA6090590000000}Sounds/Bifrost/Controls.sig"
+inputsport { 1 3 5 7 9 11 13 }
+outputsport { 2 4 16 18 20 22 }
+inputvalues { 1 20000 0.3 0 0 0 0 }
+inputvaluesmin { 0 0 0 0 0 0 0 }
+inputvaluesmax { 2 20000 1 1 1 1 1 }
+conns {
+IOPConnectionClass {
+port 7
+conn {
+ConnectionsClass connections {
+id 9
+links {
+ConnectionClass connection {
+id 2061
+port 107
+}
+}
+}
+}
+}
+IOPConnectionClass {
+port 9
+conn {
+ConnectionsClass connections {
+id 9
+links {
+ConnectionClass connection {
+id 2061
+port 106
+}
+}
+}
+}
+}
+IOPConnectionClass {
+port 11
+conn {
+ConnectionsClass connections {
+id 9
+links {
+ConnectionClass connection {
+id 2061
+port 110
+}
+}
+}
+}
+}
+IOPConnectionClass {
+port 13
+conn {
+ConnectionsClass connections {
+id 9
+links {
+ConnectionClass connection {
+id 2061
+port 105
+}
+}
+}
+}
+}
+}
+}
+SignalClass {
+id 2061
+name "NativeRoomReverb"
+tl -1350 0
+res "{76CBB40EF7F227B6}Sounds/_SharedData/Signals/Reverb/Reverb_Base.sig"
+path "{76CBB40EF7F227B6}Sounds/_SharedData/Signals/Reverb/Reverb_Base.sig"
+inputsport { 1 35 112 }
+outputsport { 39 105 107 106 110 }
+inputvalues { 40 0 0 }
+inputvaluesmin { 0 0 0 }
+inputvaluesmax { 2000 1 16000 }
+}
+}
+spatialities {
+SpatialityClass {
+id 3100
+name "Position"
+tl -700 0
+version 5
+spatialFactor 1
+}
+}
+amplitudes {
+AmplitudeClass {
+id 4115
+name "Audibility"
+tl -420 0
+version 5
+innerRange 2000
+outerRange 2100
+curve "1/r"
+}
+}
+frequency {
+FrequencyClass : "{0005FE42A6D80399}Sounds/_SharedData/Configs/Frequency/_SharedData/Frequency_DynamicUpdate.conf" {
+id 5141
+name "WallMuffling"
+tl -140 0
+version 5
+parent "{0005FE42A6D80399}Sounds/_SharedData/Configs/Frequency/_SharedData/Frequency_DynamicUpdate.conf"
+ins {
+ConnectionsClass connections {
+id 4
+links {
+ConnectionClass connection {
+id 1037
+port 4
+}
+}
+}
+}
+pi { 16 0 }
+pu { 16 0 }
+}
+}
+banks_local {
+BankLocalClass {
+id 7172
+name "Crowd"
+tl 140 220
+version 7
+"Loop count" 1
+"Infinite loop" 0
+Samples {
+AudioBankSampleClass Sample {
+Filename "{DCA6090580000001}Sounds/Bifrost/crowd.wav"
+}
+}
+}
+BankLocalClass {
+id 10244
+name "Talking"
+tl -700 220
+version 7
+"Loop count" 1
+"Infinite loop" 0
+Samples {
+AudioBankSampleClass Sample {
+Filename "{DCA6090580000002}Sounds/Bifrost/talking.wav"
+}
+}
+}
+BankLocalClass {
+id 13316
+name "Barking"
+tl -420 220
+version 7
+"Loop count" 1
+"Infinite loop" 0
+Samples {
+AudioBankSampleClass Sample {
+Filename "{DCA6090580000003}Sounds/Bifrost/barking.wav"
+}
+}
+}
+BankLocalClass {
+id 16388
+name "Shouting"
+tl -140 220
+version 7
+"Loop count" 1
+"Infinite loop" 0
+Samples {
+AudioBankSampleClass Sample {
+Filename "{DCA6090580000004}Sounds/Bifrost/shouting.wav"
+}
+}
+}
+BankLocalClass {
+id 19460
+name "Battle"
+tl 140 440
+version 7
+"Loop count" 1
+"Infinite loop" 0
+Samples {
+AudioBankSampleClass Sample {
+Filename "{DCA6090580000005}Sounds/Bifrost/battle.wav"
+}
+}
+}
+BankLocalClass {
+id 22532
+name "Rifle"
+tl -700 440
+version 7
+"Loop count" 1
+"Infinite loop" 0
+Samples {
+AudioBankSampleClass Sample {
+Filename "{DCA6090580000006}Sounds/Bifrost/rifle.wav"
+}
+}
+}
+}
+shaders {
+ShaderClass {
+id 8210
+name "CrowdPosition"
+tl -420 440
+version 5
+ins {
+ConnectionsClass connections {
+id 0
+links {
+ConnectionClass connection {
+id 3100
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 4115
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 2
+links {
+ConnectionClass connection {
+id 5141
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 7172
+port 65
+}
+}
+}
+}
+pi { 7 0 }
+}
+ShaderClass {
+id 11282
+name "TalkingPosition"
+tl -140 440
+version 5
+ins {
+ConnectionsClass connections {
+id 0
+links {
+ConnectionClass connection {
+id 3100
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 4115
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 2
+links {
+ConnectionClass connection {
+id 5141
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 10244
+port 65
+}
+}
+}
+}
+pi { 7 0 }
+}
+ShaderClass {
+id 14354
+name "BarkingPosition"
+tl 140 660
+version 5
+ins {
+ConnectionsClass connections {
+id 0
+links {
+ConnectionClass connection {
+id 3100
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 4115
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 2
+links {
+ConnectionClass connection {
+id 5141
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 13316
+port 65
+}
+}
+}
+}
+pi { 7 0 }
+}
+ShaderClass {
+id 17426
+name "ShoutingPosition"
+tl -700 660
+version 5
+ins {
+ConnectionsClass connections {
+id 0
+links {
+ConnectionClass connection {
+id 3100
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 4115
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 2
+links {
+ConnectionClass connection {
+id 5141
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 16388
+port 65
+}
+}
+}
+}
+pi { 7 0 }
+}
+ShaderClass {
+id 20498
+name "BattlePosition"
+tl -420 660
+version 5
+ins {
+ConnectionsClass connections {
+id 0
+links {
+ConnectionClass connection {
+id 3100
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 4115
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 2
+links {
+ConnectionClass connection {
+id 5141
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 19460
+port 65
+}
+}
+}
+}
+pi { 7 0 }
+}
+ShaderClass {
+id 23570
+name "RiflePosition"
+tl -140 660
+version 5
+ins {
+ConnectionsClass connections {
+id 0
+links {
+ConnectionClass connection {
+id 3100
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 4115
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 2
+links {
+ConnectionClass connection {
+id 5141
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 22532
+port 65
+}
+}
+}
+}
+pi { 7 0 }
+}
+}
+sounds {
+SoundClass {
+id 9225
+name "BifrostCrowd"
+tl 140 880
+version 5
+outState 6155
+outStatePort 79879
+ins {
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 1037
+port 2
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 8210
+port 65
+}
+}
+}
+}
+pi { 2 0 }
+pu { 2 0 }
+}
+SoundClass {
+id 12297
+name "BifrostTalking"
+tl -700 880
+version 5
+outState 6155
+outStatePort 79879
+ins {
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 1037
+port 2
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 11282
+port 65
+}
+}
+}
+}
+pi { 2 0 }
+pu { 2 0 }
+}
+SoundClass {
+id 15369
+name "BifrostBarking"
+tl -420 880
+version 5
+outState 6155
+outStatePort 79879
+ins {
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 1037
+port 2
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 14354
+port 65
+}
+}
+}
+}
+pi { 2 0 }
+pu { 2 0 }
+}
+SoundClass {
+id 18441
+name "BifrostShouting"
+tl -140 880
+version 5
+outState 6155
+outStatePort 79879
+ins {
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 1037
+port 2
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 17426
+port 65
+}
+}
+}
+}
+pi { 2 0 }
+pu { 2 0 }
+}
+SoundClass {
+id 21513
+name "BifrostBattle"
+tl 140 1100
+version 5
+outState 6155
+outStatePort 79879
+ins {
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 1037
+port 2
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 20498
+port 65
+}
+}
+}
+}
+pi { 2 0 }
+pu { 2 0 }
+}
+SoundClass {
+id 24585
+name "BifrostRifle"
+tl -700 1100
+version 5
+outState 6155
+outStatePort 79879
+ins {
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 1037
+port 2
+}
+}
+}
+ConnectionsClass connections {
+id 64
+links {
+ConnectionClass connection {
+id 23570
+port 65
+}
+}
+}
+}
+pi { 2 0 }
+pu { 2 0 }
+}
+}
+auxOuts {
+AuxOutClass {
+id 25629
+name "RoomReverb0"
+tl -420 1100
+version 5
+OSPort 300039
+ins {
+ConnectionsClass connections {
+id 0
+links {
+ConnectionClass connection {
+id 9225
+port 5
+}
+ConnectionClass connection {
+id 12297
+port 5
+}
+ConnectionClass connection {
+id 15369
+port 5
+}
+ConnectionClass connection {
+id 18441
+port 5
+}
+ConnectionClass connection {
+id 21513
+port 5
+}
+ConnectionClass connection {
+id 24585
+port 5
+}
+}
+}
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 1037
+port 16
+}
+}
+}
+ConnectionsClass connections {
+id 2
+links {
+ConnectionClass connection {
+id 2061
+port 39
+}
+}
+}
+}
+pi { 7 0 }
+pu { 6 0 }
+}
+AuxOutClass {
+id 26653
+name "RoomReverb1"
+tl -140 1100
+version 5
+OSPort 301063
+ins {
+ConnectionsClass connections {
+id 0
+links {
+ConnectionClass connection {
+id 9225
+port 5
+}
+ConnectionClass connection {
+id 12297
+port 5
+}
+ConnectionClass connection {
+id 15369
+port 5
+}
+ConnectionClass connection {
+id 18441
+port 5
+}
+ConnectionClass connection {
+id 21513
+port 5
+}
+ConnectionClass connection {
+id 24585
+port 5
+}
+}
+}
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 1037
+port 18
+}
+}
+}
+ConnectionsClass connections {
+id 2
+links {
+ConnectionClass connection {
+id 2061
+port 39
+}
+}
+}
+}
+pi { 7 0 }
+pu { 6 0 }
+}
+AuxOutClass {
+id 27677
+name "RoomReverb2"
+tl 140 1320
+version 5
+OSPort 302087
+ins {
+ConnectionsClass connections {
+id 0
+links {
+ConnectionClass connection {
+id 9225
+port 5
+}
+ConnectionClass connection {
+id 12297
+port 5
+}
+ConnectionClass connection {
+id 15369
+port 5
+}
+ConnectionClass connection {
+id 18441
+port 5
+}
+ConnectionClass connection {
+id 21513
+port 5
+}
+ConnectionClass connection {
+id 24585
+port 5
+}
+}
+}
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 1037
+port 20
+}
+}
+}
+ConnectionsClass connections {
+id 2
+links {
+ConnectionClass connection {
+id 2061
+port 39
+}
+}
+}
+}
+pi { 7 0 }
+pu { 6 0 }
+}
+AuxOutClass {
+id 28701
+name "RoomReverb3"
+tl -700 1320
+version 5
+OSPort 195591
+ins {
+ConnectionsClass connections {
+id 0
+links {
+ConnectionClass connection {
+id 9225
+port 5
+}
+ConnectionClass connection {
+id 12297
+port 5
+}
+ConnectionClass connection {
+id 15369
+port 5
+}
+ConnectionClass connection {
+id 18441
+port 5
+}
+ConnectionClass connection {
+id 21513
+port 5
+}
+ConnectionClass connection {
+id 24585
+port 5
+}
+}
+}
+ConnectionsClass connections {
+id 1
+links {
+ConnectionClass connection {
+id 1037
+port 22
+}
+}
+}
+}
+pi { 3 0 }
+pu { 2 0 }
+}
+}
+mixers {
+MixerClass {
+id 6155
+name "Output"
+tl -420 1320
+version 4
+res "{B764D803219C775E}Sounds/FinalMix.afm"
+path "{B764D803219C775E}Sounds/FinalMix.afm"
+ins {
+ConnectionsClass connections {
+id 79879
+links {
+ConnectionClass connection {
+id 9225
+port 65
+}
+ConnectionClass connection {
+id 12297
+port 65
+}
+ConnectionClass connection {
+id 15369
+port 65
+}
+ConnectionClass connection {
+id 18441
+port 65
+}
+ConnectionClass connection {
+id 21513
+port 65
+}
+ConnectionClass connection {
+id 24585
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 300039
+links {
+ConnectionClass connection {
+id 25629
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 301063
+links {
+ConnectionClass connection {
+id 26653
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 302087
+links {
+ConnectionClass connection {
+id 27677
+port 65
+}
+}
+}
+ConnectionsClass connections {
+id 195591
+links {
+ConnectionClass connection {
+id 28701
+port 65
+}
+}
+}
+}
+}
+}
+}

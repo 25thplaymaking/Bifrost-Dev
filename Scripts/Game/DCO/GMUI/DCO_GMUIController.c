@@ -52,6 +52,10 @@ class DCO_GMUIController
 		return s_Instance != null && s_Instance.m_bNativePropertiesOpen;
 	}
 
+	static void CancelPropertySession()
+	{
+		if (s_Instance && s_Instance.m_Scenario) s_Instance.m_Scenario.CancelPropertySession();
+	}
 	static bool ShouldHandoffNativeProperties()
 	{
 		return s_Instance && s_Instance.m_bBuilt && s_Instance.m_Scenario && s_Instance.m_Scenario.CanOwnPropertySession();

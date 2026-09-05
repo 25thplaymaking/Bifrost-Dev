@@ -1,0 +1,54 @@
+GenericEntity {
+ ID "DCA6090560000001"
+ components {
+  DCO_GMMissionInteractionComponent "{DCA6090560000002}" {
+   m_iKind 2
+   m_bStandalone 1
+  }
+  ActionsManagerComponent "{DCA6090560000010}" {
+   ActionContexts {
+    UserActionContext "{DCA6090560000011}" {
+     ContextName "default"
+     Position PointInfo "{DCA6090560000012}" {}
+     Radius 20
+    }
+   }
+   additionalActions {
+    DCO_UseMissionInteractionAction "{DCA6090560000013}" {
+     ParentContextList { "default" }
+     UIInfo UIInfo "{DCA6090560000014}" { Name "Travel" }
+    }
+   }
+  }
+  SCR_EditableEntityVisibilityChildComponent "{DCA6090560000004}" {
+   m_State 96
+  }
+  SCR_EditableSystemComponent "{DCA6090560000005}" {
+   m_EntityType SYSTEM
+   m_UIInfo SCR_EditableEntityUIInfo "{DCA6090560000006}" {
+    Name "Teleporter"
+    Description "Place two points and double-click each to give them the same link name. Configure entry mode, radius and delay. Move or delete them with normal GM controls."
+    Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
+    m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
+    m_aAuthoredLabels {
+     ENTITYTYPE_SYSTEM
+    }
+    m_EntityBudgetCost {
+     SCR_EntityBudgetValue "{DCA6090560000007}" {
+      m_BudgetType SYSTEMS
+      m_Value 1
+     }
+    }
+   }
+   m_bAutoRegister ALWAYS
+   m_bStatic 0
+   m_Flags 67
+  }
+  Hierarchy "{DCA6090560000008}" {
+  }
+  RplComponent "{DCA6090560000003}" {
+   "Rpl State Override" Runtime
+   Streamable Disabled
+  }
+ }
+}

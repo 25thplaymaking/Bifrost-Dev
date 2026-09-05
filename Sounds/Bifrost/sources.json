@@ -1,0 +1,80 @@
+[
+  {
+    "name": "crowd",
+    "author": "Ev-Dawg",
+    "source": "https://freesound.org/people/Ev-Dawg/sounds/435515/",
+    "preview": "https://cdn.freesound.org/previews/435/435515_1772601-hq.mp3",
+    "licence": "CC0-1.0",
+    "source_sha256": "de54d0a4d141828a721be84e1a7f76bd892d3d0a44b71d932e67fb2032dbaee5",
+    "output_sha256": "2db98c83c6a96fe47fa4d87b6e647e84fd737c859073175056da48b7e471f9c1",
+    "duration": 128.87733333333333,
+    "format": "48 kHz mono PCM16 WAV",
+    "source_format": "public high-quality MP3 preview",
+    "guid": "DCA6090580000001"
+  },
+  {
+    "name": "talking",
+    "author": "szalonegacie",
+    "source": "https://freesound.org/people/szalonegacie/sounds/232174/",
+    "preview": "https://cdn.freesound.org/previews/232/232174_823913-hq.mp3",
+    "licence": "CC0-1.0",
+    "source_sha256": "2a3bec96b514a194a00129d9910f4bce4e67cd49e80f371e03e30f7cfbb0ddda",
+    "output_sha256": "29c624e44f1b290dcbe656311baa292d9f25b54509e7bd03cc3c0dddb782d382",
+    "duration": 68.79454166666666,
+    "format": "48 kHz mono PCM16 WAV",
+    "source_format": "public high-quality MP3 preview",
+    "guid": "DCA6090580000002"
+  },
+  {
+    "name": "barking",
+    "author": "CmdRobot",
+    "source": "https://freesound.org/people/CmdRobot/sounds/439535/",
+    "preview": "https://cdn.freesound.org/previews/439/439535_214099-hq.mp3",
+    "licence": "CC0-1.0",
+    "source_sha256": "f4ea1776a22da5b7477d3697c8c57a6293c1fd659069914c4b798c414e34b5ce",
+    "output_sha256": "5560b1e0c84844cb57455df35092436df567b459d3f112ab9e6be0c6c0175c2d",
+    "duration": 14.12,
+    "format": "48 kHz mono PCM16 WAV",
+    "source_format": "public high-quality MP3 preview",
+    "guid": "DCA6090580000003"
+  },
+  {
+    "name": "shouting",
+    "author": "WelvynZPorterSamples",
+    "source": "https://freesound.org/people/WelvynZPorterSamples/sounds/621341/",
+    "preview": "https://cdn.freesound.org/previews/621/621341_13749321-hq.mp3",
+    "licence": "CC0-1.0",
+    "source_sha256": "6b9751ba0d5ef39dfbfd8d31450a7b8c5c97f9d26ad40b106b478110319f43e2",
+    "output_sha256": "08a9162309e09750d1c74b85577aa3fdcd051721752aa333da4ef153aa7fdb4b",
+    "duration": 7.722791666666667,
+    "format": "48 kHz mono PCM16 WAV",
+    "source_format": "public high-quality MP3 preview",
+    "guid": "DCA6090580000004"
+  },
+  {
+    "name": "battle",
+    "author": "qubodup",
+    "source": "https://freesound.org/people/qubodup/sounds/188839/",
+    "preview": "https://cdn.freesound.org/previews/188/188839_71257-hq.mp3",
+    "licence": "CC0-1.0",
+    "source_sha256": "2e7fa35dcb7d4378cfc4fec7c5c06297f4d75643dbfcad679a7a51a1754ce8eb",
+    "output_sha256": "ad507e7598549823f4451377b58d0aedfcbf909070fcf40da77f287143809426",
+    "duration": 35.8320625,
+    "format": "48 kHz mono PCM16 WAV",
+    "source_format": "public high-quality MP3 preview",
+    "guid": "DCA6090580000005"
+  },
+  {
+    "name": "rifle",
+    "author": "qubodup",
+    "source": "https://freesound.org/people/qubodup/sounds/162403/",
+    "preview": "https://cdn.freesound.org/previews/162/162403_71257-hq.mp3",
+    "licence": "CC0-1.0",
+    "source_sha256": "34caff03fff583c809cc9d29605bdf159abb94a209f10f0230cc0cff7c68f9b0",
+    "output_sha256": "131305b4471039c36e3acec53318d8e66a41914af71c29d6f937eef1252dad8c",
+    "duration": 0.9351041666666666,
+    "format": "48 kHz mono PCM16 WAV",
+    "source_format": "public high-quality MP3 preview",
+    "guid": "DCA6090580000006"
+  }
+]

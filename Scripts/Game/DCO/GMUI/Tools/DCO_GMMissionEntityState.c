@@ -3,6 +3,43 @@ modded class SCR_EditableEntityComponent
 	[RplProp(onRplName: "DCO_ApplyMissionScale")]
 	protected float m_fDCO_MissionScale;
 	protected bool m_bDCO_ScaleOwnsPostFrame;
+	[RplProp()] protected float m_fDCO_MovementFactor;
+	protected ref map<HitZone, float> m_DCO_BaseHealth;
+	bool DCO_HasMissionScale() { return m_fDCO_MissionScale > 0; }
+	float DCO_GetMovementFactor()
+	{
+		if (m_fDCO_MovementFactor > 0) return m_fDCO_MovementFactor;
+		return 1;
+	}
+	bool DCO_SetMovementFactor(float factor)
+	{
+		if (!Replication.IsServer() || !(factor >= 0.01 && factor <= 100)) return false;
+		m_fDCO_MovementFactor = factor;
+		Replication.BumpMe();
+		return true;
+	}
+	protected void DCO_ScaleHealth(float scale)
+	{
+		if (!Replication.IsServer() || !ChimeraCharacter.Cast(GetOwner())) return;
+		DamageManagerComponent damage = DamageManagerComponent.Cast(GetOwner().FindComponent(DamageManagerComponent));
+		if (!damage) return;
+		array<HitZone> zones = {};
+		damage.GetAllHitZones(zones);
+		HitZone rootZone = damage.GetDefaultHitZone();
+		if (rootZone && !zones.Contains(rootZone)) zones.Insert(rootZone);
+		if (!m_DCO_BaseHealth) m_DCO_BaseHealth = new map<HitZone, float>();
+		foreach (HitZone zone : zones)
+		{
+			if (!zone) continue;
+			float baseHealth;
+			if (!m_DCO_BaseHealth.Find(zone, baseHealth))
+			{
+				baseHealth = zone.GetMaxHealth();
+				m_DCO_BaseHealth.Insert(zone, baseHealth);
+			}
+			zone.SetMaxHealth(baseHealth * scale, ESetMaxHealthFlags.SCALED);
+		}
+	}
 	[RplProp(onRplName: "DCO_ApplyMissionInvincible")]
 	protected int m_iDCO_MissionInvincible;
 
@@ -19,6 +56,7 @@ modded class SCR_EditableEntityComponent
 			return false;
 		}
 		m_fDCO_MissionScale = scale;
+		DCO_ScaleHealth(scale);
 		DCO_ApplyMissionScale();
 		Replication.BumpMe();
 		return true;
@@ -385,5 +423,140 @@ class DCO_TerrainEnabledEditorAttribute : SCR_BaseEditorAttribute
 		if (!var || !Replication.IsServer() || !DCO_GMRights.Allow(playerID, "Terrain hide enabled")) return;
 		DCO_GMTerrainAreaComponent area = GetArea(item);
 		if (area) area.SetEnabled(var.GetBool());
+	}
+}
+
+modded class SCR_CharacterControllerComponent
+{
+	override void OnPrepareControls(IEntity owner, ActionManager am, float dt, bool player)
+	{
+		super.OnPrepareControls(owner, am, dt, player);
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(owner.FindComponent(SCR_EditableEntityComponent));
+		if (editable && editable.DCO_HasMissionScale())
+			OverrideMaxSpeed(Math.Clamp(editable.DCO_GetMovementFactor() * owner.GetScale(), 0.01, 1));
+	}
+	override void OnApplyControls(IEntity owner, float timeSlice)
+	{
+		super.OnApplyControls(owner, timeSlice);
+		DCO_AssistMovement(owner, timeSlice);
+	}
+	protected void DCO_AssistMovement(IEntity owner, float timeSlice)
+	{
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(owner.FindComponent(SCR_EditableEntityComponent));
+		if (!editable || !editable.DCO_HasMissionScale()) return;
+		float factor = Math.Clamp(editable.DCO_GetMovementFactor() * owner.GetScale(), 0.01, 100);
+		if (factor <= 1 || timeSlice <= 0) return;
+		RplComponent rpl = RplComponent.Cast(owner.FindComponent(RplComponent));
+		// Player prediction and server-owned AI each apply the assistance only on their simulation owner.
+		if (rpl && !rpl.IsOwner()) return;
+		if (!rpl && !Replication.IsServer()) return;
+		CharacterAnimationComponent animation = GetAnimationComponent();
+		if (!animation || animation.PhysicsIsFalling() || animation.PhysicsIsLinked() || animation.IsRagdollActive()) return;
+		CharacterCommandHandlerComponent commands = animation.GetCommandHandler();
+		if (!commands || !commands.GetCommandMove() || IsDead() || IsUnconscious() || IsChangingStance()) return;
+		CompartmentAccessComponent access = CompartmentAccessComponent.Cast(owner.FindComponent(CompartmentAccessComponent));
+		if (access && access.IsInCompartment()) return;
+		vector velocity = GetMovementVelocity();
+		velocity[1] = 0;
+		float speed = velocity.Length();
+		if (speed < 0.05 || GetMovementInput().LengthSq() < 0.001) return;
+		float extraSpeed = Math.Max(0, Math.Min(speed * factor, 35) - speed);
+		vector displacement = velocity.Normalized() * extraSpeed * Math.Min(timeSlice, 0.05);
+		if (displacement.LengthSq() < 0.000001) return;
+		vector mins, maxs;
+		if (!animation.GetCollisionMinMax(GetStance(), mins, maxs)) return;
+		float scale = owner.GetScale();
+		float radius = Math.Max(Math.Max(Math.AbsFloat(mins[0]), Math.AbsFloat(maxs[0])), Math.Max(Math.AbsFloat(mins[2]), Math.AbsFloat(maxs[2]))) * scale;
+		TraceBox trace = new TraceBox();
+		trace.Start = owner.GetOrigin();
+		trace.End = trace.Start + displacement;
+		trace.Mins = Vector(-radius, mins[1] * scale + 0.05, -radius);
+		trace.Maxs = Vector(radius, maxs[1] * scale, radius);
+		trace.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
+		trace.TargetLayers = EPhysicsLayerDefs.Character;
+		trace.Exclude = owner;
+		float fraction = owner.GetWorld().TraceMove(trace, null);
+		float distance = displacement.Length();
+		if (fraction < 1) fraction = Math.Max(0, fraction - Math.Min(0.02, distance) / distance);
+		if (fraction <= 0) return;
+		owner.SetOrigin(trace.Start + displacement * fraction);
+		// Keep the kinematic body aligned without a teleport broadcast on every frame.
+		OnTransformReset(true, GetVelocity());
+	}
+
+}
+
+modded class CharacterCamera3rdPersonBase
+{
+	override void OnUpdate(float pDt, out ScriptedCameraItemResult pOutResult)
+	{
+		super.OnUpdate(pDt, pOutResult);
+		if (!m_OwnerCharacter) return;
+		float scale = m_OwnerCharacter.GetScale();
+		if (float.AlmostEqual(scale, 1, 0.0001)) return;
+		// Keep the clipping plane appropriate to the character's size.
+		pOutResult.m_fNearPlane = Math.Clamp(0.04 * scale, 0.002, 0.2);
+	}
+}
+
+modded class SCR_CharacterCameraHandlerComponent
+{
+	override void CollisionSolver(float pDt, inout ScriptedCameraItemResult pOutResult, inout vector resCamTM[4], bool isKeyframe)
+	{
+		ChimeraCharacter owner = ChimeraCharacter.Cast(pOutResult.m_pOwner);
+		if (!owner || float.AlmostEqual(owner.GetScale(), 1, 0.0001) || !Is3rdPersonView() || owner.IsInVehicle() || pOutResult.m_fPositionModelSpace != 1 || pOutResult.m_pWSAttachmentReference)
+		{
+			super.CollisionSolver(pDt, pOutResult, resCamTM, isKeyframe);
+			return;
+		}
+		float scale = owner.GetScale();
+		vector ownerTM[4], rotationTM[4], localCamera[4];
+		owner.GetWorldTransform(ownerTM);
+		Math3D.MatrixCopy(ownerTM, rotationTM);
+		for (int axis = 0; axis < 3; axis++) rotationTM[axis].Normalize();
+		Math3D.MatrixCopy(pOutResult.m_CameraTM, localCamera);
+		vector headingRotation[4];
+		Math3D.MatrixIdentity4(headingRotation);
+		if (pOutResult.m_fUseHeading > 0)
+		{
+			vector localRotation[4], heading[4];
+			owner.GetLocalTransform(localRotation);
+			for (int index = 0; index < 3; index++) localRotation[index].Normalize();
+			localRotation[3] = vector.Zero;
+			Math3D.AnglesToMatrix(Vector(-pOutResult.m_fHeading * Math.RAD2DEG, 0, 0), heading);
+			Math3D.MatrixInvMultiply4(localRotation, heading, headingRotation);
+			float rotation[4], blended[4], identity[4] = {0, 0, 0, 1};
+			Math3D.MatrixToQuat(headingRotation, rotation);
+			Math3D.QuatLerp(blended, identity, rotation, pOutResult.m_fUseHeading);
+			Math3D.AnglesToMatrix(Math3D.QuatToAngles(blended), headingRotation);
+			Math3D.MatrixMultiply4(headingRotation, localCamera, localCamera);
+		}
+		vector worldCamera[4];
+		Math3D.MatrixMultiply4(rotationTM, localCamera, worldCamera);
+		worldCamera[3] = localCamera[3].Multiply4(ownerTM);
+		vector boom = pOutResult.m_vBacktraceDir.Multiply3(headingRotation).Multiply3(rotationTM);
+		boom = vector.Lerp(worldCamera[2], boom, pOutResult.m_fUseBacktraceDir).Normalized();
+		vector pivot = worldCamera[3];
+		vector desired = pivot - boom * pOutResult.m_fDistance * scale;
+		if (pOutResult.m_bAllowCollisionSolver && !isKeyframe)
+		{
+			TraceSphere trace = new TraceSphere();
+			trace.Radius = Math.Clamp(0.06 * scale, 0.005, 0.5);
+			trace.Flags = TraceFlags.WORLD | TraceFlags.ENTS;
+			trace.LayerMask = TRACE_LAYER_CAMERA;
+			trace.Exclude = owner;
+			trace.Start = pivot - worldCamera[0] * pOutResult.m_fShoulderDist * scale;
+			trace.End = pivot;
+			float side = ChimeraCharacter.TraceMoveWithoutCharacters(owner.GetWorld(), trace);
+			pivot = vector.Lerp(trace.Start, trace.End, Math.Max(0, side - 0.01));
+			desired = pivot - boom * pOutResult.m_fDistance * scale;
+			trace.Start = pivot;
+			trace.End = desired;
+			float back = ChimeraCharacter.TraceMoveWithoutCharacters(owner.GetWorld(), trace);
+			desired = vector.Lerp(pivot, desired, Math.Max(0, back - 0.01));
+		}
+		// Inverse rigid transforms require unit axes; apply size only to translation.
+		Math3D.MatrixCopy(localCamera, resCamTM);
+		resCamTM[3] = desired.InvMultiply4(rotationTM) / scale;
 	}
 }

@@ -24,7 +24,7 @@ Open the project in Arma Reforger Workbench or install the published addon throu
 
 ## Release state
 
-Current release: **1.0.29**. GitHub source is prepared for the operator's Bohemia Workshop upload under addon GUID `6A0C2D6CE9809C6E`. Compilation and static replication review passed; dedicated-server, remote-client, join-in-progress, and final UI testing remain with the operator. See [release evidence and upload handoff](docs/RELEASE_1.0.29.md) and [docs/TESTING.md](docs/TESTING.md).
+Current release: **1.0.30** (prepared locally; not yet published). The clean candidate is prepared for the operator's Bohemia Workshop upload under addon GUID `6A0C2D6CE9809C6E`. Compilation and static integrity checks passed. The operator confirmed local movement-speed and teleporter behavior and cleared the reported UI delay. Dedicated-server, remote-client and join-in-progress acceptance remain separate. See [release evidence and upload handoff](docs/RELEASE_1.0.30.md) and [docs/TESTING.md](docs/TESTING.md).
 
 ## License and credits
 

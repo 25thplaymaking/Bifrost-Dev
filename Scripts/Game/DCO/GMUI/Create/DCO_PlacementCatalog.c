@@ -218,6 +218,7 @@ class DCO_PlacementCatalog
 	{
 		for (int tool = DCO_GMMissionTool.RESTORE; tool <= DCO_GMMissionTool.TARGET; tool++)
 		{
+			if (tool == DCO_GMMissionTool.TELEPORTER) continue;
 			DCO_CatalogEntry entry = new DCO_CatalogEntry();
 			entry.m_Prefab = MISSION_TOOL_PREFIX + tool.ToString();
 			entry.m_iMissionTool = tool;
