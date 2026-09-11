@@ -1,7 +1,7 @@
 OverlayWidgetClass "{AB21050000000001}" {
- Name "GRSA_ScreenKits"
+ Name "BIA_ScreenKits"
  components {
-  GRSA_KitsScreen "{AB21050000000002}" {
+  BIA_KitsScreen "{AB21050000000002}" {
   }
  }
  {
@@ -83,7 +83,7 @@ OverlayWidgetClass "{AB21050000000001}" {
           Padding 0 0 0 10
          }
          components {
-          GRSA_ThemedButtonTextComponent "{AB2105000000001A}" {
+          BIA_ThemedButtonTextComponent "{AB2105000000001A}" {
            m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
            m_BackgroundDefault 0.32 0.16 0.035 1
            m_BackgroundHovered 0.851 0.537 0.169 1
@@ -153,7 +153,7 @@ OverlayWidgetClass "{AB21050000000001}" {
          components {
           SCR_GamepadScrollComponent "{AB21050000000027}" {
           }
-          GRSA_SmoothScrollComponent "{AB21050000000028}" {
+          BIA_SmoothScrollComponent "{AB21050000000028}" {
           }
          }
          style Small

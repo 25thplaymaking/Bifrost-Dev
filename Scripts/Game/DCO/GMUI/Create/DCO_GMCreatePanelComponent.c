@@ -1614,6 +1614,9 @@ class DCO_GMCreatePanelComponent
 		m_LastSearch = cur;
 		m_Search = cur;
 		Refresh();
+		int resultRows;
+		if (m_QueryRows) resultRows = m_QueryRows.Count();
+		DCO_TestDiagnostics.Event("gm.search", string.Format("query=%1 rows=%2", cur, resultRows));
 	}
 
 	// Keeps the catalog row aligned with the targeting tool even when targeting

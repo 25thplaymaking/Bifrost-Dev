@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 import wave
+import argparse
 
 ROOT = Path(__file__).resolve().parents[1]
 SOUNDS = ROOT / "Sounds/Bifrost"
@@ -22,6 +23,9 @@ def balanced(text):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--final-mix", type=Path, help="Extracted current-game Sounds/FinalMix.afm")
+    args = parser.parse_args()
     entries = json.loads((SOUNDS / "sources.json").read_text())
     assert {e["name"] for e in entries} == {"crowd", "talking", "barking", "shouting", "battle", "rifle"}
     for entry in entries:
@@ -46,6 +50,11 @@ def main():
     assert graph.count('"Infinite loop" 0') == 6, "Script controls looping; banks must finish naturally"
     assert graph.count('"Loop count" 1') == 6, "Each native event must play one recording"
     assert re.search(r'\bfrequency\s*{', graph) and re.search(r'\bauxOuts\s*{', graph)
+    if args.final_mix:
+        mixer = args.final_mix.read_text()
+        buses = set(re.findall(r'OBusClass[^{}]*\{\s*id\s+(\d+)', mixer))
+        outputs = set(re.findall(r'\b(?:OSPort|outStatePort)\s+(\d+)', graph))
+        assert outputs <= buses, f"Audio outputs missing from current game mixer: {outputs - buses}"
     signal_links = re.findall(r'IOPConnectionClass[^{}]*\{\s*port\s+\d+\s+conn\s*\{\s*ConnectionsClass[^{}]*\{\s*id\s+(\d+)', graph)
     assert len(signal_links) == 4 and set(signal_links) == {"9"}, "Reverb inputs must use native signal connections, not constant connections"
     for file in SOUNDS.glob("*.meta"):

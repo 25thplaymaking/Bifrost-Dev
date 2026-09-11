@@ -68,7 +68,7 @@ class DCO_VehiclePreviewStage
 	protected static const float TRACK_HORIZONTAL_RANGE = 1.6;
 	protected static const float TRACK_VERTICAL_RANGE = 1.15;
 
-	protected ref GRSA_StageCore m_Core;
+	protected ref BIA_StageCore m_Core;
 	protected SCR_BasePreviewEntity m_WorkshopPreview;
 	protected SCR_BasePreviewEntity m_Vehicle;
 	protected ResourceName m_VehiclePrefab;
@@ -93,7 +93,7 @@ class DCO_VehiclePreviewStage
 	void DCO_VehiclePreviewStage()
 	{
 		m_bNight = IsScenarioNight();
-		m_Core = new GRSA_StageCore();
+		m_Core = new BIA_StageCore();
 		m_Core.SetAutomaticHDR(false);
 		m_Core.SetCameraEVAdjustment(0);
 		m_Core.SetStudioLightingAllowed(false);

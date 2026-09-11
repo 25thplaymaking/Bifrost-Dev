@@ -354,7 +354,7 @@ class DCO_GMGizmo
 	// LMB down: if the cursor is over a handle of the current target, begin a drag.
 	void OnLmbDown(float value, EActionTrigger reason)
 	{
-		if (DCO_GMUIController.IsNativePropertiesOpen())
+		if (DCO_GMUIController.IsModalActive())
 			return;
 		if (!s_bPreciseMode)
 			return;	// precise mode off -> gizmo is inert, engine drag owns the LMB.

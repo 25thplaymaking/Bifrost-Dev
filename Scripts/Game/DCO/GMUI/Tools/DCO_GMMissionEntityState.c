@@ -1,8 +1,59 @@
+// Overlapping hidden parents and children share the original local visibility.
+class DCO_GMMissionHiddenPart
+{
+	protected static ref map<IEntity, ref DCO_GMMissionHiddenPart> s_Parts;
+	IEntity m_Entity;
+	protected int m_iUsers;
+	protected bool m_bVisible;
+
+	static DCO_GMMissionHiddenPart Find(IEntity entity)
+	{
+		if (!s_Parts) return null;
+		return s_Parts.Get(entity);
+	}
+
+	static DCO_GMMissionHiddenPart Acquire(IEntity entity)
+	{
+		if (!s_Parts) s_Parts = new map<IEntity, ref DCO_GMMissionHiddenPart>();
+		DCO_GMMissionHiddenPart part = s_Parts.Get(entity);
+		if (!part)
+		{
+			part = new DCO_GMMissionHiddenPart();
+			part.m_Entity = entity;
+			part.m_bVisible = (entity.GetFlags() & EntityFlags.VISIBLE) != 0;
+			s_Parts.Insert(entity, part);
+		}
+		part.m_iUsers++;
+		return part;
+	}
+
+	static void Release(DCO_GMMissionHiddenPart part)
+	{
+		if (!part) return;
+		part.m_iUsers--;
+		if (part.m_iUsers > 0) return;
+		if (part.m_Entity)
+		{
+			if (part.m_bVisible) part.m_Entity.SetFlags(EntityFlags.VISIBLE, false);
+			else part.m_Entity.ClearFlags(EntityFlags.VISIBLE, false);
+		}
+		// Find by value as deleted entities no longer provide a usable map key.
+		for (int i = s_Parts.Count() - 1; i >= 0; i--)
+		{
+			if (s_Parts.GetElement(i) == part) s_Parts.RemoveElement(i);
+		}
+		if (s_Parts.Count() == 0) s_Parts = null;
+	}
+}
+
 modded class SCR_EditableEntityComponent
 {
 	[RplProp(onRplName: "DCO_ApplyMissionScale")]
 	protected float m_fDCO_MissionScale;
-	protected bool m_bDCO_ScaleOwnsPostFrame;
+	protected int m_iDCO_PresentationOwnedEvents;
+	[RplProp(onRplName: "DCO_ApplyMissionVisibility")]
+	protected bool m_bDCO_MissionHidden;
+	protected ref array<ref DCO_GMMissionHiddenPart> m_DCO_HiddenParts;
 	[RplProp()] protected float m_fDCO_MovementFactor;
 	protected ref map<HitZone, float> m_DCO_BaseHealth;
 	bool DCO_HasMissionScale() { return m_fDCO_MissionScale > 0; }
@@ -45,6 +96,7 @@ modded class SCR_EditableEntityComponent
 
 	bool DCO_SetMissionScale(float scale)
 	{
+		DCO_TestDiagnostics.Event("gm.scale.request", string.Format("value=%1", scale));
 		if (!Replication.IsServer() || !DCO_IsMissionScaleValid(scale) || !DCO_CanScale(GetOwner()))
 			return false;
 		IEntity entity = GetOwner();
@@ -59,6 +111,49 @@ modded class SCR_EditableEntityComponent
 		DCO_ScaleHealth(scale);
 		DCO_ApplyMissionScale();
 		Replication.BumpMe();
+		return true;
+	}
+
+	void DCO_ReceiveMissionScale(float scale)
+	{
+		if (Replication.IsServer() || !DCO_IsMissionScaleValid(scale) || !GetOwner())
+			return;
+		RplId diagnosticId;
+		IsReplicated(diagnosticId);
+		DCO_TestDiagnostics.Event("gm.scale.receive", string.Format("target=%1 value=%2", diagnosticId, scale));
+		m_fDCO_MissionScale = scale;
+		DCO_ApplyMissionScale();
+	}
+
+	override bool RplSave(ScriptBitWriter writer)
+	{
+		if (!super.RplSave(writer))
+			return false;
+		bool hasScale = m_fDCO_MissionScale > 0;
+		writer.WriteBool(hasScale);
+		if (hasScale)
+			writer.WriteFloat(m_fDCO_MissionScale);
+		return true;
+	}
+
+	override bool RplLoad(ScriptBitReader reader)
+	{
+		if (!super.RplLoad(reader))
+			return false;
+		bool hasScale;
+		if (!reader.ReadBool(hasScale))
+			return false;
+		if (!hasScale)
+		{
+			m_fDCO_MissionScale = 0;
+			return true;
+		}
+		if (!reader.ReadFloat(m_fDCO_MissionScale))
+			return false;
+		RplId diagnosticId;
+		IsReplicated(diagnosticId);
+		DCO_TestDiagnostics.Event("gm.scale.jip", string.Format("target=%1 value=%2", diagnosticId, m_fDCO_MissionScale));
+		DCO_ApplyMissionScale();
 		return true;
 	}
 
@@ -94,30 +189,126 @@ modded class SCR_EditableEntityComponent
 	protected void DCO_ApplyMissionScale()
 	{
 		IEntity entity = GetOwner();
-		if (!entity || m_fDCO_MissionScale <= 0)
-			return;
+		if (!entity || m_fDCO_MissionScale <= 0) return;
+		RplId diagnosticId;
+		IsReplicated(diagnosticId);
+		DCO_TestDiagnostics.Event("gm.scale.apply", string.Format("target=%1 requested=%2 before=%3", diagnosticId, m_fDCO_MissionScale, entity.GetScale()));
 		entity.SetScale(m_fDCO_MissionScale);
-		if (m_fDCO_MissionScale != 1.0)
+		DCO_TestDiagnostics.Event("gm.scale.result", string.Format("target=%1 actual=%2", diagnosticId, entity.GetScale()), !float.AlmostEqual(entity.GetScale(), m_fDCO_MissionScale, 0.0001));
+		DCO_UpdatePresentationEvents();
+	}
+
+	bool DCO_IsMissionHidden() { return m_bDCO_MissionHidden; }
+
+	bool DCO_SetMissionHidden(bool hidden)
+	{
+		if (!Replication.IsServer() || !DCO_CanScale(GetOwner())) return false;
+		m_bDCO_MissionHidden = hidden;
+		DCO_ApplyMissionVisibility();
+		Replication.BumpMe();
+		return true;
+	}
+
+	protected void DCO_UpdatePresentationEvents()
+	{
+		IEntity entity = GetOwner();
+		if (!entity) return;
+		if ((m_fDCO_MissionScale > 0 && m_fDCO_MissionScale != 1.0) || m_bDCO_MissionHidden)
 		{
-			if (!(GetEventMask() & EntityEvent.POSTFRAME))
+			// FRAME keeps transformed entities active and their rendering bounds updated.
+			int required = EntityEvent.FRAME | EntityEvent.POSTFRAME;
+			m_iDCO_PresentationOwnedEvents |= required & ~GetEventMask();
+			SetEventMask(entity, required);
+		}
+		else if (m_iDCO_PresentationOwnedEvents)
+		{
+			ClearEventMask(entity, m_iDCO_PresentationOwnedEvents);
+			m_iDCO_PresentationOwnedEvents = 0;
+		}
+	}
+
+	protected void DCO_ApplyMissionVisibility()
+	{
+		RplId diagnosticId;
+		IsReplicated(diagnosticId);
+		DCO_TestDiagnostics.Event("gm.visibility.apply", string.Format("target=%1 hidden=%2", diagnosticId, m_bDCO_MissionHidden));
+		DCO_UpdateMissionVisibility();
+		DCO_UpdatePresentationEvents();
+	}
+
+	protected bool DCO_IsVisibilityPart(IEntity entity)
+	{
+		IEntity root = GetOwner();
+		while (entity)
+		{
+			if (entity == root) return true;
+			entity = entity.GetParent();
+		}
+		return false;
+	}
+
+	protected void DCO_HideVisibilityTree(IEntity entity)
+	{
+		if (!entity) return;
+		DCO_GMMissionHiddenPart part = DCO_GMMissionHiddenPart.Find(entity);
+		if (!part || !m_DCO_HiddenParts.Contains(part))
+			m_DCO_HiddenParts.Insert(DCO_GMMissionHiddenPart.Acquire(entity));
+		if (entity.GetFlags() & EntityFlags.VISIBLE) entity.ClearFlags(EntityFlags.VISIBLE, false);
+		IEntity child = entity.GetChildren();
+		while (child)
+		{
+			DCO_HideVisibilityTree(child);
+			child = child.GetSibling();
+		}
+	}
+
+	protected void DCO_UpdateMissionVisibility()
+	{
+		if (m_DCO_HiddenParts)
+		{
+			for (int i = m_DCO_HiddenParts.Count() - 1; i >= 0; i--)
 			{
-				SetEventMask(entity, EntityEvent.POSTFRAME);
-				m_bDCO_ScaleOwnsPostFrame = true;
+				DCO_GMMissionHiddenPart part = m_DCO_HiddenParts[i];
+				if (m_bDCO_MissionHidden && part.m_Entity && DCO_IsVisibilityPart(part.m_Entity)) continue;
+				DCO_GMMissionHiddenPart.Release(part);
+				m_DCO_HiddenParts.Remove(i);
 			}
 		}
-		else if (m_bDCO_ScaleOwnsPostFrame)
-		{
-			ClearEventMask(entity, EntityEvent.POSTFRAME);
-			m_bDCO_ScaleOwnsPostFrame = false;
-		}
+		if (!m_bDCO_MissionHidden) return;
+		if (!m_DCO_HiddenParts) m_DCO_HiddenParts = {};
+		// Catch equipment attached later and flags restored by character actions.
+		DCO_HideVisibilityTree(GetOwner());
+	}
+
+	protected void DCO_RetainMissionPresentation(IEntity owner)
+	{
+		if (!owner) return;
+		if (m_fDCO_MissionScale > 0 && !float.AlmostEqual(owner.GetScale(), m_fDCO_MissionScale, 0.0001))
+			owner.SetScale(m_fDCO_MissionScale);
+		if (m_bDCO_MissionHidden) DCO_UpdateMissionVisibility();
+	}
+
+	override void EOnFrame(IEntity owner, float timeSlice)
+	{
+		super.EOnFrame(owner, timeSlice);
+		DCO_RetainMissionPresentation(owner);
 	}
 
 	override void EOnPostFrame(IEntity owner, float timeSlice)
 	{
 		super.EOnPostFrame(owner, timeSlice);
-		// Animated and moving entities can replace their transform after the request.
-		if (owner && m_fDCO_MissionScale > 0 && !float.AlmostEqual(owner.GetScale(), m_fDCO_MissionScale, 0.0001))
-			owner.SetScale(m_fDCO_MissionScale);
+		DCO_RetainMissionPresentation(owner);
+	}
+
+	override void OnDelete(IEntity owner)
+	{
+		if (m_DCO_HiddenParts)
+		{
+			foreach (DCO_GMMissionHiddenPart part : m_DCO_HiddenParts)
+				DCO_GMMissionHiddenPart.Release(part);
+			m_DCO_HiddenParts = null;
+		}
+		super.OnDelete(owner);
 	}
 
 	bool DCO_SetMissionInvincible(bool enabled)

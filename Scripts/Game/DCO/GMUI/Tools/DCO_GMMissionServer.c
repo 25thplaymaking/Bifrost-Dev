@@ -86,7 +86,7 @@ class DCO_GMMissionServer
 		if (tool == DCO_GMMissionTool.INTEL || tool == DCO_GMMissionTool.TELEPORTER)
 			return ConfigureInteraction(tool, ids, options, title, body, result);
 		if (tool == DCO_GMMissionTool.SCALE)
-			return ApplyScale(ids, options[0], options[1], result);
+			return ApplyScale(controller, ids, options[0], options[1], result);
 		if (tool != DCO_GMMissionTool.INVINCIBLE && tool != DCO_GMMissionTool.NAMED && tool != DCO_GMMissionTool.REMOVE)
 			return false;
 		int applied;
@@ -143,7 +143,7 @@ class DCO_GMMissionServer
 		return applied > 0;
 	}
 
-	protected static bool ApplyScale(array<RplId> ids, float scale, float speed, out string result)
+	protected static bool ApplyScale(SCR_PlayerController controller, array<RplId> ids, float scale, float speed, out string result)
 	{
 		if (!SCR_EditableEntityComponent.DCO_IsMissionScaleValid(scale) || !(speed >= 0.01 && speed <= 100))
 		{
@@ -191,6 +191,9 @@ class DCO_GMMissionServer
 			if (target.DCO_SetMissionScale(scale))
 			{
 				if (ChimeraCharacter.Cast(target.GetOwner())) target.DCO_SetMovementFactor(speed);
+				RplId targetId;
+				if (controller && target.IsReplicated(targetId) && targetId.IsValid())
+					controller.DCO_BroadcastMissionScale(targetId, scale);
 				applied++;
 			}
 			else
@@ -454,6 +457,106 @@ class DCO_GMMissionServer
 
 modded class SCR_PlayerController
 {
+	protected ref map<RplId, float> m_DCO_PendingScales;
+	protected ref map<RplId, int> m_DCO_ScaleRetries;
+
+	void ~SCR_PlayerController()
+	{
+		if (GetGame())
+			GetGame().GetCallqueue().Remove(DCO_RetryMissionScales);
+	}
+
+	void DCO_BroadcastMissionScale(RplId targetId, float scale)
+	{
+		if (!Replication.IsServer() || !targetId.IsValid() || !SCR_EditableEntityComponent.DCO_IsMissionScaleValid(scale))
+			return;
+		PlayerManager playerManager = GetGame().GetPlayerManager();
+		if (!playerManager)
+			return;
+		array<int> players = {};
+		playerManager.GetPlayers(players);
+		int delivered;
+		foreach (int playerId : players)
+		{
+			SCR_PlayerController recipient = SCR_PlayerController.Cast(playerManager.GetPlayerController(playerId));
+			if (!recipient)
+				continue;
+			recipient.DCO_DeliverMissionScale(targetId, scale);
+			delivered++;
+		}
+		DCO_TestDiagnostics.Event("gm.scale.broadcast", string.Format("target=%1 value=%2 recipients=%3", targetId, scale, delivered));
+	}
+
+	protected void DCO_DeliverMissionScale(RplId targetId, float scale)
+	{
+		if (GetGame().GetPlayerController() == this)
+			DCO_RpcMissionScale(targetId, scale);
+		else
+			Rpc(DCO_RpcMissionScale, targetId, scale);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcMissionScale(RplId targetId, float scale)
+	{
+		if (Replication.IsServer())
+			return;
+		if (!targetId.IsValid() || !SCR_EditableEntityComponent.DCO_IsMissionScaleValid(scale))
+			return;
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(targetId));
+		if (editable && editable.GetOwner())
+		{
+			editable.DCO_ReceiveMissionScale(scale);
+			if (m_DCO_PendingScales)
+			{
+				m_DCO_PendingScales.Remove(targetId);
+				m_DCO_ScaleRetries.Remove(targetId);
+			}
+			return;
+		}
+
+		// Owner RPCs can arrive before the target has streamed into this client.
+		if (!m_DCO_PendingScales)
+		{
+			m_DCO_PendingScales = new map<RplId, float>();
+			m_DCO_ScaleRetries = new map<RplId, int>();
+		}
+		bool startRetry = m_DCO_PendingScales.IsEmpty();
+		m_DCO_PendingScales.Set(targetId, scale);
+		m_DCO_ScaleRetries.Set(targetId, 40);
+		if (startRetry)
+		{
+			GetGame().GetCallqueue().Remove(DCO_RetryMissionScales);
+			GetGame().GetCallqueue().CallLater(DCO_RetryMissionScales, 250, true);
+		}
+	}
+
+	protected void DCO_RetryMissionScales()
+	{
+		for (int i = m_DCO_PendingScales.Count() - 1; i >= 0; --i)
+		{
+			RplId targetId = m_DCO_PendingScales.GetKey(i);
+			SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(targetId));
+			if (editable && editable.GetOwner())
+			{
+				editable.DCO_ReceiveMissionScale(m_DCO_PendingScales.GetElement(i));
+				m_DCO_PendingScales.Remove(targetId);
+				m_DCO_ScaleRetries.Remove(targetId);
+				continue;
+			}
+			int remaining = m_DCO_ScaleRetries.Get(targetId) - 1;
+			if (remaining > 0)
+				m_DCO_ScaleRetries.Set(targetId, remaining);
+			else
+			{
+				DCO_TestDiagnostics.Event("gm.scale.unresolved", string.Format("target=%1 value=%2", targetId, m_DCO_PendingScales.GetElement(i)), true);
+				m_DCO_PendingScales.Remove(targetId);
+				m_DCO_ScaleRetries.Remove(targetId);
+			}
+		}
+		if (m_DCO_PendingScales.IsEmpty())
+			GetGame().GetCallqueue().Remove(DCO_RetryMissionScales);
+	}
+
 	bool DCO_TeleportMissionCharacter(ChimeraCharacter character, vector position)
 	{
 		if (!Replication.IsServer() || !character || GetControlledEntity() != character) return false;

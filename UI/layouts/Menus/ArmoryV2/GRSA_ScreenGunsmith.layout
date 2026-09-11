@@ -1,7 +1,7 @@
 OverlayWidgetClass "{AB21040000000001}" {
- Name "GRSA_ScreenGunsmith"
+ Name "BIA_ScreenGunsmith"
  components {
-  GRSA_GunsmithScreen "{AB21040000000002}" {
+  BIA_GunsmithScreen "{AB21040000000002}" {
   }
  }
  {
@@ -304,52 +304,6 @@ OverlayWidgetClass "{AB21040000000001}" {
           Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
          }
         }
-        HorizontalLayoutWidgetClass "{AB21040000000046}" {
-         Name "PositionRow"
-         Slot LayoutSlot "{AB21040000000047}" {
-          HorizontalAlign 3
-          Padding 8 0 8 8
-         }
-         "Is Visible" 0
-         {
-          TextWidgetClass "{AB21040000000048}" {
-           Name "PositionLabel"
-           Slot LayoutSlot "{AB21040000000049}" {
-            VerticalAlign 1
-            Padding 0 0 12 0
-           }
-           Color 0.72 0.76 0.81 1
-            Text "POSITION"
-            "Font Size" 14
-            "Min Font Size" 12
-           FontProperties FontProperties "{AB2104000000004A}" {
-            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
-           }
-          }
-          ButtonWidgetClass "{AB2104000000004B}" : "{4A41296C0E9A889F}UI/layouts/WidgetLibrary/WLib_Slider.layout" {
-           Name "PositionSlider"
-           Slot LayoutSlot "{AB2104000000004C}" {
-            VerticalAlign 1
-            SizeMode Fill
-            FillWeight 1
-           }
-          }
-          TextWidgetClass "{AB2104000000004D}" {
-           Name "PositionValue"
-           Slot LayoutSlot "{AB2104000000004E}" {
-            VerticalAlign 1
-            Padding 12 0 0 0
-           }
-           Color 0.88 0.91 0.94 1
-            Text ""
-            "Font Size" 14
-            "Min Font Size" 12
-           FontProperties FontProperties "{AB2104000000004F}" {
-            Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
-           }
-          }
-         }
-        }
         HorizontalLayoutWidgetClass "{AB2104000000003C}" {
          Name "BrowserClasses"
          Slot LayoutSlot "{AB2104000000003D}" {
@@ -376,7 +330,7 @@ OverlayWidgetClass "{AB21040000000001}" {
             }
             Clipping True
             components {
-             GRSA_CarouselComponent "{AB2104000000001C}" {
+             BIA_CarouselComponent "{AB2104000000001C}" {
               m_sContentName "CandidatesContentSize"
               m_sStartIndicatorName "CarouselStartIndicator"
               m_sEndIndicatorName "CarouselEndIndicator"
@@ -412,7 +366,7 @@ OverlayWidgetClass "{AB21040000000001}" {
            }
            "Z Order" 10
            components {
-            GRSA_ThemedButtonTextComponent "{AB21040000000054}" {
+            BIA_ThemedButtonTextComponent "{AB21040000000054}" {
              m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
              m_BackgroundDefault 0.003 0.0033 0.0037 0.92
              m_BackgroundHovered 0.851 0.537 0.169 1
@@ -484,7 +438,7 @@ OverlayWidgetClass "{AB21040000000001}" {
            }
            "Z Order" 10
            components {
-            GRSA_ThemedButtonTextComponent "{AB21040000000057}" {
+            BIA_ThemedButtonTextComponent "{AB21040000000057}" {
              m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
              m_BackgroundDefault 0.003 0.0033 0.0037 0.92
              m_BackgroundHovered 0.851 0.537 0.169 1
@@ -566,29 +520,67 @@ OverlayWidgetClass "{AB21040000000001}" {
    AllowWidthOverride 1
    WidthOverride 300
    {
-    ScrollLayoutWidgetClass "{AB21040000000040}" {
-     Name "HardpointRailScroll"
-     Slot LayoutSlot "{AB21040000000041}" {
+    VerticalLayoutWidgetClass "{AB21040000000207}" {
+     Name "HardpointRailColumn"
+     Slot LayoutSlot "{AB21040000000208}" {
       HorizontalAlign 3
       VerticalAlign 3
      }
-     components {
-      SCR_GamepadScrollComponent "{AB21040000000042}" {
-      }
-      GRSA_SmoothScrollComponent "{AB21040000000043}" {
-      }
-     }
-     style Small
      {
-      VerticalLayoutWidgetClass "{AB21040000000044}" {
-       Name "HardpointRailList"
-       Slot AlignableSlot "{AB21040000000045}" {
+      SizeLayoutWidgetClass "{AB21040000000200}" {
+       Name "ContentsAction"
+       Slot LayoutSlot "{AB21040000000202}" {
         HorizontalAlign 3
-        VerticalAlign 0
+        Padding 0 0 0 8
+       }
+       "Is Visible" 0
+       AllowHeightOverride 1
+       HeightOverride 58
+       {
+        ButtonWidgetClass "{AB21040000000201}" : "{AB205AD4E2000002}UI/layouts/Menus/ArmoryV2/GRSA_ShellTab.layout" {
+         Name "ContentsButton"
+         Slot LayoutSlot "{AB21040000000203}" {
+          HorizontalAlign 3
+          VerticalAlign 3
+         }
+        }
+       }
+      }
+      ScrollLayoutWidgetClass "{AB21040000000040}" {
+       Name "HardpointRailScroll"
+       Slot LayoutSlot "{AB21040000000041}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        SizeMode Fill
+        FillWeight 1
+       }
+       components {
+        SCR_GamepadScrollComponent "{AB21040000000042}" {
+        }
+        BIA_SmoothScrollComponent "{AB21040000000043}" {
+        }
+       }
+       style Small
+       {
+        VerticalLayoutWidgetClass "{AB21040000000044}" {
+         Name "HardpointRailList"
+         Slot AlignableSlot "{AB21040000000045}" {
+          HorizontalAlign 3
+          VerticalAlign 0
+         }
+        }
        }
       }
      }
     }
+   }
+  }
+  SizeLayoutWidgetClass "{AB21040000000204}" : "{6A4338ABF0020001}UI/layouts/Menus/ArmoryV2/GRSA_ItemListPanel.layout" {
+   Name "ItemListPanel"
+   Slot OverlayWidgetSlot "{AB21040000000205}" {
+    HorizontalAlign 0
+    VerticalAlign 3
+    Padding 24 24 0 24
    }
   }
   TextWidgetClass "{AB21040000000003}" {

@@ -234,9 +234,12 @@ class DCO_ScenarioOptionRow
 			float initialValue = m_Min;
 			if (sliderVar)
 				initialValue = sliderVar.GetFloat();
+			string suffix = "";
+			if (SCR_BloodEditorAttribute.Cast(m_Attribute))
+				suffix = "%";
 			m_Slider = new DCO_GMSlider();
 			m_Slider.Init(root, "DCO_OptionSliderTrack", "DCO_OptionSliderFill", "DCO_OptionSliderValue",
-				m_Min, m_Max, initialValue, "");
+				m_Min, m_Max, initialValue, suffix);
 			m_Slider.ConfigureScale(root, "DCO_OptionSliderThumb", "DCO_OptionSliderTick", "DCO_OptionSliderTickLabel", m_bIsTimeSlider, m_Step);
 			m_Slider.GetOnChange().Insert(OnSliderChanged);
 			GetGame().GetCallqueue().CallLater(RefreshSliderAfterLayout, 0, false);
@@ -314,13 +317,13 @@ class DCO_ScenarioOptionRow
 	protected void ResolveDataShape()
 	{
 		string layout = m_Attribute.GetLayout();
-		if (layout.Contains("Checkbox"))
+		if (layout.Contains("Checkbox") || layout.Contains("Override"))
 			m_Mode = MODE_BOOL;
 		else if (layout.Contains("MultiSelection"))
 			m_Mode = MODE_MULTI;
 		else if (layout.Contains("Slider"))
 			m_Mode = MODE_SLIDER;
-		else if (layout.Contains("Date.layout"))
+		else if (layout.Contains("Date"))
 			m_Mode = MODE_DATE;
 		else
 			m_Mode = MODE_ENUM;
@@ -355,7 +358,7 @@ class DCO_ScenarioOptionRow
 					string optionName = holder.GetName();
 					if (optionName.IsEmpty())
 						optionName = holder.GetDescription();
-					m_Options.Insert(optionName);
+					m_Options.Insert(CleanDescription(optionName));
 					m_OptionValues.Insert(holder.GetFloatValue());
 				}
 				continue;
@@ -401,8 +404,52 @@ class DCO_ScenarioOptionRow
 			}
 		}
 
-		if (m_Mode == MODE_SLIDER && m_SliderData && m_Step > 0)
+		if (layout.Contains("DropdownWithParam") && !m_Options.IsEmpty())
+		{
+			string param = m_Options[0];
+			m_Options.RemoveOrdered(0);
+			m_OptionValues.RemoveOrdered(0);
+			for (int p = 0; p < m_Options.Count(); p++)
+			{
+				m_Options[p] = WidgetManager.Translate(m_Options[p], param);
+				m_OptionValues[p] = p;
+			}
+		}
+
+		if (SCR_BloodEditorAttribute.Cast(m_Attribute))
+		{
+			m_Min = 0;
+			m_Max = 100;
+			m_Step = 1;
+			m_bUseWideSlider = true;
+		}
+		else if (layout.Contains("SliderVector"))
+		{
+			SCR_BaseEditorAttributeVar var = m_Attribute.GetVariableOrCopy();
+			m_Min = 0;
+			m_Max = 100;
+			if (var)
+				m_Max = var.GetVector()[1];
+			if (m_Max <= m_Min)
+				m_Max = 100;
+			m_Step = 1;
+			m_bUseWideSlider = true;
+		}
+		else if (m_Mode == MODE_SLIDER && m_SliderData && m_Step > 0)
+		{
 			m_bUseWideSlider = ((m_Max - m_Min) / m_Step) > WIDE_SLIDER_STEPS;
+		}
+		else if (m_Mode == MODE_SLIDER)
+		{
+			if (m_Max <= m_Min)
+			{
+				m_Min = 0;
+				m_Max = 100;
+			}
+			if (m_Step <= 0)
+				m_Step = 1;
+			m_bUseWideSlider = ((m_Max - m_Min) / m_Step) > WIDE_SLIDER_STEPS;
+		}
 	}
 
 	void Refresh()
@@ -883,6 +930,9 @@ class DCO_ScenarioOptionRow
 		if (m_bIsTimeSlider)
 			return FormatTimeOfDay(value);
 
+		if (SCR_BloodEditorAttribute.Cast(m_Attribute))
+			return Math.Round(value).ToString() + "%";
+
 		if (!m_SliderData)
 			return value.ToString();
 		string raw = m_SliderData.GetText(value);
@@ -911,6 +961,28 @@ class DCO_ScenarioOptionRow
 		return value.ToString();
 	}
 
+	// Remove inline XML/HTML styling tags such as color definitions.
+	protected string CleanDescription(string text)
+	{
+		if (text.IsEmpty())
+			return string.Empty;
+
+		string result = "";
+		bool inTag = false;
+		int len = text.Length();
+		for (int i = 0; i < len; i++)
+		{
+			string c = text[i];
+			if (c == "<")
+				inTag = true;
+			else if (c == ">")
+				inTag = false;
+			else if (!inTag)
+				result += c;
+		}
+		return result;
+	}
+
 	// engine's date description is dynamic rich text.
 	protected string GetReadableDescription(string fallback)
 	{
@@ -920,7 +992,7 @@ class DCO_ScenarioOptionRow
 			return "Drag the bar or type an HH:MM time on the 24-hour clock. Values use 15-minute steps, preview immediately, and apply when the settings are saved and closed.";
 		if (SCR_DateEditorAttribute.Cast(m_Attribute))
 			return "Choose a day from the calendar, use the arrows to change month or year, or type any year from 1 to 9999. Sunrise, sunset, and moon phase update automatically.";
-		return fallback;
+		return CleanDescription(fallback);
 	}
 
 	// Selected controls use the accent as their background.
@@ -1229,18 +1301,32 @@ class DCO_ScenarioButtonHandler : ScriptedWidgetEventHandler
 // world selection and the panels below cannot receive a click through it.
 class DCO_ScenarioBackdropHandler : ScriptedWidgetEventHandler
 {
+	protected DCO_GMScenarioPanel m_Owner;
+
+	void DCO_ScenarioBackdropHandler(DCO_GMScenarioPanel owner)
+	{
+		m_Owner = owner;
+	}
+
 	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
 	{
+		DCO_TestDiagnostics.Event("gm.outside.down", string.Format("button=%1 widget=%2", button, DCO_TestDiagnostics.WidgetState(w)));
 		return true;
 	}
 
 	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
 	{
+		DCO_TestDiagnostics.Event("gm.outside.up", string.Format("button=%1 widget=%2", button, DCO_TestDiagnostics.WidgetState(w)));
+		if (button == 0 && m_Owner)
+			m_Owner.OnBackdropRelease(w);
 		return true;
 	}
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		DCO_TestDiagnostics.Event("gm.outside.click", string.Format("button=%1 widget=%2", button, DCO_TestDiagnostics.WidgetState(w)));
+		if (button == 0 && m_Owner)
+			m_Owner.CancelPropertySession();
 		return true;
 	}
 }
@@ -1477,7 +1563,7 @@ class DCO_GMScenarioPanel
 			m_wBriefingHost.SetVisible(false);
 		if (m_wBackdrop)
 		{
-			m_BackdropHandler = new DCO_ScenarioBackdropHandler();
+			m_BackdropHandler = new DCO_ScenarioBackdropHandler(this);
 			m_wBackdrop.AddHandler(m_BackdropHandler);
 			m_wBackdrop.SetVisible(false);
 		}
@@ -1708,12 +1794,20 @@ class DCO_GMScenarioPanel
 		RenderAttributes(m_aSessionAttributes, true);
 	}
 
+	void OnBackdropRelease(Widget releasedWidget)
+	{
+		// Release also reaches the press handler when the pointer ends on another control.
+		if (m_bOpen && m_wBackdrop && releasedWidget == m_wBackdrop)
+			CancelPropertySession();
+	}
+
 	void CancelPropertySession()
 	{
+		DCO_TestDiagnostics.Event("gm.properties.cancel", string.Format("open=%1 editing=%2", m_bOpen, m_bEditing));
 		EndEditing(false);
-		m_bOpen = false;
-		if (m_wPanel) m_wPanel.SetVisible(false);
-		if (m_wBackdrop) m_wBackdrop.SetVisible(false);
+		// A vanished manager cannot send its end event; release the local modal too.
+		if (m_bOpen || m_bConditionalRefreshQueued || m_bCategoryRefreshQueued)
+			OnAttributesEnded(null);
 	}
 
 	bool CloseForBack()
@@ -1764,6 +1858,7 @@ class DCO_GMScenarioPanel
 
 	protected void SetOpen(bool open)
 	{
+		DCO_TestDiagnostics.Event("gm.properties.set-open", string.Format("open=%1 editing=%2", open, m_bEditing));
 		bool wasOpen = m_bOpen;
 		if (!open && wasOpen)
 			DCO_GMUIController.ReleaseMenuFocus();
@@ -1890,6 +1985,8 @@ class DCO_GMScenarioPanel
 		if (!mgr)
 			return;
 		mgr.GetOnAttributesStart().Insert(OnAttributesStart);
+		mgr.GetOnAttributesConfirm().Insert(OnAttributesEnded);
+		mgr.GetOnAttributesCancel().Insert(OnAttributesEnded);
 		m_bSubscribed = true;
 	}
 
@@ -1939,11 +2036,44 @@ class DCO_GMScenarioPanel
 		UpdateTriggerChrome();
 	}
 
+	protected void OnAttributesEnded(array<SCR_BaseEditorAttribute> attributes)
+	{
+		DCO_TestDiagnostics.Event("gm.properties.end", string.Format("open=%1 editing=%2 conditional=%3 category=%4", m_bOpen, m_bEditing, m_bConditionalRefreshQueued, m_bCategoryRefreshQueued));
+		// The manager is already ending its transaction; do not cancel it recursively.
+		if (m_bOpen) DCO_GMUIController.ReleaseMenuFocus();
+		m_bEditing = false;
+		m_bOpen = false;
+		m_bCogSession = false;
+		m_bTriggerSession = false;
+		m_iMissionCategory = -1;
+		m_iTriggerFinalizeCategory = -1;
+		GetGame().GetCallqueue().Remove(RefreshConditionalRows);
+		GetGame().GetCallqueue().Remove(RenderSelectedCategory);
+		GetGame().GetCallqueue().Remove(SelectTimeAndDateCategory);
+		m_bConditionalRefreshQueued = false;
+		m_bCategoryRefreshQueued = false;
+		m_OptionPickerRow = null;
+		m_OptionPickerAnchor = null;
+		if (m_Menu) m_Menu.Hide();
+		if (m_wPanel) m_wPanel.SetVisible(false);
+		if (m_wBackdrop) m_wBackdrop.SetVisible(false);
+		if (m_wPresetMenu) m_wPresetMenu.SetVisible(false);
+		ClearContent();
+		m_aSessionAttributes = null;
+		RefreshBriefingEditor();
+		UpdatePresetControls();
+		UpdateTriggerChrome();
+		DCO_GMUIController.SetPropertyOverlaysSuppressed(false);
+		DCO_GMUIController.SetNativePropertiesOpen(false);
+	}
+
 	protected void OnAttributesStart(array<SCR_BaseEditorAttribute> attributes)
 	{
+		DCO_TestDiagnostics.Event("gm.properties.start", "received");
 		// The server supplies the complete attribute list before the panel opens.
 		if (!CanRenderAttributeSession(attributes))
 		{
+			DCO_TestDiagnostics.Event("gm.properties.native-fallback");
 			DCO_GMUIController.SetPropertyOverlaysSuppressed(false);
 			m_bTriggerSession = false;
 			m_iTriggerFinalizeCategory = -1;
@@ -2491,13 +2621,14 @@ class DCO_GMScenarioPanel
 	{
 		if (!attribute)
 			return false;
-		// These native custom layouts are still single-value preset selectors.
 		if (SCR_TimePresetsEditorAttribute.Cast(attribute) || SCR_GameOverTypeEditorAttribute.Cast(attribute))
 			return true;
 		string layout = attribute.GetLayout();
-		if (layout.Contains("SliderVector") || layout.Contains("DropdownWithParam") || layout.Contains("CharacterBloodSlider")) return false;
-		return layout.Contains("Checkbox") || layout.Contains("MultiSelection") || layout.Contains("Slider")
-			|| layout.Contains("Date.layout") || layout.Contains("ButtonBox_Selection") || layout.Contains("Spinbox") || layout.Contains("Dropdown.layout");
+		if (layout.IsEmpty())
+			return false;
+		return layout.Contains("Checkbox") || layout.Contains("Override") || layout.Contains("MultiSelection")
+			|| layout.Contains("Slider") || layout.Contains("Date") || layout.Contains("ButtonBox")
+			|| layout.Contains("Spinbox") || layout.Contains("Dropdown") || layout.Contains("Modes");
 	}
 
 	protected void BuildOrderedCategories(notnull array<SCR_BaseEditorAttribute> attributes, notnull array<ResourceName> categoryConfigs, notnull array<ref SCR_EditorAttributeCategory> categories)
@@ -2550,20 +2681,7 @@ class DCO_GMScenarioPanel
 	protected bool RenderOneAttribute(WorkspaceWidget workspace, SCR_BaseEditorAttribute attribute)
 	{
 		if (!SupportsLayout(attribute))
-		{
-			Widget compound = workspace.CreateWidgets(attribute.GetLayout(), m_wContent);
-			if (!compound) return false;
-			SCR_BaseEditorAttributeUIComponent nativeControl = SCR_BaseEditorAttributeUIComponent.Cast(compound.FindHandler(SCR_BaseEditorAttributeUIComponent));
-			if (!nativeControl)
-			{
-				delete compound;
-				return false;
-			}
-			nativeControl.Init(compound, attribute);
-			nativeControl.GetOnAttributeChanged().Insert(OnAttributeChanged);
-			VerticalLayoutSlot.SetPadding(compound, 8, 8, 8, 12);
-			return true;
-		}
+			return false;
 		Widget attributeWidget = workspace.CreateWidgets(OPTION_LAYOUT, m_wContent);
 		if (!attributeWidget)
 		{
@@ -2679,9 +2797,9 @@ class DCO_GMScenarioPanel
 	protected int GetPresetKind(SCR_BaseEditorAttribute attribute)
 	{
 		string layout = attribute.GetLayout();
-		if (layout.Contains("Checkbox"))
+		if (layout.Contains("Checkbox") || layout.Contains("Override"))
 			return PRESET_BOOL;
-		if (layout.Contains("MultiSelection") || layout.Contains("Date.layout"))
+		if (layout.Contains("MultiSelection") || layout.Contains("Date"))
 			return PRESET_VECTOR;
 		if (layout.Contains("Slider"))
 			return PRESET_FLOAT;
@@ -2809,7 +2927,11 @@ class DCO_GMScenarioPanel
 			EndEditing(false);	// abandon an open session cleanly on teardown.
 		DCO_GMUIController.SetPropertyOverlaysSuppressed(false);
 		if (m_Manager && m_bSubscribed)
+		{
 			m_Manager.GetOnAttributesStart().Remove(OnAttributesStart);
+			m_Manager.GetOnAttributesConfirm().Remove(OnAttributesEnded);
+			m_Manager.GetOnAttributesCancel().Remove(OnAttributesEnded);
+		}
 		m_bSubscribed = false;
 		m_OptionMenuCallback.Remove(OnOptionPickerAction);
 		m_OptionPickerRow = null;
@@ -2841,6 +2963,7 @@ class DCO_GMScenarioPanel
 		m_PresetStore = null;
 		GetGame().GetCallqueue().Remove(RenderSelectedCategory);
 		GetGame().GetCallqueue().Remove(SelectTimeAndDateCategory);
+		GetGame().GetCallqueue().Remove(RefreshConditionalRows);
 		m_bCategoryRefreshQueued = false;
 		m_bConditionalRefreshQueued = false;
 		m_wTitle = null;

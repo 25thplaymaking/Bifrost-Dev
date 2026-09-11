@@ -8,6 +8,24 @@ class DCO_ContextMenuHandler : ScriptedWidgetEventHandler
 		m_Owner = owner;
 	}
 
+	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
+	{
+		if (m_Owner && w == m_Owner.GetBackdrop())
+			return true;
+		return false;
+	}
+
+	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
+	{
+		if (button == 0 && m_Owner && w == m_Owner.GetBackdrop())
+		{
+			DCO_TestDiagnostics.Event("gm.dropdown.outside");
+			m_Owner.Hide();
+			return true;
+		}
+		return false;
+	}
+
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
 		if (button != 0)
@@ -481,6 +499,11 @@ class DCO_GMContextMenu
 		}
 	}
 
+	Widget GetBackdrop()
+	{
+		return m_wBackdrop;
+	}
+
 	bool IsOpen()
 	{
 		return m_wMenu && m_wMenu.IsVisible();
@@ -490,6 +513,7 @@ class DCO_GMContextMenu
 	{
 		if (w == m_wBackdrop)	// clicked outside the menu -> just close it.
 		{
+			DCO_TestDiagnostics.Event("gm.dropdown.outside");
 			Hide();
 			return true;
 		}

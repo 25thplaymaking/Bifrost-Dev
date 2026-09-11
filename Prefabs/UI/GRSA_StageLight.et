@@ -1,0 +1,8 @@
+LightEntity {
+ Color 1 0.97 0.92 1
+ LV 3.4
+ CastShadow 0
+ Radius 5.5
+ Dynamic 1
+ LensFlareType Disabled
+}

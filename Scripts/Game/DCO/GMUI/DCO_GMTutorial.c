@@ -42,8 +42,27 @@ class DCO_TutorialButtonHandler : ScriptedWidgetEventHandler
 		m_Id = id;
 	}
 
+	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
+	{
+		if (m_Id == DCO_GMTutorial.BTN_BACKDROP)
+			return true;
+		return false;
+	}
+
+	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
+	{
+		if (button == 0 && m_Id == DCO_GMTutorial.BTN_BACKDROP && m_Owner)
+		{
+			m_Owner.OnBackdropRelease(w);
+			return true;
+		}
+		return false;
+	}
+
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		if (button != 0)
+			return false;
 		if (m_Owner)
 			return m_Owner.OnButton(m_Id);
 		return false;
@@ -64,8 +83,8 @@ class DCO_GMTutorial
 	static const int SECTION_COUNT = 6;
 	static const int ROW_POOL      = 18;	// layout pool size; the longest section uses 17, the rest hide.
 
-	protected static const int BTN_INFO     = 0;
-	protected static const int BTN_BACKDROP = 1;
+	static const int BTN_INFO     = 0;
+	static const int BTN_BACKDROP = 1;
 	protected static const int BTN_SEC_BASE = 10;
 
 	protected static const ResourceName TUT_LAYOUT = "{F0A67D908EFBCDBA}UI/layouts/DCO_GMTutorial.layout";
@@ -238,10 +257,19 @@ class DCO_GMTutorial
 		FrameSlot.SetPos(wd, posX, posY);
 	}
 
+	void OnBackdropRelease(Widget releasedWidget)
+	{
+		if (m_bOpen)
+			SetOpen(false);
+	}
+
 	bool OnButton(int id)
 	{
 		if (id == BTN_BACKDROP)
-			return true;	// eat the click so the world never takes it while the overlay is up.
+		{
+			SetOpen(false);
+			return true;
+		}
 		if (id == BTN_INFO)
 		{
 			SetOpen(!m_bOpen);

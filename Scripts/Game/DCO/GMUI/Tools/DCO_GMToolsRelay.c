@@ -21,6 +21,7 @@ class DCO_GMToolsServer
 	static const int TOOL_ZONE_SPRING = 14;	// no payload.
 	static const int TOOL_ZONE_REARM  = 15;	// no payload.
 	static const int TOOL_SENDGROUP   = 16;	// target = GROUP entity, pos = zone center.
+	static const int TOOL_VISIBILITY = 17;
 
 	// Single client-side entry point.
 	static void Route(int toolId, IEntity target, vector pos)
@@ -100,6 +101,13 @@ class DCO_GMToolsServer
 	{
 		if (!Replication.IsServer() || !target)
 			return;
+		if (toolId == TOOL_VISIBILITY)
+		{
+			SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.GetEditableEntity(target);
+			editable = SCR_EditableEntityComponent.DCO_ResolveMissionTarget(editable);
+			if (editable) editable.DCO_SetMissionHidden(!editable.DCO_IsMissionHidden());
+			return;
+		}
 		int ord = Math.Round(pos[0]);	// Stance and option controls carry their ordinal in pos[0].
 		switch (toolId)
 		{
@@ -325,7 +333,7 @@ modded class SCR_PlayerController
 		if (Replication.IsServer())
 		{
 			m_bDCO_PauseState = DCO_GMPauseCore.Get().IsActive();
-			GRSA_InitializeArsenalScenarioPolicy(GRSA_ArsenalScenarioSettings.Get().Pack());
+			BIA_InitializeArsenalScenarioPolicy(BIA_ArsenalScenarioSettings.Get().Pack());
 		}
 	}
 
@@ -363,22 +371,30 @@ modded class SCR_PlayerController
 	// Sends the GM request to authority.
 	void DCO_SendGMTool(int toolId, RplId targetId, vector pos)
 	{
+		DCO_TestDiagnostics.Event("gm.tool.send", string.Format("player=%1 tool=%2 target=%3", GetPlayerId(), toolId, targetId));
 		Rpc(DCO_RpcGMTool, toolId, targetId, pos);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMTool(int toolId, RplId targetId, vector pos)
 	{
+		DCO_TestDiagnostics.Event("gm.tool.receive", string.Format("player=%1 tool=%2 target=%3", GetPlayerId(), toolId, targetId));
 		if (!DCO_GMRights.Allow(GetPlayerId(), "GM tool"))
+		{
+			DCO_TestDiagnostics.Event("gm.tool.denied", string.Format("player=%1 tool=%2", GetPlayerId(), toolId), true);
 			return;
+		}
 		bool confirmedState;
-		if (DCO_GMToolsServer.Apply(toolId, targetId, pos, confirmedState))
+		bool reportState = DCO_GMToolsServer.Apply(toolId, targetId, pos, confirmedState);
+		DCO_TestDiagnostics.Event("gm.tool.return", string.Format("tool=%1 target=%2 reportState=%3 state=%4", toolId, targetId, reportState, confirmedState));
+		if (reportState)
 			Rpc(DCO_RpcGMToolConfirmed, toolId, targetId, confirmedState);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
 	protected void DCO_RpcGMToolConfirmed(int toolId, RplId targetId, bool confirmedState)
 	{
+		DCO_TestDiagnostics.Event("gm.tool.confirmed", string.Format("tool=%1 target=%2 state=%3", toolId, targetId, confirmedState));
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
 		if (rpl)
 			DCO_GMTools.Get().MirrorAuthorityState(rpl.GetEntity(), toolId, confirmedState);
@@ -523,16 +539,17 @@ modded class SCR_PlayerController
 	}
 
 	// Relays gameplay pause and clock controls.
-	void DCO_SendGMPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
+	void DCO_SendGMPause(int scope, int aspectMask, bool on, RplId selectedTargetId, bool releaseOwnedOnly = false)
 	{
-		Rpc(DCO_RpcGMPause, scope, aspectMask, on, selectedTargetId);
+		Rpc(DCO_RpcGMPause, scope, aspectMask, on, selectedTargetId, releaseOwnedOnly);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void DCO_RpcGMPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
+	protected void DCO_RpcGMPause(int scope, int aspectMask, bool on, RplId selectedTargetId, bool releaseOwnedOnly)
 	{
 		int playerId = GetPlayerId();
 		DCO_GMPauseCore pauseCore = DCO_GMPauseCore.Get();
+		if (releaseOwnedOnly && (on || !pauseCore.IsRequestOwner(playerId))) return;
 		if (on)
 		{
 			if (!DCO_GMRights.Allow(playerId, "GM pause"))
@@ -602,9 +619,10 @@ modded class SCR_PlayerController
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMDetachAll()
 	{
-		if (!DCO_GMRights.Allow(GetPlayerId(), "GM detach all"))
-			return;
-		DCO_GMAttach.DetachAllOnAuthority(GetPlayerId());
+		int playerId = GetPlayerId();
+		if (playerId <= 0) return;
+		// Closing GM still permits releasing this controller's own attachment links.
+		DCO_GMAttach.DetachAllOnAuthority(playerId);
 	}
 
 	void DCO_RequestGMAIOverlay(vector cameraPosition, int requestMask, string selectedIds, string pathIds, string groupPathIds)
@@ -1087,7 +1105,7 @@ modded class SCR_PlayerController
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMArsenalSnapshot(RplId targetId, int seq)
 	{
-		if (!GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
+		if (!BIA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
 			return;
 		if (!DCO_GMRights.IsGameMaster(GetPlayerId()) && !DCO_CanUsePlayerArsenal(0, targetId))
 			return;	// Players can read only their own kit while actively using a placed arsenal.
@@ -1112,7 +1130,7 @@ modded class SCR_PlayerController
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMArsenalApply(RplId targetId, string json)
 	{
-		if (!GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
+		if (!BIA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
 			return;
 		if (!DCO_GMRights.IsGameMaster(GetPlayerId()) && !DCO_CanUsePlayerArsenal(0, targetId))
 			return;	// Players can write only their own kit while actively using a placed arsenal.

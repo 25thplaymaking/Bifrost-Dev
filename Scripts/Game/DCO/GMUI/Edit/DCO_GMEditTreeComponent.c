@@ -165,6 +165,10 @@ class DCO_GMEditTreeComponent
 	protected int m_ForcePickPage;
 	protected int m_ForceOverviewTick;
 
+	protected int m_PlayerPage;
+	protected ButtonWidget m_btnPlayerPrev, m_btnPlayerNext;
+	protected TextWidget m_wPlayerPage;
+	protected Widget m_wPlayerPager;
 	protected ref array<ButtonWidget> m_PlayerBtns = {};
 	protected ref array<TextWidget> m_PlayerLabels = {};
 	protected ref array<Widget> m_PlayerFpsHosts = {};
@@ -281,6 +285,10 @@ class DCO_GMEditTreeComponent
 			m_PlayerHealth.Insert(TextWidget.Cast(m_wTree.FindAnyWidget(string.Format("DCO_PlayerRow_%1_Health", i))));
 			m_PlayerIcons.Insert(ImageWidget.Cast(m_wTree.FindAnyWidget(string.Format("DCO_PlayerRow_%1_Icon", i))));
 		}
+		m_btnPlayerPrev = BindButton("DCO_PlayerPrev");
+		m_btnPlayerNext = BindButton("DCO_PlayerNext");
+		m_wPlayerPage = TextWidget.Cast(m_wTree.FindAnyWidget("DCO_PlayerPage"));
+		m_wPlayerPager = m_wTree.FindAnyWidget("DCO_PlayerPager");
 		m_PlayersMgr = SCR_PlayersManagerEditorComponent.Cast(SCR_PlayersManagerEditorComponent.GetInstance(SCR_PlayersManagerEditorComponent, true));
 		m_LayersMgr = SCR_LayersEditorComponent.Cast(SCR_LayersEditorComponent.GetInstance(SCR_LayersEditorComponent, true));
 		if (m_LayersMgr)
@@ -1172,6 +1180,13 @@ class DCO_GMEditTreeComponent
 
 	bool OnButton(Widget w)
 	{
+		if (w && (w == m_btnPlayerPrev || w == m_btnPlayerNext))
+		{
+			if (w == m_btnPlayerPrev) m_PlayerPage--;
+			else m_PlayerPage++;
+			RebuildPlayers();
+			return true;
+		}
 		if (w == m_btnForcePrev || w == m_btnForceNext)
 			return true;
 		if (w == m_btnPrev)
@@ -1279,6 +1294,15 @@ class DCO_GMEditTreeComponent
 		if (m_PlayersMgr)
 			m_PlayersMgr.GetPlayers(players);
 		PlayerManager pm = GetGame().GetPlayerManager();
+		array<int> playerIds = {};
+		for (int p = 0; p < players.Count(); p++) playerIds.Insert(players.GetKey(p));
+		playerIds.Sort();
+		int pages = Math.Max(1, Math.Ceil(playerIds.Count() / (float)PLAYER_ROWS));
+		m_PlayerPage = Math.Clamp(m_PlayerPage, 0, pages - 1);
+		if (m_wPlayerPager) m_wPlayerPager.SetVisible(pages > 1);
+		if (m_wPlayerPage) m_wPlayerPage.SetText(string.Format("%1 / %2", m_PlayerPage + 1, pages));
+		if (m_btnPlayerPrev) m_btnPlayerPrev.SetEnabled(m_PlayerPage > 0);
+		if (m_btnPlayerNext) m_btnPlayerNext.SetEnabled(m_PlayerPage < pages - 1);
 
 		for (int i = 0; i < m_PlayerBtns.Count(); i++)
 		{
@@ -1289,10 +1313,11 @@ class DCO_GMEditTreeComponent
 			Widget healthHost = m_PlayerHealthHosts[i];
 			TextWidget healthLabel = m_PlayerHealth[i];
 			ImageWidget ico = m_PlayerIcons[i];
-			if (i < players.Count())
+			int playerIndex = m_PlayerPage * PLAYER_ROWS + i;
+			if (playerIndex < playerIds.Count())
 			{
-				int pid = players.GetKey(i);
-				SCR_EditableEntityComponent e = players.GetElement(i);
+				int pid = playerIds[playerIndex];
+				SCR_EditableEntityComponent e = players.Get(pid);
 				m_PlayerEntities.Insert(e);
 
 				string name = "Player " + pid.ToString();
@@ -1372,8 +1397,6 @@ class DCO_GMEditTreeComponent
 				b.SetVisible(false);
 			}
 		}
-		if (players.Count() > PLAYER_ROWS)
-			Print(string.Format("[DCO-GM] %1 players but %2 player rows - extras not listed", players.Count(), PLAYER_ROWS), LogLevel.WARNING);
 	}
 
 	protected int PlayerRowIndexOf(Widget w)

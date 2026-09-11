@@ -1,0 +1,13 @@
+{
+  "passed": 62,
+  "details": [
+    "Authored stand position: <0.342, 0.388, -0.713>",
+    "Authored stand angles: <-131.552, 0, -0>",
+    "Resource: {4B57C11AA5161760}Prefabs/Characters/Vests/Vest_PASGT/Vest_PASGT.et",
+    "Prefabs/Characters/Vests/Vest_PASGT/Vest_PASGT.et origin=<0.326679, -0.620813, -0.729857> bounds=<-0.207065, 1.0516, -0.221289> / <0.212128, 1.60794, 0.174537>",
+    "Resource: {B74A4FF0DD8BB116}Prefabs/Characters/HeadGear/Helmet_PASGT_01/Helmet_PASGT_01.et",
+    "Prefabs/Characters/HeadGear/Helmet_PASGT_01/Helmet_PASGT_01.et origin=<0.355764, 0.973675, -0.701158> bounds=<-0.118682, -0.002659, -0.125121> / <0.119217, 0.178625, 0.161432>",
+    "Resource: {4B57C11AA5161760}Prefabs/Characters/Vests/Vest_PASGT/Vest_PASGT.et",
+    "Prefabs/Characters/Vests/Vest_PASGT/Vest_PASGT.et origin=<0.658574, -0.489918, -0.653622> bounds=<-0.207065, 1.0516, -0.221289> / <0.212128, 1.60794, 0.174537>"
+  ]
+}

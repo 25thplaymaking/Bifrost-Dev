@@ -247,7 +247,7 @@ ButtonWidgetClass {
             Padding 0 0 6 0
            }
            components {
-            GRSA_ThemedButtonTextComponent "{A009000000000035}" {
+            BIA_ThemedButtonTextComponent "{A009000000000035}" {
              m_sTextWidgetName "LoadText"
              m_sText "EQUIP"
              m_bCanBeToggled 0
@@ -322,7 +322,7 @@ ButtonWidgetClass {
             Padding 0 0 6 0
            }
            components {
-            GRSA_ThemedButtonTextComponent "{A009000000000043}" {
+            BIA_ThemedButtonTextComponent "{A009000000000043}" {
              m_sTextWidgetName "OverwriteText"
              m_sText "OVERWRITE"
              m_bCanBeToggled 0
@@ -407,7 +407,7 @@ ButtonWidgetClass {
             Padding 0 0 6 0
            }
            components {
-            GRSA_ThemedButtonTextComponent "{A009000000000053}" {
+            BIA_ThemedButtonTextComponent "{A009000000000053}" {
              m_sTextWidgetName "RenameText"
              m_sText "RENAME"
              m_bCanBeToggled 0
@@ -490,7 +490,7 @@ ButtonWidgetClass {
             FillWeight 1
            }
            components {
-            GRSA_ThemedButtonTextComponent "{A009000000000063}" {
+            BIA_ThemedButtonTextComponent "{A009000000000063}" {
              m_sTextWidgetName "DeleteText"
              m_sText "DELETE"
              m_bCanBeToggled 0

@@ -1,0 +1,5 @@
+MatPBRBasic {
+ Color 1 1 1 1
+ BCRMap "{54479D4BF04A9C08}Assets/HPC_Stand/HPC_Stand_Coyote_BCR.edds"
+ NMOMap "{6C9F26D9293DCE96}Assets/HPC_Stand/HPC_Stand_Coyote_NMO.edds"
+}

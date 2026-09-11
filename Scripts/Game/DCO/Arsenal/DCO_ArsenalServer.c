@@ -399,8 +399,8 @@ class DCO_ArsenalServer
 	{
 		if (prefab.IsEmpty())
 			return false;
-		SCR_ArsenalItem itemData = GRSA_CatalogService.FindArsenalItemData(prefab, null);
-		return itemData && GRSA_ArsenalScenarioSettings.Get().AllowsArsenalItem(itemData);
+		SCR_ArsenalItem itemData = BIA_CatalogService.FindArsenalItemData(prefab, null);
+		return itemData && BIA_ArsenalScenarioSettings.Get().AllowsArsenalItem(itemData);
 	}
 
 	static string SnapshotJson(IEntity target)
@@ -418,7 +418,7 @@ class DCO_ArsenalServer
 	{
 		if (!Replication.IsServer() || !target || json.IsEmpty())
 			return;
-		if (!GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
+		if (!BIA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
 			return;
 		if (json.Length() > MAX_LOADOUT_JSON_LENGTH)
 		{

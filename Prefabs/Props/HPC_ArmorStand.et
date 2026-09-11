@@ -1,0 +1,7 @@
+GenericEntity {
+ components {
+  MeshObject {
+   Object "{237618489D5166C9}Assets/HPC_Stand/HPC_Stand.xob"
+  }
+ }
+}

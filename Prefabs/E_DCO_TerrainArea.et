@@ -21,7 +21,7 @@ GenericEntity {
     m_EntityBudgetCost {
      SCR_EntityBudgetValue "{DCA6090410000007}" {
       m_BudgetType SYSTEMS
-      m_BudgetValue 1
+      m_Value 1
      }
     }
    }

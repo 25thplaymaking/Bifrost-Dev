@@ -40,10 +40,10 @@ class DCO_GMPlacementConfirm
 	{
 		if (!m_bActive)
 			return;
+		if (DCO_GMUIController.IsModalActive())
+			return;
 		DCO_GMCompositionPanel compositions = DCO_GMCompositionPanel.Get();
 		DCO_GMMissionPanel missionTools = DCO_GMMissionPanel.Get();
-		if (compositions.IsOpen() || missionTools.IsOpen())
-			return;
 		if (missionTools.IsTargeting())
 		{
 			if (IsCursorOverPanels())
@@ -118,14 +118,33 @@ class DCO_GMPlacementConfirm
 
 	protected bool IsCursorOverPanels()
 	{
-		if (!m_wRoot)
-			return false;
+		if (!m_wRoot || !m_wRoot.IsEnabled() || DCO_GMUIController.IsModalActive())
+			return true;
+		// Action listeners receive input independently of widget event consumption.
+		array<string> modals = {
+			"DCO_ScenarioPanel", "DCO_ScenarioBackdrop",
+			"DCO_MenuBackdrop",
+			"DCO_MissionPanel", "DCO_MissionBackdrop",
+			"DCO_CompositionPanel", "DCO_CompositionBackdrop",
+			"DCO_MarkerPanel",
+			"DCO_TutOverlay", "DCO_TutBackdrop"
+		};
+		foreach (string name : modals)
+		{
+			Widget modal = m_wRoot.FindAnyWidget(name);
+			if (modal && modal.IsVisibleInHierarchy())
+				return true;
+		}
 		int mx, my;
 		WidgetManager.GetMousePos(mx, my);
 		return CursorIn("DCO_CreateBrowser", mx, my)
 			|| CursorIn("DCO_EditTree", mx, my)
 			|| CursorIn("DCO_TopBar", mx, my)
-			|| CursorIn("DCO_ContextMenu", mx, my);
+			|| CursorIn("DCO_ContextMenu", mx, my)
+			|| CursorIn("DCO_OptionsPanel", mx, my)
+			|| CursorIn("DCO_OrdersBox", mx, my)
+			|| CursorIn("DCO_TacticsPanel", mx, my)
+			|| CursorIn("DCO_GizmoPanel", mx, my);
 	}
 
 	protected bool CursorIn(string widgetName, int mx, int my)

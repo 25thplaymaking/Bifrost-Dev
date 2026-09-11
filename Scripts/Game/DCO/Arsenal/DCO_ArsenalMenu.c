@@ -11,12 +11,12 @@ class DCO_ArsenalMenu : SCR_ConfigurableDialogUi
 
 	static bool IsOpen()
 	{
-		return DCO_GRSArmoryBridge.IsOpen();
+		return DCO_BIArmoryBridge.IsOpen();
 	}
 
 	static bool OpenForLocalPlayer(IEntity actionUser, DCO_ArsenalAccessComponent access)
 	{
-		return DCO_GRSArmoryBridge.OpenForPlayer(actionUser, access);
+		return DCO_BIArmoryBridge.OpenForPlayer(actionUser, access);
 	}
 
 	override protected void OnMenuOpen(SCR_ConfigurableDialogUiPreset preset)

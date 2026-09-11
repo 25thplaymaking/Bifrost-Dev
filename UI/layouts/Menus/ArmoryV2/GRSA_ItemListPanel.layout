@@ -126,6 +126,10 @@ SizeLayoutWidgetClass "{6A4338ABF0020002}" {
         }
        }
       }
+      ButtonWidgetClass "{BF107A2900010001}" : "{56C9437891C4A1C3}UI/layouts/WidgetLibrary/ComboBox/WLib_ComboBoxIcon.layout" {
+       Name "ItemModFilter"
+       Slot LayoutSlot "{BF107A2900010002}" { HorizontalAlign 3 Padding 0 0 0 8 }
+      }
       SizeLayoutWidgetClass "{6A4338ABF0020029}" {
        Name "ItemSearchSize"
        Slot LayoutSlot "{6A4338ABF002002A}" { HorizontalAlign 3 Padding 0 0 0 8 }
@@ -143,7 +147,7 @@ SizeLayoutWidgetClass "{6A4338ABF0020002}" {
        Slot LayoutSlot "{6A4338ABF002002E}" { HorizontalAlign 3 VerticalAlign 3 SizeMode Fill FillWeight 1 }
        components {
         SCR_GamepadScrollComponent "{6A4338ABF002002F}" {}
-        GRSA_SmoothScrollComponent "{6A4338ABF0020030}" {}
+        BIA_SmoothScrollComponent "{6A4338ABF0020030}" {}
        }
        style Small
        {

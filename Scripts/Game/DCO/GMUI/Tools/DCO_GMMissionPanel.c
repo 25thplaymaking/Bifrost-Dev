@@ -9,11 +9,42 @@ class DCO_GMMissionButton : ScriptedWidgetEventHandler
 	}
 }
 
+class DCO_MissionBackdropHandler : ScriptedWidgetEventHandler
+{
+	protected DCO_GMMissionPanel m_Panel;
+
+	void DCO_MissionBackdropHandler(DCO_GMMissionPanel panel)
+	{
+		m_Panel = panel;
+	}
+
+	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
+	{
+		return true;
+	}
+
+	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
+	{
+		if (button == 0 && m_Panel)
+			m_Panel.OnBackdropRelease(w);
+		return true;
+	}
+
+	override bool OnClick(Widget w, int x, int y, int button)
+	{
+		if (button == 0 && m_Panel)
+			m_Panel.CloseForBack();
+		return true;
+	}
+}
+
 class DCO_GMMissionPanel
 {
 	protected static ref DCO_GMMissionPanel s_Instance;
 	protected Widget m_Root;
 	protected Widget m_Panel;
+	protected Widget m_Backdrop;
+	protected ref DCO_MissionBackdropHandler m_BackdropHandler;
 	protected TextWidget m_Heading;
 	protected TextWidget m_Help;
 	protected TextWidget m_Status;
@@ -58,6 +89,12 @@ class DCO_GMMissionPanel
 		m_Body = MultilineEditBoxWidget.Cast(m_Root.FindAnyWidget("DCO_MissionBody"));
 		m_Value = EditBoxWidget.Cast(m_Root.FindAnyWidget("DCO_MissionValue"));
 		m_Secondary = EditBoxWidget.Cast(m_Root.FindAnyWidget("DCO_MissionSecondary"));
+		m_Backdrop = m_Root.FindAnyWidget("DCO_MissionBackdrop");
+		if (m_Backdrop)
+		{
+			m_BackdropHandler = new DCO_MissionBackdropHandler(this);
+			m_Backdrop.AddHandler(m_BackdropHandler);
+		}
 		array<string> buttons = {"Close", "Apply", "Scope", "Include", "Previous", "Next"};
 		for (int i = 0; i < buttons.Count(); i++)
 		{
@@ -105,12 +142,19 @@ class DCO_GMMissionPanel
 			m_Root.RemoveFromHierarchy();
 		m_Root = null;
 		m_Panel = null;
+		m_BackdropHandler = null;
+		m_Backdrop = null;
 		m_Handlers.Clear();
 		m_Targets.Clear();
 		m_Positions.Clear();
 		m_NamedId = 0;
 	}
 	bool IsOpen() { return m_Root && m_Root.IsVisible(); }
+	void OnBackdropRelease(Widget releasedWidget)
+	{
+		if (IsOpen() && m_Backdrop && releasedWidget == m_Backdrop)
+			CloseForBack();
+	}
 	bool CloseForBack()
 	{
 		if (m_PendingTargetTool > 0)
@@ -520,6 +564,11 @@ class DCO_GMMissionPanel
 	{
 		if (!AcceptsReply(requestSequence)) return;
 		OnResult(success, result);
+		if (success)
+		{
+			DCO_GMHint.Show(DCO_GMMissionTool.Name(m_Tool), result, 3.5);
+			CloseForBack();
+		}
 	}
 	void OnEdit(int requestSequence, RplId id, string title, string body, int scope, bool removeClue, float delay, float radius)
 	{

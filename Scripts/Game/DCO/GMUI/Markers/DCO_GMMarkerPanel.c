@@ -253,6 +253,11 @@ class DCO_GMMarkerPanel
 		Open(vector.Zero);
 	}
 
+	bool IsOpen()
+	{
+		return m_bOpen;
+	}
+
 	bool CloseForBack()
 	{
 		if (!m_bOpen)

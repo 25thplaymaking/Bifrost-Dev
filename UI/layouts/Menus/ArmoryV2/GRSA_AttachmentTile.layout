@@ -4,7 +4,7 @@ ButtonWidgetClass {
   Padding 0 0 6 0
  }
  components {
-  GRSA_ItemRowComponent "{A000000000000002}" {
+  BIA_ItemRowComponent "{A000000000000002}" {
    m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
    m_BackgroundDefault 1 1 1 0.025
    m_BackgroundHovered 1 1 1 0.05

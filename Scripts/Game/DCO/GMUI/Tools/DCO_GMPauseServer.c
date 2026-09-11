@@ -1,11 +1,29 @@
 // Routes GM pause and clock changes through authority.
 class DCO_GMPauseServer
 {
-	static void RoutePause(int scope, int aspectMask, bool on)
+	static void RoutePause(int scope, int aspectMask, bool on, bool releaseOwnedOnly = false)
 	{
 		if (Replication.IsServer())
 		{
-			ApplyPause(scope, aspectMask, on, RplId.Invalid());
+			SCR_PlayerController localController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+			if (releaseOwnedOnly && Replication.IsRunning() && (!localController || !DCO_GMPauseCore.Get().IsRequestOwner(localController.GetPlayerId())))
+				return;
+			int frozen;
+			if (on && scope == EDCO_PauseScope.SELECTED)
+			{
+				set<SCR_EditableEntityComponent> localSelection = new set<SCR_EditableEntityComponent>();
+				SCR_BaseEditableEntityFilter.GetEnititiesStatic(localSelection, EEditableEntityState.SELECTED);
+				foreach (SCR_EditableEntityComponent localTarget : localSelection)
+				{
+					if (localTarget && localTarget.GetOwner())
+						DCO_GMPauseCore.Get().ApplySelected(localTarget.GetOwner(), aspectMask);
+				}
+				frozen = DCO_GMPauseCore.Get().GetFrozenCount();
+				PushPauseState(frozen > 0);
+			}
+			else frozen = ApplyPause(scope, aspectMask, on, RplId.Invalid());
+			if (on && frozen > 0 && localController)
+				DCO_GMPauseCore.Get().NoteRequestOwner(localController.GetPlayerId());
 			return;
 		}
 		SCR_PlayerController pc = SCR_PlayerController.Cast(GetGame().GetPlayerController());
@@ -34,7 +52,7 @@ class DCO_GMPauseServer
 				pc.DCO_SendGMPause(scope, aspectMask, true, RplId.Invalid());
 			return;
 		}
-		pc.DCO_SendGMPause(scope, aspectMask, on, RplId.Invalid());
+		pc.DCO_SendGMPause(scope, aspectMask, on, RplId.Invalid(), releaseOwnedOnly);
 	}
 
 	static int ApplyPause(int scope, int aspectMask, bool on, RplId selectedTargetId)
