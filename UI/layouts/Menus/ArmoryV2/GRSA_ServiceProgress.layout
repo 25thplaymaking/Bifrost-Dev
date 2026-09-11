@@ -1,5 +1,5 @@
 FrameWidgetClass "{B1F05E4C09011000}" {
- Name "GRSA_ServiceProgressModal"
+ Name "BIA_ServiceProgressModal"
  "Is Visible" 0
  "Z Order" 250
  {

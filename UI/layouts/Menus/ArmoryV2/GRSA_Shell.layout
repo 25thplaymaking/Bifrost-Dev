@@ -1,5 +1,5 @@
 FrameWidgetClass "{AB21010000000001}" {
- Name "GRSA_ShellMenu"
+ Name "BIA_ShellMenu"
  components {
   SCR_SuperMenuComponent "{AB21010000000002}" {
   }
@@ -102,7 +102,7 @@ FrameWidgetClass "{AB21010000000001}" {
             Padding 0 0 20 0
            }
            components {
-            GRSA_ThemedButtonTextComponent "{AB21010000000092}" {
+            BIA_ThemedButtonTextComponent "{AB21010000000092}" {
              m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
              m_BackgroundDefault 0.32 0.16 0.035 1
              m_BackgroundHovered 0.851 0.537 0.169 1
@@ -239,7 +239,7 @@ FrameWidgetClass "{AB21010000000001}" {
       FillWeight 1
      }
      components {
-       GRSA_ArsenalTabViewComponent "{AB21010000000042}" {
+       BIA_ArsenalTabViewComponent "{AB21010000000042}" {
        m_iSelectedTab 0
        m_bKeepHiddenTabs 1
        m_bManualInit 1

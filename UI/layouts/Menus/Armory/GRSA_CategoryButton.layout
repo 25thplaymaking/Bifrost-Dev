@@ -5,7 +5,7 @@ ButtonWidgetClass {
   Padding 0 0 0 2
  }
  components {
-  GRSA_ThemedButtonTextComponent "{A002000000000002}" {
+  BIA_ThemedButtonTextComponent "{A002000000000002}" {
    m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
    m_bCanBeToggled 1
    m_BackgroundDefault 0.023 0.023 0.023 0

@@ -4,13 +4,15 @@ modded class SCR_SelectionEditorUIComponent
 {
 	override protected bool IsInputDisabled()
 	{
-		if (DCO_GMUIController.IsNativePropertiesOpen())
+		if (DCO_GMUIController.IsModalActive())
 			return true;
 		return super.IsInputDisabled();
 	}
 
 	override protected void EditorSetSelection(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
+		if (IsInputDisabled())
+			return;
 		vector cursorWorldPosition;
 		bool hasCursorWorldPosition;
 		SCR_CursorEditorUIComponent cursor = SCR_CursorEditorUIComponent.Cast(

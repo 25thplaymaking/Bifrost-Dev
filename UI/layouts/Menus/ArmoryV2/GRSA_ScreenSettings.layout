@@ -1,7 +1,7 @@
 OverlayWidgetClass "{AB21060000000001}" {
- Name "GRSA_ScreenSettings"
+ Name "BIA_ScreenSettings"
  components {
-  GRSA_SettingsScreen "{AB21060000000002}" {
+  BIA_SettingsScreen "{AB21060000000002}" {
   }
  }
  {

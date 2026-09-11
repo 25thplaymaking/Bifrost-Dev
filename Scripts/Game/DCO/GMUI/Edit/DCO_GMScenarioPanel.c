@@ -1229,18 +1229,32 @@ class DCO_ScenarioButtonHandler : ScriptedWidgetEventHandler
 // world selection and the panels below cannot receive a click through it.
 class DCO_ScenarioBackdropHandler : ScriptedWidgetEventHandler
 {
+	protected DCO_GMScenarioPanel m_Owner;
+
+	void DCO_ScenarioBackdropHandler(DCO_GMScenarioPanel owner)
+	{
+		m_Owner = owner;
+	}
+
 	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
 	{
+		DCO_TestDiagnostics.Event("gm.outside.down", string.Format("button=%1 widget=%2", button, DCO_TestDiagnostics.WidgetState(w)));
 		return true;
 	}
 
 	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
 	{
+		DCO_TestDiagnostics.Event("gm.outside.up", string.Format("button=%1 widget=%2", button, DCO_TestDiagnostics.WidgetState(w)));
+		if (button == 0 && m_Owner)
+			m_Owner.OnBackdropRelease(w);
 		return true;
 	}
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
+		DCO_TestDiagnostics.Event("gm.outside.click", string.Format("button=%1 widget=%2", button, DCO_TestDiagnostics.WidgetState(w)));
+		if (button == 0 && m_Owner)
+			m_Owner.CancelPropertySession();
 		return true;
 	}
 }
@@ -1477,7 +1491,7 @@ class DCO_GMScenarioPanel
 			m_wBriefingHost.SetVisible(false);
 		if (m_wBackdrop)
 		{
-			m_BackdropHandler = new DCO_ScenarioBackdropHandler();
+			m_BackdropHandler = new DCO_ScenarioBackdropHandler(this);
 			m_wBackdrop.AddHandler(m_BackdropHandler);
 			m_wBackdrop.SetVisible(false);
 		}
@@ -1708,6 +1722,22 @@ class DCO_GMScenarioPanel
 		RenderAttributes(m_aSessionAttributes, true);
 	}
 
+	void OnBackdropRelease(Widget releasedWidget)
+	{
+		// Release also reaches the press handler when the pointer ends on another control.
+		if (m_bOpen && m_wBackdrop && releasedWidget == m_wBackdrop)
+			CancelPropertySession();
+	}
+
+	void CancelPropertySession()
+	{
+		DCO_TestDiagnostics.Event("gm.properties.cancel", string.Format("open=%1 editing=%2", m_bOpen, m_bEditing));
+		EndEditing(false);
+		// A vanished manager cannot send its end event; release the local modal too.
+		if (m_bOpen || m_bConditionalRefreshQueued || m_bCategoryRefreshQueued)
+			OnAttributesEnded(null);
+	}
+
 	bool CloseForBack()
 	{
 		if (!m_bOpen)
@@ -1741,16 +1771,14 @@ class DCO_GMScenarioPanel
 		SetOpen(false);
 	}
 
-	// The native dialog remains the compatibility fallback for attribute layouts
-	// Bifrost cannot faithfully render. Fully supported sessions are handed off
-	// after the native menu completes its own opening lifecycle.
+	// Adopt the session after the native menu finishes opening.
 	bool CanOwnPropertySession()
 	{
 		if (!m_bOpen || !m_bEditing || !m_aSessionAttributes || m_aSessionAttributes.IsEmpty())
 			return false;
 		foreach (SCR_BaseEditorAttribute attribute : m_aSessionAttributes)
 		{
-			if (attribute && !SupportsLayout(attribute))
+			if (attribute && attribute.GetLayout().IsEmpty())
 				return false;
 		}
 		return true;
@@ -1758,6 +1786,7 @@ class DCO_GMScenarioPanel
 
 	protected void SetOpen(bool open)
 	{
+		DCO_TestDiagnostics.Event("gm.properties.set-open", string.Format("open=%1 editing=%2", open, m_bEditing));
 		bool wasOpen = m_bOpen;
 		if (!open && wasOpen)
 			DCO_GMUIController.ReleaseMenuFocus();
@@ -1884,6 +1913,8 @@ class DCO_GMScenarioPanel
 		if (!mgr)
 			return;
 		mgr.GetOnAttributesStart().Insert(OnAttributesStart);
+		mgr.GetOnAttributesConfirm().Insert(OnAttributesEnded);
+		mgr.GetOnAttributesCancel().Insert(OnAttributesEnded);
 		m_bSubscribed = true;
 	}
 
@@ -1933,13 +1964,44 @@ class DCO_GMScenarioPanel
 		UpdateTriggerChrome();
 	}
 
+	protected void OnAttributesEnded(array<SCR_BaseEditorAttribute> attributes)
+	{
+		DCO_TestDiagnostics.Event("gm.properties.end", string.Format("open=%1 editing=%2 conditional=%3 category=%4", m_bOpen, m_bEditing, m_bConditionalRefreshQueued, m_bCategoryRefreshQueued));
+		// The manager is already ending its transaction; do not cancel it recursively.
+		if (m_bOpen) DCO_GMUIController.ReleaseMenuFocus();
+		m_bEditing = false;
+		m_bOpen = false;
+		m_bCogSession = false;
+		m_bTriggerSession = false;
+		m_iMissionCategory = -1;
+		m_iTriggerFinalizeCategory = -1;
+		GetGame().GetCallqueue().Remove(RefreshConditionalRows);
+		GetGame().GetCallqueue().Remove(RenderSelectedCategory);
+		GetGame().GetCallqueue().Remove(SelectTimeAndDateCategory);
+		m_bConditionalRefreshQueued = false;
+		m_bCategoryRefreshQueued = false;
+		m_OptionPickerRow = null;
+		m_OptionPickerAnchor = null;
+		if (m_Menu) m_Menu.Hide();
+		if (m_wPanel) m_wPanel.SetVisible(false);
+		if (m_wBackdrop) m_wBackdrop.SetVisible(false);
+		if (m_wPresetMenu) m_wPresetMenu.SetVisible(false);
+		ClearContent();
+		m_aSessionAttributes = null;
+		RefreshBriefingEditor();
+		UpdatePresetControls();
+		UpdateTriggerChrome();
+		DCO_GMUIController.SetPropertyOverlaysSuppressed(false);
+		DCO_GMUIController.SetNativePropertiesOpen(false);
+	}
+
 	protected void OnAttributesStart(array<SCR_BaseEditorAttribute> attributes)
 	{
-		// The stock manager asks the server for the authoritative list before this
-		// callback. If even one layout is outside Bifrost's renderer, keep the
-		// native dialog as the sole owner instead of exposing a partial duplicate.
+		DCO_TestDiagnostics.Event("gm.properties.start", "received");
+		// The server supplies the complete attribute list before the panel opens.
 		if (!CanRenderAttributeSession(attributes))
 		{
+			DCO_TestDiagnostics.Event("gm.properties.native-fallback");
 			DCO_GMUIController.SetPropertyOverlaysSuppressed(false);
 			m_bTriggerSession = false;
 			m_iTriggerFinalizeCategory = -1;
@@ -2001,9 +2063,9 @@ class DCO_GMScenarioPanel
 			return false;
 		foreach (SCR_BaseEditorAttribute attribute : attributes)
 		{
-			if (attribute && !SupportsLayout(attribute))
+			if (attribute && attribute.GetLayout().IsEmpty())
 			{
-				Print(string.Format("[DCO-GM] native properties retained for unsupported layout: %1", attribute.GetLayout()), LogLevel.WARNING);
+				Print(string.Format("[DCO-GM] attribute has no layout: %1", attribute.GetLayout()), LogLevel.WARNING);
 				return false;
 			}
 		}
@@ -2241,7 +2303,7 @@ class DCO_GMScenarioPanel
 
 	protected bool ShouldRenderAttribute(SCR_BaseEditorAttribute attribute)
 	{
-		if (!SupportsLayout(attribute))
+		if (!attribute || attribute.GetLayout().IsEmpty())
 			return false;
 		if (m_bHasContinuousFire && m_bContinuousFire && DCO_FxExplosionGunrunRoundsEditorAttribute.Cast(attribute))
 			return false;
@@ -2491,8 +2553,9 @@ class DCO_GMScenarioPanel
 		if (SCR_TimePresetsEditorAttribute.Cast(attribute) || SCR_GameOverTypeEditorAttribute.Cast(attribute))
 			return true;
 		string layout = attribute.GetLayout();
+		if (layout.Contains("SliderVector") || layout.Contains("DropdownWithParam") || layout.Contains("CharacterBloodSlider")) return false;
 		return layout.Contains("Checkbox") || layout.Contains("MultiSelection") || layout.Contains("Slider")
-			|| layout.Contains("Date.layout") || layout.Contains("ButtonBox_Selection") || layout.Contains("Spinbox");
+			|| layout.Contains("Date.layout") || layout.Contains("ButtonBox_Selection") || layout.Contains("Spinbox") || layout.Contains("Dropdown.layout");
 	}
 
 	protected void BuildOrderedCategories(notnull array<SCR_BaseEditorAttribute> attributes, notnull array<ResourceName> categoryConfigs, notnull array<ref SCR_EditorAttributeCategory> categories)
@@ -2544,6 +2607,21 @@ class DCO_GMScenarioPanel
 	// Create one Bifrost-owned row.
 	protected bool RenderOneAttribute(WorkspaceWidget workspace, SCR_BaseEditorAttribute attribute)
 	{
+		if (!SupportsLayout(attribute))
+		{
+			Widget compound = workspace.CreateWidgets(attribute.GetLayout(), m_wContent);
+			if (!compound) return false;
+			SCR_BaseEditorAttributeUIComponent nativeControl = SCR_BaseEditorAttributeUIComponent.Cast(compound.FindHandler(SCR_BaseEditorAttributeUIComponent));
+			if (!nativeControl)
+			{
+				delete compound;
+				return false;
+			}
+			nativeControl.Init(compound, attribute);
+			nativeControl.GetOnAttributeChanged().Insert(OnAttributeChanged);
+			VerticalLayoutSlot.SetPadding(compound, 8, 8, 8, 12);
+			return true;
+		}
 		Widget attributeWidget = workspace.CreateWidgets(OPTION_LAYOUT, m_wContent);
 		if (!attributeWidget)
 		{
@@ -2789,7 +2867,11 @@ class DCO_GMScenarioPanel
 			EndEditing(false);	// abandon an open session cleanly on teardown.
 		DCO_GMUIController.SetPropertyOverlaysSuppressed(false);
 		if (m_Manager && m_bSubscribed)
+		{
 			m_Manager.GetOnAttributesStart().Remove(OnAttributesStart);
+			m_Manager.GetOnAttributesConfirm().Remove(OnAttributesEnded);
+			m_Manager.GetOnAttributesCancel().Remove(OnAttributesEnded);
+		}
 		m_bSubscribed = false;
 		m_OptionMenuCallback.Remove(OnOptionPickerAction);
 		m_OptionPickerRow = null;
@@ -2821,6 +2903,7 @@ class DCO_GMScenarioPanel
 		m_PresetStore = null;
 		GetGame().GetCallqueue().Remove(RenderSelectedCategory);
 		GetGame().GetCallqueue().Remove(SelectTimeAndDateCategory);
+		GetGame().GetCallqueue().Remove(RefreshConditionalRows);
 		m_bCategoryRefreshQueued = false;
 		m_bConditionalRefreshQueued = false;
 		m_wTitle = null;

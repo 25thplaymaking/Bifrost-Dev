@@ -17,6 +17,35 @@ class DCO_GMCompositionPanelButtonHandler : ScriptedWidgetEventHandler
 	}
 }
 
+class DCO_CompositionBackdropHandler : ScriptedWidgetEventHandler
+{
+	protected DCO_GMCompositionPanel m_Owner;
+
+	void DCO_CompositionBackdropHandler(DCO_GMCompositionPanel owner)
+	{
+		m_Owner = owner;
+	}
+
+	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
+	{
+		return true;
+	}
+
+	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
+	{
+		if (button == 0 && m_Owner)
+			m_Owner.OnBackdropRelease(w);
+		return true;
+	}
+
+	override bool OnClick(Widget w, int x, int y, int button)
+	{
+		if (button == 0 && m_Owner)
+			m_Owner.Close();
+		return true;
+	}
+}
+
 class DCO_GMCompositionPanel
 {
 	protected static ref DCO_GMCompositionPanel s_Instance;
@@ -33,6 +62,8 @@ class DCO_GMCompositionPanel
 
 	protected Widget m_wRoot;
 	protected Widget m_wPanel;
+	protected Widget m_wBackdrop;
+	protected ref DCO_CompositionBackdropHandler m_BackdropHandler;
 	protected EditBoxWidget m_wName;
 	protected EditBoxWidget m_wCategory;
 	protected EditBoxWidget m_wAuthor;
@@ -98,6 +129,12 @@ class DCO_GMCompositionPanel
 		m_wPage = TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_CompositionPage"));
 		m_wLibrarySummary = TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_CompositionLibrarySummary"));
 		m_wSelection = TextWidget.Cast(m_wRoot.FindAnyWidget("DCO_CompositionSelection"));
+		m_wBackdrop = m_wRoot.FindAnyWidget("DCO_CompositionBackdrop");
+		if (m_wBackdrop)
+		{
+			m_BackdropHandler = new DCO_CompositionBackdropHandler(this);
+			m_wBackdrop.AddHandler(m_BackdropHandler);
+		}
 		m_wEmpty = m_wRoot.FindAnyWidget("DCO_CompositionEmpty");
 		m_wScroll = m_wRoot.FindAnyWidget("DCO_CompositionScroll");
 		m_wPagination = m_wRoot.FindAnyWidget("DCO_CompositionPagination");
@@ -133,6 +170,8 @@ class DCO_GMCompositionPanel
 	{
 		DCO_GMCompositionService.Get().GetOnChanged().Remove(OnLibraryChanged);
 		DCO_GMCompositionService.Get().GetOnResult().Remove(OnResult);
+		m_BackdropHandler = null;
+		m_wBackdrop = null;
 		m_aHandlers.Clear();
 		m_aRowButtons.Clear();
 		m_aRowLabels.Clear();
@@ -245,7 +284,13 @@ class DCO_GMCompositionPanel
 		return true;
 	}
 
-	protected void Close()
+	void OnBackdropRelease(Widget releasedWidget)
+	{
+		if (m_bOpen && m_wBackdrop && releasedWidget == m_wBackdrop)
+			Close();
+	}
+
+	void Close()
 	{
 		m_bOpen = false;
 		if (m_wRoot)

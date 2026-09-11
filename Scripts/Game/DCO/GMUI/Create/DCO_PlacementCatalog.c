@@ -218,6 +218,7 @@ class DCO_PlacementCatalog
 	{
 		for (int tool = DCO_GMMissionTool.RESTORE; tool <= DCO_GMMissionTool.TARGET; tool++)
 		{
+			if (tool == DCO_GMMissionTool.TELEPORTER) continue;
 			DCO_CatalogEntry entry = new DCO_CatalogEntry();
 			entry.m_Prefab = MISSION_TOOL_PREFIX + tool.ToString();
 			entry.m_iMissionTool = tool;
@@ -253,6 +254,15 @@ class DCO_PlacementCatalog
 		return m_Entries.Count();
 	}
 
+	// Directory names such as PrefabsEditable must not match item searches like "table".
+	protected string SearchMetadata(DCO_CatalogEntry entry)
+	{
+		string filename = entry.m_Prefab;
+		int slash = filename.LastIndexOf("/");
+		if (slash >= 0) filename = filename.Substring(slash + 1, filename.Length() - slash - 1);
+		return string.Format("%1 %2 %3 %4 %5 %6", filename, entry.m_Name, entry.m_Faction, CategoryLabel(entry.m_Category), TypeLabel(entry.m_Type), entry.m_SubCat);
+	}
+
 	protected void AddEntry(ResourceName res, SCR_EditableEntityUIInfo info)
 	{
 		if (IsArsenalAccessResource(res))
@@ -285,7 +295,7 @@ class DCO_PlacementCatalog
 			else
 				e.m_SubCat = "Bifrost";
 		}
-		e.m_SearchMetadata = string.Format("%1 %2 %3 %4 %5", res, e.m_Faction, CategoryLabel(e.m_Category), TypeLabel(e.m_Type), e.m_SubCat);
+		e.m_SearchMetadata = SearchMetadata(e);
 		e.m_SearchMetadata.ToLower();
 		m_Entries.Insert(e);
 	}

@@ -25,9 +25,9 @@ class DCO_GMMissionTool
 			case INTEL: return "Create/Edit Intel";
 			case HINT: return "Global Hint";
 			case CHATTER: return "Chatter";
-			case TELEPORTER: return "Create Teleporter";
+			case TELEPORTER: return "Teleporter";
 			case NAMED: return "Use Named Position";
-			case REMOVE: return "Remove Intel / Teleporter";
+			case REMOVE: return "Remove Intel";
 			case LZ: return "Create LZ";
 			case RP: return "Create RP";
 			case TARGET: return "Create Target";
@@ -86,7 +86,7 @@ class DCO_GMMissionServer
 		if (tool == DCO_GMMissionTool.INTEL || tool == DCO_GMMissionTool.TELEPORTER)
 			return ConfigureInteraction(tool, ids, options, title, body, result);
 		if (tool == DCO_GMMissionTool.SCALE)
-			return ApplyScale(ids, options[0], result);
+			return ApplyScale(controller, ids, options[0], options[1], result);
 		if (tool != DCO_GMMissionTool.INVINCIBLE && tool != DCO_GMMissionTool.NAMED && tool != DCO_GMMissionTool.REMOVE)
 			return false;
 		int applied;
@@ -132,7 +132,7 @@ class DCO_GMMissionServer
 			if (tool == DCO_GMMissionTool.REMOVE)
 			{
 				DCO_GMMissionInteractionComponent point = DCO_GMMissionInteractionComponent.FindTarget(id);
-				if (point)
+				if (point && point.m_iKind == DCO_GMMissionInteractionComponent.INTEL)
 				{
 					SCR_EntityHelper.DeleteEntityAndChildren(point.GetOwner());
 					applied++;
@@ -143,9 +143,9 @@ class DCO_GMMissionServer
 		return applied > 0;
 	}
 
-	protected static bool ApplyScale(array<RplId> ids, float scale, out string result)
+	protected static bool ApplyScale(SCR_PlayerController controller, array<RplId> ids, float scale, float speed, out string result)
 	{
-		if (!SCR_EditableEntityComponent.DCO_IsMissionScaleValid(scale))
+		if (!SCR_EditableEntityComponent.DCO_IsMissionScaleValid(scale) || !(speed >= 0.01 && speed <= 100))
 		{
 			result = "Enter a scale from 0.01 to 100. Use 1.0 for original size.";
 			return false;
@@ -189,7 +189,13 @@ class DCO_GMMissionServer
 				continue;
 			}
 			if (target.DCO_SetMissionScale(scale))
+			{
+				if (ChimeraCharacter.Cast(target.GetOwner())) target.DCO_SetMovementFactor(speed);
+				RplId targetId;
+				if (controller && target.IsReplicated(targetId) && targetId.IsValid())
+					controller.DCO_BroadcastMissionScale(targetId, scale);
 				applied++;
+			}
 			else
 			{
 				skipped++;
@@ -219,18 +225,24 @@ class DCO_GMMissionServer
 		if (ids.Count() != 1 || title.IsEmpty() || body.IsEmpty() || !(options[0] >= 0 && options[0] <= 2))
 			return false;
 		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(ids[0]));
-		if (!editable || !DCO_GMMissionInteractionComponent.CanBind(editable.GetOwner()))
+		if (!editable || !(DCO_GMMissionInteractionComponent.CanBind(editable.GetOwner()) || editable.GetOwner().FindComponent(DCO_GMMissionInteractionComponent)))
 			return false;
 		DCO_GMMissionInteractionComponent point = DCO_GMMissionInteractionComponent.FindTarget(ids[0]);
 		int expectedKind = DCO_GMMissionInteractionComponent.INTEL;
 		if (tool == DCO_GMMissionTool.TELEPORTER) expectedKind = DCO_GMMissionInteractionComponent.TELEPORTER;
 		if (point && point.m_iKind != expectedKind)
 		{
-			result = "This prop already has a different interaction. Use Remove Intel / Teleporter before changing its purpose.";
+			result = "This prop already has a different interaction. Use Remove Intel before changing its purpose.";
 			return false;
 		}
 		if (tool == DCO_GMMissionTool.TELEPORTER)
 		{
+			if (!point || !point.m_bStandalone)
+			{
+				result = "Place a Teleporter point from CREATE, then double-click it to configure.";
+				return false;
+			}
+			if (!(options[0] == 0 || options[0] == 1) || !(options[1] >= 0 && options[1] <= 60) || !(options[2] >= 1 && options[2] <= 20)) return false;
 			if (body.Length() > 64 || body.Contains("\n") || body.Contains("\r") || DCO_GMMissionInteractionComponent.PairCount(body, point) >= 2)
 			{
 				result = "Use a link name of 1-64 characters with no more than two endpoints.";
@@ -258,6 +270,11 @@ class DCO_GMMissionServer
 			if (body.Length() > 64)
 				body = body.Substring(0, 64);
 		}
+		if (kind == DCO_GMMissionInteractionComponent.TELEPORTER)
+		{
+			if (!(options[0] >= 0 && options[0] <= 1) || !(options[1] >= 0 && options[1] <= 60) || !(options[2] >= 1 && options[2] <= 20)) return false;
+			point.SetTravelSettings(options[0] == 1, options[1], options[2]);
+		}
 		point.Configure(kind, ids[0], title, body, Math.Round(options[0]), options[1] == 1);
 		result = "Intel interaction saved. Players can collect it beside the prop.";
 		if (kind == DCO_GMMissionInteractionComponent.TELEPORTER)
@@ -274,6 +291,20 @@ class DCO_GMMissionServer
 		result = "Enter message text and a valid faction audience.";
 		if (body.IsEmpty() || !(options[0] >= 0 && options[0] <= 2))
 			return false;
+		if (tool == DCO_GMMissionTool.HINT && (!(options[1] >= 1 && options[1] <= 300) || body.Length() > 512)) return false;
+		set<int> selectedPlayers = new set<int>();
+		set<string> selectedFactions = new set<string>();
+		foreach (RplId targetId : ids)
+		{
+			SCR_EditableEntityComponent selected = SCR_EditableEntityComponent.Cast(Replication.FindItem(targetId));
+			if (!selected) continue;
+			int playerId = selected.GetPlayerID();
+			if (playerId > 0) selectedPlayers.Insert(playerId);
+			selected = SCR_EditableEntityComponent.DCO_ResolveMissionTarget(selected);
+			if (!selected || !selected.GetOwner()) continue;
+			FactionAffiliationComponent affiliation = FactionAffiliationComponent.Cast(selected.GetOwner().FindComponent(FactionAffiliationComponent));
+			if (affiliation && affiliation.GetAffiliatedFaction()) selectedFactions.Insert(affiliation.GetAffiliatedFaction().GetFactionKey());
+		}
 		string faction;
 		vector origin;
 		if (sender.GetControlledEntity())
@@ -326,7 +357,12 @@ class DCO_GMMissionServer
 				if (options[0] == 2 && (!recipient.GetControlledEntity() || vector.DistanceSq(recipient.GetControlledEntity().GetOrigin(), origin) > 10000))
 					continue;
 			}
-			recipient.DCO_MissionMessage(title, body, tool == DCO_GMMissionTool.CHATTER);
+			if (tool == DCO_GMMissionTool.HINT)
+			{
+				if (options[0] == 1 && !selectedPlayers.Contains(id)) continue;
+				if (options[0] == 2 && !selectedFactions.Contains(DCO_GMMissionJournal.FactionOf(recipient))) continue;
+			}
+			recipient.DCO_MissionMessage(title, body, tool == DCO_GMMissionTool.CHATTER, options[1]);
 			delivered++;
 		}
 		result = string.Format("Message delivered to %1 current players.", delivered);
@@ -362,8 +398,9 @@ class DCO_GMMissionServer
 	static bool Teleport(SCR_PlayerController controller, IEntity endpoint, out string result)
 	{
 		result = "No clear arrival position. Leave the endpoint surroundings clear.";
+		if (!Replication.IsServer() || !controller || !endpoint) return false;
 		ChimeraCharacter character = ChimeraCharacter.Cast(controller.GetControlledEntity());
-		if (!Replication.IsServer() || !character || !endpoint)
+		if (!character)
 			return false;
 		CompartmentAccessComponent access = CompartmentAccessComponent.Cast(character.FindComponent(CompartmentAccessComponent));
 		if (access && access.IsInCompartment())
@@ -373,30 +410,44 @@ class DCO_GMMissionServer
 		}
 		vector basePosition = endpoint.GetOrigin();
 		World world = GetGame().GetWorld();
-		for (int i = 0; i < 16; i++)
+		float scale = character.GetScale();
+		for (int i = 0; i < 9; i++)
 		{
-			float angle = i * Math.PI2 / 8;
-			float radius = 2.0 + Math.Floor(i / 8.0) * 1.5;
-			vector candidate = basePosition + Vector(Math.Cos(angle) * radius, 0, Math.Sin(angle) * radius);
-			candidate[1] = world.GetSurfaceY(candidate[0], candidate[2]) + 0.15;
+			vector candidate = basePosition;
+			if (i > 0)
+			{
+				float angle = (i - 1) * Math.PI2 / 8;
+				candidate += Vector(Math.Cos(angle), 0, Math.Sin(angle)) * Math.Max(0.8, scale);
+			}
+			if (!SCR_Global.IsPositionWithinTerrainBounds(candidate)) continue;
+			TraceParam floorTrace = new TraceParam();
+			floorTrace.Start = candidate + "0 0.3 0";
+			floorTrace.End = candidate - "0 0.6 0";
+			floorTrace.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
+			floorTrace.TargetLayers = EPhysicsLayerDefs.FireGeometry;
+			floorTrace.Exclude = character;
+			float floorFraction = world.TraceMove(floorTrace, null);
+			if (floorFraction >= 1) continue;
+			candidate = vector.Lerp(floorTrace.Start, floorTrace.End, floorFraction) + "0 0.05 0";
 			if (candidate[1] <= world.GetOceanHeight(candidate[0], candidate[2]) + 0.1) continue;
-			if (Math.AbsFloat(world.GetSurfaceY(candidate[0] + 0.4, candidate[2]) - candidate[1]) > 0.45 || Math.AbsFloat(world.GetSurfaceY(candidate[0], candidate[2] + 0.4) - candidate[1]) > 0.45) continue;
-			if (!SCR_Global.IsPositionWithinTerrainBounds(candidate) || Math.AbsFloat(candidate[1] - basePosition[1]) > 3)
-				continue;
+			TraceParam approach = new TraceParam();
+			approach.Start = basePosition + Vector(0, 0.5 * scale, 0);
+			approach.End = candidate + Vector(0, 0.5 * scale, 0);
+			approach.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
+			approach.TargetLayers = EPhysicsLayerDefs.FireGeometry;
+			approach.Exclude = character;
+			if (world.TraceMove(approach, null) < 1) continue;
 			TraceBox trace = new TraceBox();
 			trace.Start = candidate + "0 0.15 0";
 			trace.End = trace.Start + "0 0.05 0";
-			trace.Mins = "-0.4 0 -0.4";
-			trace.Maxs = "0.4 1.9 0.4";
+			trace.Mins = Vector(-0.4 * scale, 0, -0.4 * scale);
+			trace.Maxs = Vector(0.4 * scale, 1.9 * scale, 0.4 * scale);
 			trace.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
 			trace.TargetLayers = EPhysicsLayerDefs.FireGeometry;
 			trace.Exclude = character;
 			if (world.TraceMove(trace, null) < 1)
 				continue;
-			SCR_PlayersManagerEditorComponent manager = SCR_PlayersManagerEditorComponent.Cast(SCR_PlayersManagerEditorComponent.GetInstance(SCR_PlayersManagerEditorComponent));
-			if (!manager)
-				return false;
-			manager.TeleportPlayerToPositionServer(character, controller.GetPlayerId(), candidate);
+			if (!controller.DCO_TeleportMissionCharacter(character, candidate)) return false;
 			result = "Arrived at the linked endpoint.";
 			return true;
 		}
@@ -406,6 +457,130 @@ class DCO_GMMissionServer
 
 modded class SCR_PlayerController
 {
+	protected ref map<RplId, float> m_DCO_PendingScales;
+	protected ref map<RplId, int> m_DCO_ScaleRetries;
+
+	void ~SCR_PlayerController()
+	{
+		if (GetGame())
+			GetGame().GetCallqueue().Remove(DCO_RetryMissionScales);
+	}
+
+	void DCO_BroadcastMissionScale(RplId targetId, float scale)
+	{
+		if (!Replication.IsServer() || !targetId.IsValid() || !SCR_EditableEntityComponent.DCO_IsMissionScaleValid(scale))
+			return;
+		PlayerManager playerManager = GetGame().GetPlayerManager();
+		if (!playerManager)
+			return;
+		array<int> players = {};
+		playerManager.GetPlayers(players);
+		int delivered;
+		foreach (int playerId : players)
+		{
+			SCR_PlayerController recipient = SCR_PlayerController.Cast(playerManager.GetPlayerController(playerId));
+			if (!recipient)
+				continue;
+			recipient.DCO_DeliverMissionScale(targetId, scale);
+			delivered++;
+		}
+		DCO_TestDiagnostics.Event("gm.scale.broadcast", string.Format("target=%1 value=%2 recipients=%3", targetId, scale, delivered));
+	}
+
+	protected void DCO_DeliverMissionScale(RplId targetId, float scale)
+	{
+		if (GetGame().GetPlayerController() == this)
+			DCO_RpcMissionScale(targetId, scale);
+		else
+			Rpc(DCO_RpcMissionScale, targetId, scale);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void DCO_RpcMissionScale(RplId targetId, float scale)
+	{
+		if (Replication.IsServer())
+			return;
+		if (!targetId.IsValid() || !SCR_EditableEntityComponent.DCO_IsMissionScaleValid(scale))
+			return;
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(targetId));
+		if (editable && editable.GetOwner())
+		{
+			editable.DCO_ReceiveMissionScale(scale);
+			if (m_DCO_PendingScales)
+			{
+				m_DCO_PendingScales.Remove(targetId);
+				m_DCO_ScaleRetries.Remove(targetId);
+			}
+			return;
+		}
+
+		// Owner RPCs can arrive before the target has streamed into this client.
+		if (!m_DCO_PendingScales)
+		{
+			m_DCO_PendingScales = new map<RplId, float>();
+			m_DCO_ScaleRetries = new map<RplId, int>();
+		}
+		bool startRetry = m_DCO_PendingScales.IsEmpty();
+		m_DCO_PendingScales.Set(targetId, scale);
+		m_DCO_ScaleRetries.Set(targetId, 40);
+		if (startRetry)
+		{
+			GetGame().GetCallqueue().Remove(DCO_RetryMissionScales);
+			GetGame().GetCallqueue().CallLater(DCO_RetryMissionScales, 250, true);
+		}
+	}
+
+	protected void DCO_RetryMissionScales()
+	{
+		for (int i = m_DCO_PendingScales.Count() - 1; i >= 0; --i)
+		{
+			RplId targetId = m_DCO_PendingScales.GetKey(i);
+			SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(targetId));
+			if (editable && editable.GetOwner())
+			{
+				editable.DCO_ReceiveMissionScale(m_DCO_PendingScales.GetElement(i));
+				m_DCO_PendingScales.Remove(targetId);
+				m_DCO_ScaleRetries.Remove(targetId);
+				continue;
+			}
+			int remaining = m_DCO_ScaleRetries.Get(targetId) - 1;
+			if (remaining > 0)
+				m_DCO_ScaleRetries.Set(targetId, remaining);
+			else
+			{
+				DCO_TestDiagnostics.Event("gm.scale.unresolved", string.Format("target=%1 value=%2", targetId, m_DCO_PendingScales.GetElement(i)), true);
+				m_DCO_PendingScales.Remove(targetId);
+				m_DCO_ScaleRetries.Remove(targetId);
+			}
+		}
+		if (m_DCO_PendingScales.IsEmpty())
+			GetGame().GetCallqueue().Remove(DCO_RetryMissionScales);
+	}
+
+	bool DCO_TeleportMissionCharacter(ChimeraCharacter character, vector position)
+	{
+		if (!Replication.IsServer() || !character || GetControlledEntity() != character) return false;
+		SCR_CompartmentAccessComponent access = SCR_CompartmentAccessComponent.Cast(character.FindComponent(SCR_CompartmentAccessComponent));
+		if (access && access.GetVehicle()) return false;
+		RplComponent rpl = character.GetRplComponent();
+		if (!rpl || !SCR_Global.TeleportPlayer(GetPlayerId(), position)) return false;
+		Rpc(DCO_RpcMissionTeleport, rpl.Id(), position);
+		return true;
+	}
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void DCO_RpcMissionTeleport(RplId characterId, vector position)
+	{
+		if (Replication.IsServer()) return;
+		ChimeraCharacter character = ChimeraCharacter.Cast(GetControlledEntity());
+		if (!character) return;
+		RplComponent rpl = character.GetRplComponent();
+		// A delayed arrival must not move a replacement character or an occupied vehicle.
+		if (!rpl || rpl.Id() != characterId) return;
+		SCR_CompartmentAccessComponent access = SCR_CompartmentAccessComponent.Cast(character.FindComponent(SCR_CompartmentAccessComponent));
+		if (access && access.GetVehicle()) return;
+		SCR_Global.TeleportPlayer(GetPlayerId(), position);
+	}
+
 	protected float m_fDCO_LastMissionRequest = -10000;
 	protected float m_fDCO_LastMissionUse = -10000;
 	protected float m_fDCO_LastIntelSnapshot = -10000;
@@ -443,22 +618,22 @@ modded class SCR_PlayerController
 	{
 		DCO_GMMissionPanel.Get().OnRequestResult(requestSequence, success, result);
 	}
-	void DCO_MissionMessage(string title, string body, bool chatter = false)
+	void DCO_MissionMessage(string title, string body, bool chatter = false, float duration = 15)
 	{
 		if (GetGame().GetPlayerController() == this)
-			DCO_RpcMissionMessage(title, body, chatter);
+			DCO_RpcMissionMessage(title, body, chatter, duration);
 		else
-			Rpc(DCO_RpcMissionMessage, title, body, chatter);
+			Rpc(DCO_RpcMissionMessage, title, body, chatter, duration);
 	}
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
-	protected void DCO_RpcMissionMessage(string title, string body, bool chatter)
+	protected void DCO_RpcMissionMessage(string title, string body, bool chatter, float duration)
 	{
 		if (chatter)
 		{
 			SCR_ChatComponent.RadioProtocolMessage(title + " [AI]: " + body);
 			return;
 		}
-		SCR_HintManagerComponent.ShowCustomHint(body, title, 15);
+		DCO_GMHint.Show(title, body, duration);
 	}
 	void DCO_UseMissionPoint(RplId id)
 	{
@@ -563,17 +738,23 @@ modded class SCR_PlayerController
 		if (tool == DCO_GMMissionTool.TELEPORTER) expectedKind = DCO_GMMissionInteractionComponent.TELEPORTER;
 		if ((tool != DCO_GMMissionTool.INTEL && tool != DCO_GMMissionTool.TELEPORTER) || point.m_iKind != expectedKind)
 		{
-			DCO_SendMissionResult(requestSequence, false, "This prop already has a different interaction. Use Remove Intel / Teleporter before changing its purpose.");
+			DCO_SendMissionResult(requestSequence, false, "This prop already has a different interaction. Use Remove Intel before changing its purpose.");
 			return;
 		}
+		int scope = point.m_iScope;
+		if (point.m_iKind == DCO_GMMissionInteractionComponent.TELEPORTER)
+		{
+			scope = 0;
+			if (point.m_bAutomatic) scope = 1;
+		}
 		if (GetGame().GetPlayerController() == this)
-			DCO_RpcMissionEditReply(requestSequence, targetId, point.m_sTitle, point.m_sBody, point.m_iScope, point.m_bRemoveClue);
+			DCO_RpcMissionEditReply(requestSequence, targetId, point.m_sTitle, point.m_sBody, scope, point.m_bRemoveClue, point.m_fTravelDelay, point.m_fUseRadius);
 		else
-			Rpc(DCO_RpcMissionEditReply, requestSequence, targetId, point.m_sTitle, point.m_sBody, point.m_iScope, point.m_bRemoveClue);
+			Rpc(DCO_RpcMissionEditReply, requestSequence, targetId, point.m_sTitle, point.m_sBody, scope, point.m_bRemoveClue, point.m_fTravelDelay, point.m_fUseRadius);
 	}
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
-	protected void DCO_RpcMissionEditReply(int requestSequence, RplId targetId, string title, string body, int scope, bool removeClue)
+	protected void DCO_RpcMissionEditReply(int requestSequence, RplId targetId, string title, string body, int scope, bool removeClue, float delay, float radius)
 	{
-		DCO_GMMissionPanel.Get().OnEdit(requestSequence, targetId, title, body, scope, removeClue);
+		DCO_GMMissionPanel.Get().OnEdit(requestSequence, targetId, title, body, scope, removeClue, delay, radius);
 	}
 }

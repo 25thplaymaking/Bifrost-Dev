@@ -89,7 +89,7 @@ class DCO_ArsenalLoadouts
 	// SAVE the character's current kit under a name.
 	void SaveFrom(IEntity character, string name, notnull array<string> manifest)
 	{
-		if (!character || name.IsEmpty() || !GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
+		if (!character || name.IsEmpty() || !BIA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
 			return;
 		EnsureLoaded();
 
@@ -162,7 +162,7 @@ class DCO_ArsenalLoadouts
 	// APPLY a stored loadout onto a character.
 	void ApplyTo(IEntity character, notnull DCO_ArsenalLoadoutRec rec)
 	{
-		if (!character || rec.m_sJson.IsEmpty() || !GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
+		if (!character || rec.m_sJson.IsEmpty() || !BIA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
 			return;
 		if (!IsAvailable(rec))
 		{
@@ -184,7 +184,7 @@ class DCO_ArsenalLoadouts
 
 	void Delete(notnull DCO_ArsenalLoadoutRec rec)
 	{
-		if (!GRSA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
+		if (!BIA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
 			return;
 		EnsureLoaded();
 		int idx = m_Store.m_aLoadouts.Find(rec);

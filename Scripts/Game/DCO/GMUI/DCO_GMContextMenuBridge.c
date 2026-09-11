@@ -502,7 +502,7 @@ class DCO_GMContextMenuBridge
 		if (actionId == ID_TELEPORT_PLAYERS){ DCO_GMTools.Get().MarkPlayersForTeleport(e); return; }
 		if (actionId == ID_TELEPORT_PLAYERS_HERE){ DCO_GMTools.Get().TeleportPlayersTo(m_CursorPos); return; }
 		if (actionId == ID_FLYBY)           { DCO_GMTools.Get().SendOnFlyby(e);             return; }
-		if (actionId == ID_EDIT_LOADOUT)    { if (e) DCO_GRSArmoryBridge.OpenForGameMaster(e.GetOwner()); return; }
+		if (actionId == ID_EDIT_LOADOUT)    { if (e) DCO_BIArmoryBridge.OpenForGameMaster(e.GetOwner()); return; }
 		if (actionId == ID_RESET_LOADOUT)   { if (e && e.GetOwner()) DCO_ArsenalServer.Route(DCO_ArsenalServer.VERB_RESET, e.GetOwner(), ""); return; }
 		if (actionId == ID_DOORS_OPEN)      { DCO_GMWorldControlClient.RouteSelected(EDCO_GMWorldControlAction.OPEN_DOORS, e); return; }
 		if (actionId == ID_DOORS_CLOSE)     { DCO_GMWorldControlClient.RouteSelected(EDCO_GMWorldControlAction.CLOSE_DOORS, e); return; }

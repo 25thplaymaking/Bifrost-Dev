@@ -10,7 +10,7 @@ class DCO_FxExplosionAttributeBase : SCR_BaseValueListEditorAttribute
 		if (!editable)
 			return null;
 		IEntity owner = editable.GetOwner();
-		if (!owner)
+		if (!owner || owner.FindComponent(DCO_FxAudioComponent))
 			return null;
 		DCO_FxExplosionComponent fx = DCO_FxExplosionComponent.Cast(owner.FindComponent(DCO_FxExplosionComponent));
 		if (!fx || (DCO_FamilyMask() & fx.DCO_GetFamilyBit()) == 0)

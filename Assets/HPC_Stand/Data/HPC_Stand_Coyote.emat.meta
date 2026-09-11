@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{1D192D3D49F9B81D}Assets/HPC_Stand/Data/HPC_Stand_Coyote.emat"
+ Configurations {
+  EMATResourceClass PC {
+  }
+  EMATResourceClass XBOX_ONE : PC {
+  }
+  EMATResourceClass XBOX_SERIES : PC {
+  }
+  EMATResourceClass PS4 : PC {
+  }
+  EMATResourceClass PS5 : PC {
+  }
+  EMATResourceClass HEADLESS : PC {
+  }
+ }
+}

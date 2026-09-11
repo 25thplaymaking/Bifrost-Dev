@@ -311,7 +311,12 @@ class DCO_FxExplosionComponent : ScriptComponent
 		DCO_TriggerFxRegistry.Unregister(GetOwner());
 	}
 
-	bool DCO_IsFiring() { return m_bFiring; }
+	bool DCO_IsFiring()
+	{
+		DCO_FxAudioComponent ambience = DCO_FxAudioComponent.Cast(GetOwner().FindComponent(DCO_FxAudioComponent));
+		if (ambience) return ambience.Setting(1) == 1;
+		return m_bFiring;
+	}
 
 	void DCO_SetFiring(bool fire)
 	{
@@ -324,6 +329,13 @@ class DCO_FxExplosionComponent : ScriptComponent
 		DCO_ReplicateState();
 		GetGame().GetCallqueue().Remove(DCO_BarrageTick);
 		GetGame().GetCallqueue().Remove(DCO_NextBarrage);
+		DCO_FxAudioComponent ambience = DCO_FxAudioComponent.Cast(GetOwner().FindComponent(DCO_FxAudioComponent));
+		if (ambience)
+		{
+			if (fire) ambience.StartPlayback();
+			else ambience.SetSetting(1, 0);
+			return;
+		}
 		if (fire)
 		{
 			m_iShotsLeft = Math.Clamp(m_iBarrageCount, 1, 20);
@@ -660,6 +672,12 @@ class DCO_FxExplosionComponent : ScriptComponent
 
 		if (deliveryIdx == EDCO_FxExplosionDelivery.SOUND_EMITTER)
 		{
+			DCO_FxAudioComponent ambience = DCO_FxAudioComponent.Cast(GetOwner().FindComponent(DCO_FxAudioComponent));
+			if (ambience)
+			{
+				ambience.StartPlayback();
+				return;
+			}
 			string bank = m_CustomSoundBank;
 			string eventName = m_sCustomSoundEvent;
 			if (!bank.IsEmpty() && !eventName.IsEmpty())

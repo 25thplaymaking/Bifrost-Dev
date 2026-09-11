@@ -27,7 +27,7 @@ class DCO_GMUnitActions
 			case ACT_ARSENAL:
 			{
 				if (e.GetOwner() && !e.IsDestroyed())
-					DCO_GRSArmoryBridge.OpenForGameMaster(e.GetOwner());
+					DCO_BIArmoryBridge.OpenForGameMaster(e.GetOwner());
 				break;
 			}
 			case ACT_RESTOCK:

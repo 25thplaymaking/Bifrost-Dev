@@ -8380,6 +8380,47 @@ FrameWidgetClass "{C2A48C5F7F009DCC}" {
         }
        }
       }
+     HorizontalLayoutWidgetClass "{0DCC000000019000}" {
+      Name "DCO_PlayerPager"
+      Slot LayoutSlot "{0DCC000000019001}" { HorizontalAlign 1 Padding 8 2 8 2 }
+      {
+       ButtonWidgetClass "{0DCC000000019002}" {
+        Name "DCO_PlayerPrev"
+        Slot LayoutSlot "{0DCC000000019003}" { Padding 4 0 4 0 }
+        style blank
+        {
+         TextWidgetClass "{0DCC000000019004}" {
+          Name "DCO_PlayerPrevLabel"
+          Slot ButtonWidgetSlot "{0DCC000000019005}" { Padding 8 2 8 2 }
+          Text "<"
+          Color 0.851 0.537 0.169 1
+          "Font Size" 18
+         }
+        }
+       }
+       TextWidgetClass "{0DCC000000019006}" {
+        Name "DCO_PlayerPage"
+        Slot LayoutSlot "{0DCC000000019007}" { VerticalAlign 1 Padding 8 0 8 0 }
+        Text "1 / 1"
+        Color 0.86 0.89 0.91 1
+        "Font Size" 16
+       }
+       ButtonWidgetClass "{0DCC000000019008}" {
+        Name "DCO_PlayerNext"
+        Slot LayoutSlot "{0DCC000000019009}" { Padding 4 0 4 0 }
+        style blank
+        {
+         TextWidgetClass "{0DCC00000001900A}" {
+          Name "DCO_PlayerNextLabel"
+          Slot ButtonWidgetSlot "{0DCC00000001900B}" { Padding 8 2 8 2 }
+          Text ">"
+          Color 0.851 0.537 0.169 1
+          "Font Size" 18
+         }
+        }
+       }
+      }
+     }
      VerticalLayoutWidgetClass "{0DC00000000F4500}" {
       Name "DCO_EditFootHost"
       Slot LayoutSlot "{0DC00000000F4501}" {

@@ -108,6 +108,15 @@ class DCO_FpsMonitorClient
 		}
 	}
 
+	void StopWatches()
+	{
+		SetActive(false);
+		while (!m_Watched.IsEmpty())
+			SetWatch(m_Watched.GetKey(0), false);
+		GetGame().GetCallqueue().Remove(Keepalive);
+		m_bKeepaliveOn = false;
+	}
+
 	protected void Keepalive()
 	{
 		if (m_bGlobal)

@@ -342,7 +342,6 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 	protected Widget m_DamagePanel;
 	protected Widget m_CargoPanel;
 	protected Widget m_DataPager;
-	protected Widget m_ProgressPanel;
 	protected Widget m_ServiceProgressModal;
 	protected Widget m_ServiceProgressBorder;
 	protected TextWidget m_VehiclePage;
@@ -353,7 +352,6 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 	protected TextWidget m_CargoTitle;
 	protected TextWidget m_DamageDetail;
 	protected TextWidget m_Status;
-	protected TextWidget m_ProgressText;
 	protected TextWidget m_ServiceProgressOperation;
 	protected TextWidget m_ServiceProgressPercent;
 	protected TextWidget m_ServiceProgressRemaining;
@@ -371,7 +369,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 	protected ref array<ref DCO_VehicleDamageEntry> m_Damage = {};
 	protected ref array<ref DCO_VehicleAmmoEntry> m_Ammo = {};
 	protected ref array<DCO_ArsenalEntry> m_Catalog = {};
-	protected ref array<ref GRSA_ItemEntry> m_CargoBrowseItems = {};
+	protected ref array<ref BIA_ItemEntry> m_CargoBrowseItems = {};
 	protected ref array<ButtonWidget> m_VehicleButtons = {};
 	protected ref array<TextWidget> m_VehicleLabels = {};
 	protected ref array<TextWidget> m_DamageLabels = {};
@@ -413,35 +411,33 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 	protected bool m_bClosed;
 	protected bool m_bInitialized;
 	protected AudioHandle m_ServiceAudio = AudioHandle.Invalid;
-	protected Widget m_GRSAScreen;
-	protected Widget m_GRSADataList;
-	protected Widget m_GRSACandidateList;
-	protected Widget m_GRSACandidatePanel;
-	protected Widget m_GRSACandidateCarousel;
-	protected Widget m_GRSAReceiverCard;
-	protected Widget m_GRSATabs;
-	protected Widget m_GRSACandidateClasses;
-	protected Widget m_GRSAFooter;
-	protected TextWidget m_GRSAHeaderTitle;
-	protected TextWidget m_GRSAHeaderStatus;
-	protected TextWidget m_GRSAHardpointCounter;
-	protected TextWidget m_GRSAStatsTitle;
-	protected RichTextWidget m_GRSAStatsText;
-	protected Widget m_GRSAStatsIconRow;
-	protected TextWidget m_GRSAStatsDamageValue;
-	protected TextWidget m_GRSAStatsAmmoValue;
-	protected TextWidget m_GRSAStatsCargoValue;
-	protected TextWidget m_GRSACandidateTitle;
-	protected TextWidget m_GRSAProgressValue;
-	protected SCR_SliderComponent m_GRSAProgressSlider;
-	protected GRSA_CarouselComponent m_GRSACarousel;
+	protected Widget m_BIAScreen;
+	protected Widget m_BIADataList;
+	protected Widget m_BIACandidateList;
+	protected Widget m_BIACandidatePanel;
+	protected Widget m_BIACandidateCarousel;
+	protected Widget m_BIAReceiverCard;
+	protected Widget m_BIATabs;
+	protected Widget m_BIACandidateClasses;
+	protected Widget m_BIAFooter;
+	protected TextWidget m_BIAHeaderTitle;
+	protected TextWidget m_BIAHeaderStatus;
+	protected TextWidget m_BIAHardpointCounter;
+	protected TextWidget m_BIAStatsTitle;
+	protected RichTextWidget m_BIAStatsText;
+	protected Widget m_BIAStatsIconRow;
+	protected TextWidget m_BIAStatsDamageValue;
+	protected TextWidget m_BIAStatsAmmoValue;
+	protected TextWidget m_BIAStatsCargoValue;
+	protected TextWidget m_BIACandidateTitle;
+	protected BIA_CarouselComponent m_BIACarousel;
 	protected Widget m_CargoBrowserRoot;
-	protected ref GRSA_ItemListPanel m_CargoBrowser;
-	protected ref array<GRSA_ItemRowComponent> m_GRSADataRows = {};
-	protected ref array<int> m_GRSADataActions = {};
-	protected ref array<GRSA_ItemRowComponent> m_GRSACandidateRows = {};
-	protected ref array<int> m_GRSACandidateActions = {};
-	protected ref array<SCR_ButtonTextComponent> m_GRSAModeChips = {};
+	protected ref BIA_ItemListPanel m_CargoBrowser;
+	protected ref array<BIA_ItemRowComponent> m_BIADataRows = {};
+	protected ref array<int> m_BIADataActions = {};
+	protected ref array<BIA_ItemRowComponent> m_BIACandidateRows = {};
+	protected ref array<int> m_BIACandidateActions = {};
+	protected ref array<SCR_ButtonTextComponent> m_BIAModeChips = {};
 
 	static bool IsServiceOpen()
 	{
@@ -605,7 +601,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		if (!tabView)
 			return;
 
-		ScriptedWidgetEventHandler tabController = tabView.FindHandler(GRSA_ArsenalTabViewComponent);
+		ScriptedWidgetEventHandler tabController = tabView.FindHandler(BIA_ArsenalTabViewComponent);
 		if (tabController)
 			tabView.RemoveHandler(tabController);
 	}
@@ -622,14 +618,14 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 			return;
 		}
 
-		GRSA_Theme.Apply(m_Root);
-		m_GRSAHeaderTitle = TextWidget.Cast(m_Root.FindAnyWidget("HeaderTitle"));
-		m_GRSAHeaderStatus = TextWidget.Cast(m_Root.FindAnyWidget("ShellStatus"));
-		m_Status = m_GRSAHeaderStatus;
-		if (m_GRSAHeaderTitle)
-			m_GRSAHeaderTitle.SetText("SERVICE BAY");
-		if (m_GRSAHeaderStatus)
-			m_GRSAHeaderStatus.SetVisible(true);
+		BIA_Theme.Apply(m_Root);
+		m_BIAHeaderTitle = TextWidget.Cast(m_Root.FindAnyWidget("HeaderTitle"));
+		m_BIAHeaderStatus = TextWidget.Cast(m_Root.FindAnyWidget("ShellStatus"));
+		m_Status = m_BIAHeaderStatus;
+		if (m_BIAHeaderTitle)
+			m_BIAHeaderTitle.SetText("SERVICE BAY");
+		if (m_BIAHeaderStatus)
+			m_BIAHeaderStatus.SetVisible(true);
 		TextWidget supply = TextWidget.Cast(m_Root.FindAnyWidget("HeaderSupply"));
 		TextWidget weight = TextWidget.Cast(m_Root.FindAnyWidget("HeaderWeight"));
 		if (supply)
@@ -638,8 +634,8 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 			weight.SetVisible(false);
 
 		Bind("ExitButton", ACTION_CLOSE);
-		m_GRSATabs = m_Root.FindAnyWidget("Tabs");
-		ClearChildren(m_GRSATabs);
+		m_BIATabs = m_Root.FindAnyWidget("Tabs");
+		ClearChildren(m_BIATabs);
 		CreateModeChip("REPAIR", ACTION_TAB_SERVICE);
 		CreateModeChip("CARGO", ACTION_TAB_CARGO);
 		Widget pagingLeft = m_Root.FindAnyWidget("PagingLeft");
@@ -652,70 +648,59 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		Widget content = m_Root.FindAnyWidget("ContentOverlay");
 		ClearChildren(content);
 		if (content)
-			m_GRSAScreen = GetGame().GetWorkspace().CreateWidgets(GRS_GUNSMITH_SCREEN, content);
-		if (!m_GRSAScreen)
+			m_BIAScreen = GetGame().GetWorkspace().CreateWidgets(GRS_GUNSMITH_SCREEN, content);
+		if (!m_BIAScreen)
 		{
 			Close();
 			return;
 		}
-		AlignableSlot.SetHorizontalAlign(m_GRSAScreen, LayoutHorizontalAlign.Stretch);
-		AlignableSlot.SetVerticalAlign(m_GRSAScreen, LayoutVerticalAlign.Stretch);
-		AlignableSlot.SetPadding(m_GRSAScreen, 0, 0, 0, 0);
-		m_GRSAScreen.Update();
-		m_PreviewRender = RenderTargetWidget.Cast(m_GRSAScreen.FindAnyWidget("StageWorld"));
-		m_GRSADataList = m_GRSAScreen.FindAnyWidget("HardpointRailList");
-		m_GRSAHardpointCounter = TextWidget.Cast(m_GRSAScreen.FindAnyWidget("HardpointCounter"));
-		m_GRSACandidatePanel = m_GRSAScreen.FindAnyWidget("CandidatesPanel");
-		m_GRSACandidateList = m_GRSAScreen.FindAnyWidget("CandidatesList");
-		m_GRSACandidateClasses = m_GRSAScreen.FindAnyWidget("BrowserClasses");
-		m_GRSACandidateTitle = TextWidget.Cast(m_GRSAScreen.FindAnyWidget("CandidatesTitle"));
-		m_GRSACandidateCarousel = m_GRSAScreen.FindAnyWidget("CandidatesCarousel");
-		Widget candidateScroll = m_GRSAScreen.FindAnyWidget("CandidatesScroll");
+		AlignableSlot.SetHorizontalAlign(m_BIAScreen, LayoutHorizontalAlign.Stretch);
+		AlignableSlot.SetVerticalAlign(m_BIAScreen, LayoutVerticalAlign.Stretch);
+		AlignableSlot.SetPadding(m_BIAScreen, 0, 0, 0, 0);
+		m_BIAScreen.Update();
+		m_PreviewRender = RenderTargetWidget.Cast(m_BIAScreen.FindAnyWidget("StageWorld"));
+		m_BIADataList = m_BIAScreen.FindAnyWidget("HardpointRailList");
+		m_BIAHardpointCounter = TextWidget.Cast(m_BIAScreen.FindAnyWidget("HardpointCounter"));
+		m_BIACandidatePanel = m_BIAScreen.FindAnyWidget("CandidatesPanel");
+		m_BIACandidateList = m_BIAScreen.FindAnyWidget("CandidatesList");
+		m_BIACandidateClasses = m_BIAScreen.FindAnyWidget("BrowserClasses");
+		m_BIACandidateTitle = TextWidget.Cast(m_BIAScreen.FindAnyWidget("CandidatesTitle"));
+		m_BIACandidateCarousel = m_BIAScreen.FindAnyWidget("CandidatesCarousel");
+		Widget candidateScroll = m_BIAScreen.FindAnyWidget("CandidatesScroll");
 		if (candidateScroll)
-			m_GRSACarousel = GRSA_CarouselComponent.Cast(candidateScroll.FindHandler(GRSA_CarouselComponent));
-		m_GRSAReceiverCard = m_GRSAScreen.FindAnyWidget("ReceiverCard");
-		m_GRSAStatsTitle = TextWidget.Cast(m_GRSAScreen.FindAnyWidget("StatsTitle"));
-		m_GRSAStatsText = RichTextWidget.Cast(m_GRSAScreen.FindAnyWidget("StatsText"));
-		m_GRSAStatsIconRow = m_GRSAScreen.FindAnyWidget("StatsIconRow");
-		m_GRSAStatsDamageValue = TextWidget.Cast(m_GRSAScreen.FindAnyWidget("StatsDamageValue"));
-		m_GRSAStatsAmmoValue = TextWidget.Cast(m_GRSAScreen.FindAnyWidget("StatsAmmoValue"));
-		m_GRSAStatsCargoValue = TextWidget.Cast(m_GRSAScreen.FindAnyWidget("StatsCargoValue"));
+			m_BIACarousel = BIA_CarouselComponent.Cast(candidateScroll.FindHandler(BIA_CarouselComponent));
+		m_BIAReceiverCard = m_BIAScreen.FindAnyWidget("ReceiverCard");
+		m_BIAStatsTitle = TextWidget.Cast(m_BIAScreen.FindAnyWidget("StatsTitle"));
+		m_BIAStatsText = RichTextWidget.Cast(m_BIAScreen.FindAnyWidget("StatsText"));
+		m_BIAStatsIconRow = m_BIAScreen.FindAnyWidget("StatsIconRow");
+		m_BIAStatsDamageValue = TextWidget.Cast(m_BIAScreen.FindAnyWidget("StatsDamageValue"));
+		m_BIAStatsAmmoValue = TextWidget.Cast(m_BIAScreen.FindAnyWidget("StatsAmmoValue"));
+		m_BIAStatsCargoValue = TextWidget.Cast(m_BIAScreen.FindAnyWidget("StatsCargoValue"));
 		BindStatsIcon("StatsDamageIcon", ICON_REPAIR);
 		BindStatsIcon("StatsAmmoIcon", ICON_REARM);
 		BindStatsIcon("StatsCargoIcon", ICON_CARGO);
 		DarkenPanel("StatsBg");
 		DarkenPanel("ReceiverBg");
 		DarkenPanel("CandidatesBg");
-		SizeLayoutWidget hardpointRail = SizeLayoutWidget.Cast(m_GRSAScreen.FindAnyWidget("HardpointRail"));
+		SizeLayoutWidget hardpointRail = SizeLayoutWidget.Cast(m_BIAScreen.FindAnyWidget("HardpointRail"));
 		if (hardpointRail)
 		{
 			hardpointRail.SetWidthOverride(500);
 			AlignableSlot.SetPadding(hardpointRail, 0, 82, 24, 178);
 		}
-		Widget hardpointCounter = m_GRSAScreen.FindAnyWidget("HardpointCounter");
+		Widget hardpointCounter = m_BIAScreen.FindAnyWidget("HardpointCounter");
 		if (hardpointCounter)
 			AlignableSlot.SetPadding(hardpointCounter, 0, 16, 32, 0);
-		if (m_GRSACandidatePanel)
-			AlignableSlot.SetPadding(m_GRSACandidatePanel, 48, 0, 408, 64);
+		if (m_BIACandidatePanel)
+			AlignableSlot.SetPadding(m_BIACandidatePanel, 48, 0, 408, 64);
 		CreateCargoBrowseControls();
 		CreateCargoBrowser();
-		m_ProgressPanel = m_GRSAScreen.FindAnyWidget("PositionRow");
-		m_ProgressText = TextWidget.Cast(m_GRSAScreen.FindAnyWidget("PositionLabel"));
-		m_GRSAProgressValue = TextWidget.Cast(m_GRSAScreen.FindAnyWidget("PositionValue"));
-		Widget progressSlider = m_GRSAScreen.FindAnyWidget("PositionSlider");
-		if (progressSlider)
-		{
-			m_GRSAProgressSlider = SCR_SliderComponent.Cast(progressSlider.FindHandler(SCR_SliderComponent));
-			progressSlider.SetEnabled(false);
-		}
-		if (m_GRSAReceiverCard)
-			m_GRSAReceiverCard.SetVisible(false);
+		if (m_BIAReceiverCard)
+			m_BIAReceiverCard.SetVisible(false);
 
-		m_GRSAFooter = m_Root.FindAnyWidget("Footer");
-		ClearChildren(m_GRSAFooter);
+		m_BIAFooter = m_Root.FindAnyWidget("Footer");
+		ClearChildren(m_BIAFooter);
 
-		if (m_ProgressPanel)
-			m_ProgressPanel.SetVisible(false);
 		CreateServiceProgressModal();
 		m_PreviewStage = new DCO_VehiclePreviewStage();
 		DCO_ArsenalCatalog.Get().Build();
@@ -742,7 +727,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		{
 			input.ActivateContext("MenuContext");
 			input.ActivateContext("InventoryMenuContext");
-			input.ActivateContext("GRSA_ArmoryContext");
+			input.ActivateContext("BIA_ArmoryContext");
 			bool closeHeld = input.GetActionValue("MenuBack") > 0 || input.GetActionValue("MenuOpen") > 0;
 #ifdef WORKBENCH
 			closeHeld = closeHeld || input.GetActionValue("MenuBackWB") > 0 || input.GetActionValue("MenuOpenWB") > 0;
@@ -774,8 +759,8 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 			return;
 		UpdatePendingRequestTimeout(tDelta);
 
-		GRSA_SmoothScrollComponent.TickAll(tDelta);
-		GRSA_CarouselComponent.TickAll(tDelta);
+		BIA_SmoothScrollComponent.TickAll(tDelta);
+		BIA_CarouselComponent.TickAll(tDelta);
 		if (m_PreviewStage)
 			m_PreviewStage.Tick(tDelta);
 		if (m_DamageCallouts)
@@ -838,8 +823,8 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		if (m_PreviewStage)
 			m_PreviewStage.Destroy();
 		m_PreviewStage = null;
-		if (m_GRSACarousel)
-			m_GRSACarousel.Clear();
+		if (m_BIACarousel)
+			m_BIACarousel.Clear();
 		if (m_CargoBrowser)
 		{
 			m_CargoBrowser.m_OnItemClicked.Remove(OnCargoBrowserClicked);
@@ -847,8 +832,8 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 			m_CargoBrowser.m_OnDone.Remove(OnCargoBrowserDone);
 			m_CargoBrowser.Destroy();
 		}
-		ClearGRSADataRows();
-		ClearGRSACandidateRows();
+		ClearBIADataRows();
+		ClearBIACandidateRows();
 		foreach (DCO_VehicleServiceButtonHandler handler : m_Handlers)
 		{
 			if (handler)
@@ -871,10 +856,10 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		m_ServiceProgressBar = null;
 		m_ServiceProgressIconHost = null;
 		m_ServiceProgressIcon = null;
-		ClearChildren(m_GRSATabs);
-		ClearChildren(m_GRSAFooter);
-		if (m_GRSAScreen)
-			m_GRSAScreen.RemoveFromHierarchy();
+		ClearChildren(m_BIATabs);
+		ClearChildren(m_BIAFooter);
+		if (m_BIAScreen)
+			m_BIAScreen.RemoveFromHierarchy();
 		m_VehicleButtons.Clear();
 		m_VehicleLabels.Clear();
 		m_DamageLabels.Clear();
@@ -892,29 +877,27 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		m_Cargo.Clear();
 		m_Catalog.Clear();
 		m_CargoBrowseItems.Clear();
-		m_GRSAModeChips.Clear();
-		m_GRSAScreen = null;
-		m_GRSADataList = null;
-		m_GRSACandidateList = null;
-		m_GRSACandidatePanel = null;
-		m_GRSACandidateCarousel = null;
-		m_GRSAReceiverCard = null;
-		m_GRSATabs = null;
-		m_GRSACandidateClasses = null;
-		m_GRSAFooter = null;
-		m_GRSAHeaderTitle = null;
-		m_GRSAHeaderStatus = null;
-		m_GRSAHardpointCounter = null;
-		m_GRSAStatsTitle = null;
-		m_GRSAStatsText = null;
-		m_GRSAStatsIconRow = null;
-		m_GRSAStatsDamageValue = null;
-		m_GRSAStatsAmmoValue = null;
-		m_GRSAStatsCargoValue = null;
-		m_GRSACandidateTitle = null;
-		m_GRSAProgressValue = null;
-		m_GRSAProgressSlider = null;
-		m_GRSACarousel = null;
+		m_BIAModeChips.Clear();
+		m_BIAScreen = null;
+		m_BIADataList = null;
+		m_BIACandidateList = null;
+		m_BIACandidatePanel = null;
+		m_BIACandidateCarousel = null;
+		m_BIAReceiverCard = null;
+		m_BIATabs = null;
+		m_BIACandidateClasses = null;
+		m_BIAFooter = null;
+		m_BIAHeaderTitle = null;
+		m_BIAHeaderStatus = null;
+		m_BIAHardpointCounter = null;
+		m_BIAStatsTitle = null;
+		m_BIAStatsText = null;
+		m_BIAStatsIconRow = null;
+		m_BIAStatsDamageValue = null;
+		m_BIAStatsAmmoValue = null;
+		m_BIAStatsCargoValue = null;
+		m_BIACandidateTitle = null;
+		m_BIACarousel = null;
 		m_CargoBrowser = null;
 		m_CargoBrowserRoot = null;
 		m_PreviewRender = null;
@@ -952,9 +935,9 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 
 	protected void DarkenPanel(string widgetName)
 	{
-		if (!m_GRSAScreen)
+		if (!m_BIAScreen)
 			return;
-		Widget background = m_GRSAScreen.FindAnyWidget(widgetName);
+		Widget background = m_BIAScreen.FindAnyWidget(widgetName);
 		if (background)
 			background.SetColor(Color.FromRGBA(3, 3, 4, 245));
 	}
@@ -977,7 +960,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		m_ServiceProgressBar = ProgressBarWidget.Cast(m_ServiceProgressModal.FindAnyWidget("ServiceProgressBar"));
 		m_ServiceProgressIconHost = m_ServiceProgressModal.FindAnyWidget("ServiceProgressIconHost");
 		m_ServiceProgressIcon = ImageWidget.Cast(m_ServiceProgressModal.FindAnyWidget("ServiceProgressIcon"));
-		Color accent = GRSA_Theme.Accent();
+		Color accent = BIA_Theme.Accent();
 		if (m_ServiceProgressBorder)
 			m_ServiceProgressBorder.SetColor(accent);
 		if (m_ServiceProgressPercent)
@@ -997,14 +980,14 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 
 	protected void BindStatsIcon(string widgetName, ResourceName texture)
 	{
-		if (!m_GRSAScreen)
+		if (!m_BIAScreen)
 			return;
-		ImageWidget icon = ImageWidget.Cast(m_GRSAScreen.FindAnyWidget(widgetName));
+		ImageWidget icon = ImageWidget.Cast(m_BIAScreen.FindAnyWidget(widgetName));
 		if (icon)
 			icon.LoadImageTexture(0, texture);
 	}
 
-	protected Widget CreateGRSAChip(Widget parent, string label, int action)
+	protected Widget CreateBIAChip(Widget parent, string label, int action)
 	{
 		if (!parent)
 			return null;
@@ -1022,21 +1005,21 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 
 	protected void CreateCargoBrowseControls()
 	{
-		ClearChildren(m_GRSACandidateClasses);
-		if (m_GRSACandidateClasses)
-			m_GRSACandidateClasses.SetVisible(false);
+		ClearChildren(m_BIACandidateClasses);
+		if (m_BIACandidateClasses)
+			m_BIACandidateClasses.SetVisible(false);
 	}
 
 	protected void CreateCargoBrowser()
 	{
-		if (!m_GRSAScreen)
+		if (!m_BIAScreen)
 			return;
 
-		m_CargoBrowserRoot = GetGame().GetWorkspace().CreateWidgets(GRS_ITEM_LIST_PANEL, m_GRSAScreen);
+		m_CargoBrowserRoot = GetGame().GetWorkspace().CreateWidgets(GRS_ITEM_LIST_PANEL, m_BIAScreen);
 		if (!m_CargoBrowserRoot)
 			return;
 
-		m_CargoBrowser = new GRSA_ItemListPanel(m_CargoBrowserRoot, "ItemListPanel", "ItemListTitle",
+		m_CargoBrowser = new BIA_ItemListPanel(m_CargoBrowserRoot, "ItemListPanel", "ItemListTitle",
 			"ItemList", "ItemScroll", "ItemSearchBox", "ItemListBackControls", "ItemListFilters");
 		m_CargoBrowser.m_OnItemClicked.Insert(OnCargoBrowserClicked);
 		m_CargoBrowser.m_OnQtyDelta.Insert(OnCargoBrowserQuantity);
@@ -1045,16 +1028,16 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 
 	protected void CreateModeChip(string label, int action)
 	{
-		if (!m_GRSATabs)
+		if (!m_BIATabs)
 			return;
-		Widget root = GetGame().GetWorkspace().CreateWidgets(GRS_TAB, m_GRSATabs);
+		Widget root = GetGame().GetWorkspace().CreateWidgets(GRS_TAB, m_BIATabs);
 		if (!root)
 			return;
 		SCR_ButtonTextComponent chip = SCR_ButtonTextComponent.Cast(root.FindHandler(SCR_ButtonTextComponent));
 		if (chip)
 		{
 			chip.SetText(label);
-			m_GRSAModeChips.Insert(chip);
+			m_BIAModeChips.Insert(chip);
 		}
 		DCO_VehicleServiceButtonHandler handler = new DCO_VehicleServiceButtonHandler(this, action);
 		handler.Attach(root);
@@ -1063,9 +1046,9 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 
 	protected void CreateFooterChip(string label, int action)
 	{
-		if (!m_GRSAFooter)
+		if (!m_BIAFooter)
 			return;
-		Widget root = GetGame().GetWorkspace().CreateWidgets(GRS_CHIP, m_GRSAFooter);
+		Widget root = GetGame().GetWorkspace().CreateWidgets(GRS_CHIP, m_BIAFooter);
 		if (!root)
 			return;
 		SCR_ButtonTextComponent chip = SCR_ButtonTextComponent.Cast(root.FindHandler(SCR_ButtonTextComponent));
@@ -1084,7 +1067,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 				handler.Destroy();
 		}
 		m_FooterHandlers.Clear();
-		ClearChildren(m_GRSAFooter);
+		ClearChildren(m_BIAFooter);
 		if (m_iServiceCapabilities & DCO_VehicleServiceServer.CAPABILITY_REPAIR)
 			CreateFooterChip("REPAIR", ACTION_REPAIR);
 		if (m_iServiceCapabilities & DCO_VehicleServiceServer.CAPABILITY_REFUEL)
@@ -1096,12 +1079,12 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		CreateFooterChip("RESET VIEW", ACTION_PREVIEW_RESET);
 	}
 
-	protected void OnGRSADataClicked(GRSA_ItemRowComponent row)
+	protected void OnBIADataClicked(BIA_ItemRowComponent row)
 	{
-		int index = m_GRSADataRows.Find(row);
-		if (index < 0 || index >= m_GRSADataActions.Count())
+		int index = m_BIADataRows.Find(row);
+		if (index < 0 || index >= m_BIADataActions.Count())
 			return;
-		int dataIndex = m_GRSADataActions[index];
+		int dataIndex = m_BIADataActions[index];
 		if (m_iMode == MODE_SERVICE)
 		{
 			m_iDamagePage = dataIndex / DATA_ROWS;
@@ -1114,17 +1097,17 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		}
 	}
 
-	protected void OnGRSACandidateClicked(GRSA_ItemRowComponent row)
+	protected void OnBIACandidateClicked(BIA_ItemRowComponent row)
 	{
-		int index = m_GRSACandidateRows.Find(row);
-		if (index < 0 || index >= m_GRSACandidateActions.Count())
+		int index = m_BIACandidateRows.Find(row);
+		if (index < 0 || index >= m_BIACandidateActions.Count())
 			return;
-		int catalogIndex = m_GRSACandidateActions[index];
+		int catalogIndex = m_BIACandidateActions[index];
 		if (catalogIndex >= 0 && catalogIndex < m_Catalog.Count())
 			AddCargoEntry(m_Catalog[catalogIndex]);
 	}
 
-	protected void OnCargoBrowserClicked(GRSA_ItemRowComponent row)
+	protected void OnCargoBrowserClicked(BIA_ItemRowComponent row)
 	{
 		if (!row || !row.GetEntry())
 			return;
@@ -1134,7 +1117,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		ChangeCargo(row, 1);
 	}
 
-	protected void OnCargoBrowserQuantity(GRSA_ItemRowComponent row, int delta)
+	protected void OnCargoBrowserQuantity(BIA_ItemRowComponent row, int delta)
 	{
 		ChangeCargo(row, delta);
 	}
@@ -1152,7 +1135,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		m_sRenderSignature = BuildRenderSignature();
 	}
 
-	protected void ChangeCargo(GRSA_ItemRowComponent row, int delta)
+	protected void ChangeCargo(BIA_ItemRowComponent row, int delta)
 	{
 		if (!row || !row.GetEntry() || delta == 0)
 			return;
@@ -1214,41 +1197,41 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		return m_CargoContainerPrefab + "^" + itemPrefab;
 	}
 
-	protected void ClearGRSADataRows()
+	protected void ClearBIADataRows()
 	{
-		foreach (GRSA_ItemRowComponent row : m_GRSADataRows)
+		foreach (BIA_ItemRowComponent row : m_BIADataRows)
 		{
 			if (row)
-				row.m_OnEntryClicked.Remove(OnGRSADataClicked);
+				row.m_OnEntryClicked.Remove(OnBIADataClicked);
 			if (row && row.GetRootWidget())
 				row.GetRootWidget().RemoveFromHierarchy();
 		}
-		m_GRSADataRows.Clear();
-		m_GRSADataActions.Clear();
+		m_BIADataRows.Clear();
+		m_BIADataActions.Clear();
 		m_DamageRows.Clear();
 	}
 
-	protected void ClearGRSACandidateRows()
+	protected void ClearBIACandidateRows()
 	{
-		foreach (GRSA_ItemRowComponent row : m_GRSACandidateRows)
+		foreach (BIA_ItemRowComponent row : m_BIACandidateRows)
 		{
 			if (row)
-				row.m_OnEntryClicked.Remove(OnGRSACandidateClicked);
+				row.m_OnEntryClicked.Remove(OnBIACandidateClicked);
 			if (row && row.GetRootWidget())
 				row.GetRootWidget().RemoveFromHierarchy();
 		}
-		m_GRSACandidateRows.Clear();
-		m_GRSACandidateActions.Clear();
+		m_BIACandidateRows.Clear();
+		m_BIACandidateActions.Clear();
 	}
 
-	protected GRSA_ItemRowComponent CreateGRSADataRow(string label, string state, ResourceName thumbnail, int action)
+	protected BIA_ItemRowComponent CreateBIADataRow(string label, string state, ResourceName thumbnail, int action)
 	{
-		if (!m_GRSADataList)
+		if (!m_BIADataList)
 			return null;
-		Widget root = GetGame().GetWorkspace().CreateWidgets(GRS_ROW, m_GRSADataList);
+		Widget root = GetGame().GetWorkspace().CreateWidgets(GRS_ROW, m_BIADataList);
 		if (!root)
 			return null;
-		GRSA_ItemRowComponent row = GRSA_ItemRowComponent.Cast(root.FindHandler(GRSA_ItemRowComponent));
+		BIA_ItemRowComponent row = BIA_ItemRowComponent.Cast(root.FindHandler(BIA_ItemRowComponent));
 		if (!row)
 		{
 			root.RemoveFromHierarchy();
@@ -1259,24 +1242,24 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 			rowSize.SetHeightOverride(62);
 		row.SetSlotDisplay(label, state, thumbnail);
 		row.UseOpaqueBackground();
-		row.m_OnEntryClicked.Insert(OnGRSADataClicked);
-		m_GRSADataRows.Insert(row);
-		m_GRSADataActions.Insert(action);
+		row.m_OnEntryClicked.Insert(OnBIADataClicked);
+		m_BIADataRows.Insert(row);
+		m_BIADataActions.Insert(action);
 		return row;
 	}
 
-	protected GRSA_ItemRowComponent CreateGRSACandidate(DCO_ArsenalEntry source, string state, int action)
+	protected BIA_ItemRowComponent CreateBIACandidate(DCO_ArsenalEntry source, string state, int action)
 	{
-		if (!m_GRSACandidateList || !source)
+		if (!m_BIACandidateList || !source)
 			return null;
-		GRSA_ItemEntry entry = new GRSA_ItemEntry();
+		BIA_ItemEntry entry = new BIA_ItemEntry();
 		entry.m_Prefab = source.m_Prefab;
 		entry.m_sDisplayName = source.m_sName;
 		entry.m_eType = source.m_eType;
-		Widget root = GetGame().GetWorkspace().CreateWidgets(GRS_TILE, m_GRSACandidateList);
+		Widget root = GetGame().GetWorkspace().CreateWidgets(GRS_TILE, m_BIACandidateList);
 		if (!root)
 			return null;
-		GRSA_ItemRowComponent row = GRSA_ItemRowComponent.Cast(root.FindHandler(GRSA_ItemRowComponent));
+		BIA_ItemRowComponent row = BIA_ItemRowComponent.Cast(root.FindHandler(BIA_ItemRowComponent));
 		if (!row)
 		{
 			root.RemoveFromHierarchy();
@@ -1285,9 +1268,9 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		row.SetEntry(entry, false);
 		row.SetStateText(state);
 		row.UseOpaqueBackground();
-		row.m_OnEntryClicked.Insert(OnGRSACandidateClicked);
-		m_GRSACandidateRows.Insert(row);
-		m_GRSACandidateActions.Insert(action);
+		row.m_OnEntryClicked.Insert(OnBIACandidateClicked);
+		m_BIACandidateRows.Insert(row);
+		m_BIACandidateActions.Insert(action);
 		return row;
 	}
 
@@ -2254,7 +2237,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		{
 			if (!source)
 				continue;
-			GRSA_ItemEntry item = new GRSA_ItemEntry();
+			BIA_ItemEntry item = new BIA_ItemEntry();
 			item.m_Prefab = source.m_Prefab;
 			item.m_sDisplayName = source.m_sName;
 			item.m_eType = source.m_eType;
@@ -2294,7 +2277,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		int selected;
 		if (m_iMode == MODE_CARGO)
 			selected = 1;
-		foreach (int index, SCR_ButtonTextComponent chip : m_GRSAModeChips)
+		foreach (int index, SCR_ButtonTextComponent chip : m_BIAModeChips)
 		{
 			if (chip)
 				chip.SetToggled(index == selected, true, false);
@@ -2306,21 +2289,21 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 
 	protected void RefreshVehicleRows()
 	{
-		if (m_GRSAReceiverCard)
-			m_GRSAReceiverCard.SetVisible(false);
+		if (m_BIAReceiverCard)
+			m_BIAReceiverCard.SetVisible(false);
 		RefreshStats();
 	}
 
 	protected void RefreshDiagnosticRows()
 	{
-		ClearGRSADataRows();
-		Widget rail = m_GRSAScreen.FindAnyWidget("HardpointRail");
+		ClearBIADataRows();
+		Widget rail = m_BIAScreen.FindAnyWidget("HardpointRail");
 		int start;
 		int end;
 		if (m_iMode == MODE_SERVICE)
 		{
-			if (m_GRSAHardpointCounter)
-				m_GRSAHardpointCounter.SetText("REPAIR AREA");
+			if (m_BIAHardpointCounter)
+				m_BIAHardpointCounter.SetText("REPAIR AREA");
 			start = 0;
 			end = m_Damage.Count();
 			for (int i = start; i < end; i++)
@@ -2333,7 +2316,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 					condition += "\n" + (100 - entry.m_iHealthPercent).ToString() + "% DAMAGED";
 				if (entry.m_bOnFire)
 					condition += " / FIRE";
-				GRSA_ItemRowComponent row = CreateGRSADataRow(entry.m_sName, condition,
+				BIA_ItemRowComponent row = CreateBIADataRow(entry.m_sName, condition,
 					ResourceName.Empty, i);
 				if (row)
 				{
@@ -2349,20 +2332,20 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		}
 		else
 		{
-			if (m_GRSAHardpointCounter)
-				m_GRSAHardpointCounter.SetText("LOADING AREA");
+			if (m_BIAHardpointCounter)
+				m_BIAHardpointCounter.SetText("LOADING AREA");
 			start = 0;
 			end = m_Cargo.Count();
 			for (int i = start; i < end; i++)
 			{
 				DCO_VehicleCargoEntry entry = m_Cargo[i];
-				GRSA_ItemRowComponent cargoRow = CreateGRSADataRow(entry.m_sName, "LOADED", entry.m_Prefab, i);
+				BIA_ItemRowComponent cargoRow = CreateBIADataRow(entry.m_sName, "LOADED", entry.m_Prefab, i);
 				if (cargoRow)
 					cargoRow.SetMetaText("x" + entry.m_iCount.ToString());
 			}
 		}
 		if (rail)
-			rail.SetVisible(!m_GRSADataRows.IsEmpty());
+			rail.SetVisible(!m_BIADataRows.IsEmpty());
 		if (m_DamageCallouts)
 			m_DamageCallouts.SetRows(m_DamageRows);
 		RefreshDamageCallouts();
@@ -2438,55 +2421,55 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 
 	protected void RefreshCandidates()
 	{
-		ClearGRSACandidateRows();
+		ClearBIACandidateRows();
 		RefreshCargoBrowser();
-		if (!m_GRSACandidatePanel)
+		if (!m_BIACandidatePanel)
 			return;
 		if (m_iMode != MODE_CARGO)
 		{
-			if (m_GRSACandidateClasses)
-				m_GRSACandidateClasses.SetVisible(false);
-			if (m_GRSACandidateCarousel)
-				m_GRSACandidateCarousel.SetVisible(true);
+			if (m_BIACandidateClasses)
+				m_BIACandidateClasses.SetVisible(false);
+			if (m_BIACandidateCarousel)
+				m_BIACandidateCarousel.SetVisible(true);
 			if (!m_iActiveVerb)
-				m_GRSACandidatePanel.SetVisible(false);
+				m_BIACandidatePanel.SetVisible(false);
 			return;
 		}
 
-		m_GRSACandidatePanel.SetVisible(false);
-		if (m_GRSACandidateClasses)
-			m_GRSACandidateClasses.SetVisible(false);
-		if (m_GRSACandidateCarousel)
-			m_GRSACandidateCarousel.SetVisible(false);
+		m_BIACandidatePanel.SetVisible(false);
+		if (m_BIACandidateClasses)
+			m_BIACandidateClasses.SetVisible(false);
+		if (m_BIACandidateCarousel)
+			m_BIACandidateCarousel.SetVisible(false);
 		return;
 	}
 
 	protected void RefreshStats()
 	{
-		if (!m_GRSAScreen)
+		if (!m_BIAScreen)
 			return;
-		Widget root = m_GRSAScreen.FindAnyWidget("StatsBlock");
-		if (!root || !m_GRSAStatsText)
+		Widget root = m_BIAScreen.FindAnyWidget("StatsBlock");
+		if (!root || !m_BIAStatsText)
 			return;
 		root.SetVisible(ShowSideCards());
 		if (!ShowSideCards())
 			return;
 		if (!m_SelectedVehicle)
 		{
-			if (m_GRSAStatsIconRow)
-				m_GRSAStatsIconRow.SetVisible(false);
-			if (m_GRSAStatsTitle)
-				m_GRSAStatsTitle.SetText("VEHICLE SERVICE");
-			m_GRSAStatsText.SetText("Park inside the white circle, stop, exit, then open Vehicle Service.");
+			if (m_BIAStatsIconRow)
+				m_BIAStatsIconRow.SetVisible(false);
+			if (m_BIAStatsTitle)
+				m_BIAStatsTitle.SetText("VEHICLE SERVICE");
+			m_BIAStatsText.SetText("Park inside the white circle, stop, exit, then open Vehicle Service.");
 			return;
 		}
-		if (m_GRSAStatsTitle)
-			m_GRSAStatsTitle.SetText(EntityName(m_SelectedVehicle));
-		if (m_GRSAStatsIconRow)
-			m_GRSAStatsIconRow.SetVisible(true);
-		if (m_GRSAStatsDamageValue)
-			m_GRSAStatsDamageValue.SetText(m_Damage.Count().ToString() + " SYSTEMS");
-		if (m_GRSAStatsAmmoValue)
+		if (m_BIAStatsTitle)
+			m_BIAStatsTitle.SetText(EntityName(m_SelectedVehicle));
+		if (m_BIAStatsIconRow)
+			m_BIAStatsIconRow.SetVisible(true);
+		if (m_BIAStatsDamageValue)
+			m_BIAStatsDamageValue.SetText(m_Damage.Count().ToString() + " SYSTEMS");
+		if (m_BIAStatsAmmoValue)
 		{
 			int totalRounds;
 			int totalCapacity;
@@ -2497,10 +2480,10 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 				totalRounds += ammo.m_iCurrent;
 				totalCapacity += ammo.m_iMaximum;
 			}
-			m_GRSAStatsAmmoValue.SetText(totalRounds.ToString() + " / " + totalCapacity.ToString() + " ROUNDS");
+			m_BIAStatsAmmoValue.SetText(totalRounds.ToString() + " / " + totalCapacity.ToString() + " ROUNDS");
 		}
-		if (m_GRSAStatsCargoValue)
-			m_GRSAStatsCargoValue.SetText(CargoItemCount().ToString() + " CARGO");
+		if (m_BIAStatsCargoValue)
+			m_BIAStatsCargoValue.SetText(CargoItemCount().ToString() + " CARGO");
 		string text;
 		if (m_iMode == MODE_SERVICE && m_iSelectedDamageHitZone >= 0)
 		{
@@ -2516,7 +2499,7 @@ class DCO_VehicleServiceMenu : ChimeraMenuBase
 		if (!text.IsEmpty())
 			text += "\n\n";
 		text += "Drag the open stage to orbit. Use the wheel or stick to zoom.";
-		m_GRSAStatsText.SetText(text);
+		m_BIAStatsText.SetText(text);
 	}
 
 	protected bool ShowSideCards()

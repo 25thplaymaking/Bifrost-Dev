@@ -28,6 +28,7 @@ class DCO_GMUIController
 	protected bool m_bEditShown = true;
 	protected bool m_bCreateShown = true;
 	protected bool m_bBuilt;
+	protected string m_sDiagnosticState;
 	protected bool m_bNativePropertiesOpen;
 	protected int m_iNativePropertiesHeartbeat;
 	protected int m_PeelAttempts;
@@ -52,6 +53,29 @@ class DCO_GMUIController
 		return s_Instance != null && s_Instance.m_bNativePropertiesOpen;
 	}
 
+	static bool IsModalActive()
+	{
+		if (!s_Instance || !s_Instance.m_bBuilt)
+			return false;
+		if (s_Instance.m_bNativePropertiesOpen)
+			return true;
+		if (s_Instance.m_Menu && s_Instance.m_Menu.IsOpen())
+			return true;
+		if (DCO_GMMissionPanel.Get().IsOpen())
+			return true;
+		if (DCO_GMCompositionPanel.Get().IsOpen())
+			return true;
+		if (DCO_GMMarkerPanel.Get().IsOpen())
+			return true;
+		if (DCO_GMTutorial.IsOpen())
+			return true;
+		return false;
+	}
+
+	static void CancelPropertySession()
+	{
+		if (s_Instance && s_Instance.m_Scenario) s_Instance.m_Scenario.CancelPropertySession();
+	}
 	static bool ShouldHandoffNativeProperties()
 	{
 		return s_Instance && s_Instance.m_bBuilt && s_Instance.m_Scenario && s_Instance.m_Scenario.CanOwnPropertySession();
@@ -64,6 +88,7 @@ class DCO_GMUIController
 	{
 		if (!s_Instance || !s_Instance.m_bBuilt)
 			return;
+		DCO_TestDiagnostics.Event("gm.native-ownership", string.Format("open=%1", open));
 		s_Instance.m_bNativePropertiesOpen = open;
 		if (open)
 			s_Instance.m_iNativePropertiesHeartbeat = System.GetTickCount();
@@ -784,6 +809,7 @@ class DCO_GMUIController
 	{
 		if (!m_bBuilt || !m_wRoot)
 			return;
+		TraceDiagnosticState();
 		ReconcileNativePropertiesFocus();
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
 		if (!workspace)
@@ -795,12 +821,35 @@ class DCO_GMUIController
 		ApplyLayout();
 	}
 
+	protected void TraceDiagnosticState()
+	{
+		if (!DCO_TestDiagnostics.ENABLED) return;
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		Widget focus;
+		if (workspace) focus = workspace.GetFocusedWidget();
+		Widget panel = m_wRoot.FindAnyWidget("DCO_ScenarioPanel");
+		Widget backdrop = m_wRoot.FindAnyWidget("DCO_ScenarioBackdrop");
+		Widget menu = m_wRoot.FindAnyWidget("DCO_ContextMenu");
+		Widget catcher = m_wRoot.FindAnyWidget("DCO_MenuBackdrop");
+		string state = string.Format("native=%1 suppressed=%2 root=%3 focus=%4", m_bNativePropertiesOpen, m_bPropertyOverlaysSuppressed, m_wRoot.IsEnabled(), DCO_TestDiagnostics.WidgetState(focus));
+		state += " | " + DCO_TestDiagnostics.WidgetState(panel) + " | " + DCO_TestDiagnostics.WidgetState(backdrop);
+		state += " | " + DCO_TestDiagnostics.WidgetState(menu) + " | " + DCO_TestDiagnostics.WidgetState(catcher);
+		bool suspect = !m_bNativePropertiesOpen && !m_wRoot.IsEnabled();
+		if (backdrop && backdrop.IsVisible() && (!panel || !panel.IsVisible())) suspect = true;
+		if (catcher && catcher.IsVisible() && (!menu || !menu.IsVisible())) suspect = true;
+		if (focus && !focus.IsVisibleInHierarchy()) suspect = true;
+		if (state == m_sDiagnosticState) return;
+		m_sDiagnosticState = state;
+		DCO_TestDiagnostics.Event("gm.state", state, suspect);
+	}
+
 	protected void ReconcileNativePropertiesFocus()
 	{
 		if (!m_bNativePropertiesOpen || m_iNativePropertiesHeartbeat <= 0)
 			return;
 		if (System.GetTickCount() - m_iNativePropertiesHeartbeat <= NATIVE_PROPERTIES_STALE_MS)
 			return;
+		DCO_TestDiagnostics.Event("gm.native-heartbeat-expired", string.Format("ageMs=%1", System.GetTickCount() - m_iNativePropertiesHeartbeat), true);
 		SetNativePropertiesOpen(false);
 	}
 
@@ -1020,6 +1069,7 @@ class DCO_GMUIController
 		RemoveMasterHideListener();
 		DCO_GMTheme.Get().ClearMasterHide();	// restore parked world-cue state before the shell lifetime ends.
 		GetGame().GetCallqueue().Remove(PeelVanillaPoll);	// stop the peel poll if it's still running.
+		DCO_TestDiagnostics.Event("gm.shutdown");
 		GetGame().GetCallqueue().Remove(PollViewport);	// stop workspace resize polling before the root is removed.
 		foreach (DCO_GMDraggable d : m_Draggables)	// stop any in-progress drag poll before the widgets go away.
 			d.StopDrag();
@@ -1029,7 +1079,8 @@ class DCO_GMUIController
 		m_Resizables.Clear();
 		DCO_GMDraggable.ResetRaise();	// next shell build starts its raise-on-grab z counter from zero.
 		// Release the server freeze when the GM leaves the editor.
-		DCO_GMPauseServer.RoutePause(EDCO_PauseScope.ALL_AI, 0, false);
+		DCO_GMPauseServer.RoutePause(EDCO_PauseScope.ALL_AI, 0, false, true);
+		DCO_FpsMonitorClient.Get().StopWatches();
 		m_ResetHandler = null;	// its button dies with the root; drop our keep-alive ref.
 		m_VanillaHide.RestoreAll();	// un-hide any engine surfaces we hid.
 		DCO_GMTutorial.Get().Shutdown();	// drops its ESC listener before the shell root takes its widgets away.

@@ -6,7 +6,14 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 	static const int INTEL = 1;
 	static const int TELEPORTER = 2;
 	protected static ref array<DCO_GMMissionInteractionComponent> s_Instances;
-	[RplProp()] int m_iKind;
+	[Attribute("0"), RplProp()] int m_iKind;
+	[Attribute("0"), RplProp()] bool m_bStandalone;
+	[RplProp()] bool m_bAutomatic;
+	[RplProp()] float m_fTravelDelay;
+	[RplProp()] float m_fUseRadius = 4.5;
+	protected ref map<int, float> m_Departures = new map<int, float>();
+	protected ref map<int, IEntity> m_DepartingCharacters = new map<int, IEntity>();
+	protected ref set<int> m_ArrivalGuard = new set<int>();
 	[RplProp()] RplId m_TargetId;
 	[RplProp()] string m_sTitle;
 	[RplProp()] string m_sPair;
@@ -14,7 +21,6 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 	string m_sBody;
 	int m_iScope;
 	bool m_bRemoveClue;
-	protected float m_fLastArrival = -10000;
 	protected ref set<string> m_UsedBy = new set<string>();
 
 	override protected void OnPostInit(IEntity owner)
@@ -23,7 +29,13 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 		if (!s_Instances)
 			s_Instances = {};
 		s_Instances.Insert(this);
-		GetGame().GetCallqueue().CallLater(FollowTarget, 500, true);
+		if (GetGame().InPlayMode() && m_bStandalone && Replication.IsServer())
+		{
+			m_bReady = true;
+			m_sTitle = "Teleporter";
+			Replication.BumpMe();
+		}
+		if (GetGame().InPlayMode()) GetGame().GetCallqueue().CallLater(FollowTarget, 500, true);
 	}
 
 	override void OnDelete(IEntity owner)
@@ -51,6 +63,7 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 
 	IEntity Target()
 	{
+		if (m_bStandalone) return GetOwner();
 		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(Replication.FindItem(m_TargetId));
 		if (!editable)
 			return null;
@@ -63,8 +76,11 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 			return null;
 		foreach (DCO_GMMissionInteractionComponent point : s_Instances)
 		{
-			if (point && point.m_TargetId == id)
-				return point;
+			if (!point) continue;
+			if (!point.m_bStandalone && point.m_TargetId == id) return point;
+			SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(point.GetOwner().FindComponent(SCR_EditableEntityComponent));
+			RplId ownId;
+			if (point.m_bStandalone && editable && editable.IsReplicated(ownId) && ownId == id) return point;
 		}
 		return null;
 	}
@@ -79,13 +95,16 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 			SCR_EntityHelper.DeleteEntityAndChildren(GetOwner());
 			return;
 		}
-		GetOwner().SetOrigin(target.GetOrigin());
+		if (!m_bStandalone) GetOwner().SetOrigin(target.GetOrigin());
+		if (m_iKind == TELEPORTER) UpdateTravel();
 	}
 
 	void Configure(int kind, RplId targetId, string title, string body, int scope, bool removeClue)
 	{
 		if (!Replication.IsServer())
 			return;
+		m_Departures.Clear();
+		m_DepartingCharacters.Clear();
 		m_iKind = kind;
 		m_TargetId = targetId;
 		m_sTitle = title;
@@ -104,10 +123,10 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 	bool IsNear(IEntity user)
 	{
 		IEntity target = Target();
-		if (!m_bReady || !target || !user || vector.DistanceSq(target.GetOrigin(), user.GetOrigin()) > 20.25)
+		if (!m_bReady || !target || !user || vector.DistanceSq(target.GetOrigin(), user.GetOrigin()) > m_fUseRadius * m_fUseRadius)
 			return false;
 		TraceParam trace = new TraceParam();
-		trace.Start = user.GetOrigin() + "0 1.4 0";
+		trace.Start = user.GetOrigin() + Vector(0, 1.4 * user.GetScale(), 0);
 		trace.End = target.GetOrigin() + "0 0.3 0";
 		trace.Flags = TraceFlags.ENTS | TraceFlags.WORLD;
 		trace.TargetLayers = EPhysicsLayerDefs.FireGeometry;
@@ -121,7 +140,7 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 		if (!s_Instances || !user)
 			return null;
 		DCO_GMMissionInteractionComponent best;
-		float distance = 20.25;
+		float distance = float.MAX;
 		foreach (DCO_GMMissionInteractionComponent point : s_Instances)
 		{
 			if (!point || !point.IsNear(user))
@@ -154,7 +173,7 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 		{
 			if (!point || !point.m_bReady || !point.Target()) continue;
 			vector centre = point.Target().GetOrigin() + "0 0.3 0";
-			render.DrawRing(centre, vector.Right, vector.Forward, 4.5, 0xFFD9892B);
+			render.DrawRing(centre, vector.Right, vector.Forward, point.m_fUseRadius, 0xFFD9892B);
 			DCO_GMMissionInteractionComponent paired = point.PairedEndpoint();
 			if (paired) render.DrawArrow(centre, paired.Target().GetOrigin() + "0 0.3 0", 0.2, 0xFF68B7CC);
 		}
@@ -176,6 +195,86 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 		return result;
 	}
 
+	void SetTravelSettings(bool automatic, float delay, float radius)
+	{
+		if (!Replication.IsServer()) return;
+		m_bAutomatic = automatic;
+		m_fTravelDelay = Math.Clamp(delay, 0, 60);
+		m_fUseRadius = Math.Clamp(radius, 1, 20);
+		m_Departures.Clear();
+		m_DepartingCharacters.Clear();
+		Replication.BumpMe();
+	}
+	protected void UpdateTravel()
+	{
+		array<int> players = {};
+		GetGame().GetPlayerManager().GetPlayers(players);
+		for (int guard = m_ArrivalGuard.Count() - 1; guard >= 0; guard--)
+		{
+			if (!players.Contains(m_ArrivalGuard[guard])) m_ArrivalGuard.Remove(guard);
+		}
+		for (int pending = m_Departures.Count() - 1; pending >= 0; pending--)
+		{
+			int pendingId = m_Departures.GetKey(pending);
+			if (!players.Contains(pendingId))
+			{
+				m_Departures.Remove(pendingId);
+				m_DepartingCharacters.Remove(pendingId);
+			}
+		}
+		foreach (int id : players)
+		{
+			SCR_PlayerController controller = SCR_PlayerController.Cast(GetGame().GetPlayerManager().GetPlayerController(id));
+			if (!controller) continue;
+			IEntity user = controller.GetControlledEntity();
+			if (!IsNear(user))
+			{
+				m_ArrivalGuard.RemoveItem(id);
+				m_Departures.Remove(id);
+				m_DepartingCharacters.Remove(id);
+				continue;
+			}
+			float due;
+			if (m_Departures.Find(id, due))
+			{
+				if (GetGame().GetWorld().GetWorldTime() >= due)
+				{
+					string travelResult;
+					CompleteTravel(controller, travelResult);
+					controller.DCO_MissionMessage("Teleporter", travelResult, false, 5);
+				}
+			}
+			else if (m_bAutomatic && !m_ArrivalGuard.Contains(id))
+			{
+				string ignored;
+				Use(controller, ignored);
+			}
+		}
+	}
+	protected bool CompleteTravel(SCR_PlayerController controller, out string result)
+	{
+		result = "Travel cancelled: the character or endpoint is no longer available.";
+		int id = controller.GetPlayerId();
+		IEntity original;
+		m_DepartingCharacters.Find(id, original);
+		m_Departures.Remove(id);
+		m_DepartingCharacters.Remove(id);
+		ChimeraCharacter character = ChimeraCharacter.Cast(controller.GetControlledEntity());
+		if (!character || character != original || !IsNear(character)) return false;
+		CharacterControllerComponent movement = character.GetCharacterController();
+		if (!movement || movement.IsDead() || movement.IsUnconscious()) return false;
+		DCO_GMMissionInteractionComponent destination = PairedEndpoint();
+		if (!destination) return false;
+		if (m_bAutomatic) m_ArrivalGuard.Insert(id);
+		if (DCO_GMMissionServer.Teleport(controller, destination.Target(), result))
+		{
+			m_ArrivalGuard.Insert(id);
+			destination.m_ArrivalGuard.Insert(id);
+			return true;
+		}
+		return false;
+	}
+
 	bool Use(SCR_PlayerController controller, out string result)
 	{
 		result = "Move closer to the interaction object.";
@@ -191,14 +290,16 @@ class DCO_GMMissionInteractionComponent : ScriptComponent
 			DCO_GMMissionInteractionComponent destination = PairedEndpoint();
 			if (!destination)
 				return false;
-			float now = GetGame().GetWorld().GetWorldTime();
-			if (now - destination.m_fLastArrival < 1500)
+			int playerId = controller.GetPlayerId();
+			if (m_ArrivalGuard.Contains(playerId) || m_Departures.Contains(playerId))
 			{
-				result = "Another player is arriving. Try again in a moment.";
+				result = "Travel is pending, or leave the arrival area before travelling again.";
 				return false;
 			}
-			if (!DCO_GMMissionServer.Teleport(controller, destination.Target(), result)) return false;
-			destination.m_fLastArrival = now;
+			m_Departures.Insert(playerId, GetGame().GetWorld().GetWorldTime() + m_fTravelDelay * 1000);
+			m_DepartingCharacters.Insert(playerId, user);
+			result = string.Format("Travel in %1 seconds. Stay near the point.", m_fTravelDelay);
+			if (m_fTravelDelay <= 0) return CompleteTravel(controller, result);
 			return true;
 		}
 		string identity = SCR_PlayerIdentityUtils.GetPlayerIdentityId(controller.GetPlayerId());
@@ -236,7 +337,7 @@ class DCO_UseMissionInteractionAction : ScriptedUserAction
 	override bool CanBeShownScript(IEntity user)
 	{
 		DCO_GMMissionInteractionComponent point = DCO_GMMissionInteractionComponent.Cast(GetOwner().FindComponent(DCO_GMMissionInteractionComponent));
-		return point && point.IsNear(user);
+		return point && !point.m_bAutomatic && point.IsNear(user);
 	}
 	override bool CanBePerformedScript(IEntity user) { return CanBeShownScript(user); }
 	override bool GetActionNameScript(out string outName)
@@ -494,5 +595,30 @@ modded class SCR_MapJournalUI
 				DCO_GMMissionJournal.AppendTo(journal);
 		}
 		super.GetJournalForPlayer();
+	}
+}
+
+[BaseContainerProps()]
+class DCO_TeleporterActivationEditorAttribute : SCR_BaseEditorAttribute
+{
+	protected DCO_GMMissionInteractionComponent Point(Managed item)
+	{
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.Cast(item);
+		if (!editable || !editable.GetOwner()) return null;
+		DCO_GMMissionInteractionComponent point = DCO_GMMissionInteractionComponent.Cast(editable.GetOwner().FindComponent(DCO_GMMissionInteractionComponent));
+		if (!point || !point.m_bStandalone || point.m_iKind != DCO_GMMissionInteractionComponent.TELEPORTER) return null;
+		return point;
+	}
+	override SCR_BaseEditorAttributeVar ReadVariable(Managed item, SCR_AttributesManagerEditorComponent manager)
+	{
+		DCO_GMMissionInteractionComponent point = Point(item);
+		if (!point) return null;
+		return SCR_BaseEditorAttributeVar.CreateBool(point.m_bAutomatic);
+	}
+	override void WriteVariable(Managed item, SCR_BaseEditorAttributeVar var, SCR_AttributesManagerEditorComponent manager, int playerID)
+	{
+		if (!var || !Replication.IsServer() || !DCO_GMRights.Allow(playerID, "Teleporter settings")) return;
+		DCO_GMMissionInteractionComponent point = Point(item);
+		if (point) point.SetTravelSettings(var.GetBool(), point.m_fTravelDelay, point.m_fUseRadius);
 	}
 }

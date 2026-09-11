@@ -17,7 +17,6 @@ class DCO_GMTools
 	}
 
 	protected int m_FpsFrames;	// frame counter for the 1-second FPS measurement.
-	protected ref array<IEntity> m_HiddenUnits = {};
 	protected IEntity m_TeleportMark;
 	protected ref array<int> m_TeleportPlayerIds = {};
 	protected ref array<ref DCO_GMFlyby> m_Flybys = {};	// vehicles currently on a flyby.
@@ -41,11 +40,6 @@ class DCO_GMTools
 
 	protected void PruneDeadEntries()
 	{
-		for (int i = m_HiddenUnits.Count() - 1; i >= 0; i--)
-		{
-			if (!m_HiddenUnits[i])
-				m_HiddenUnits.Remove(i);
-		}
 		for (int i = m_SimOff.Count() - 1; i >= 0; i--)
 		{
 			if (!m_SimOff.GetKey(i))
@@ -694,23 +688,18 @@ class DCO_GMTools
 
 	void TeleportEntityTo(IEntity target, vector pos)
 	{
-		if (!target)
-			return;
+		if (!Replication.IsServer() || !target || !SCR_Global.IsPositionWithinTerrainBounds(pos)) return;
+		SCR_EditableEntityComponent editable = SCR_EditableEntityComponent.GetEditableEntity(target);
+		if (!editable) return;
 		vector mat[4];
 		target.GetWorldTransform(mat);
-		mat[3] = pos;	// keep facing, change position.
-		float sc = target.GetScale();
-		BaseGameEntity bge = BaseGameEntity.Cast(target);
-		if (bge)
-			bge.Teleport(mat);
-		else
-			target.SetWorldTransform(mat);
-		target.SetScale(sc);
-		Physics ph = target.GetPhysics();
-		if (ph)
-			ph.SetVelocity(vector.Zero);	// kill momentum so it doesn't carry through / ragdoll.
-		target.Update();
-		Print(string.Format("[DCO-GM] teleported marked unit to %1", pos), LogLevel.NORMAL);
+		mat[3] = pos;
+		// Native editing routes characters to their simulation owner and handles vehicle exit.
+		if (editable.SetTransform(mat, true))
+		{
+			ReanchorFrozen(target);
+			Print(string.Format("[DCO-GM] teleport requested at %1", pos), LogLevel.NORMAL);
+		}
 	}
 
 	static const float FLYBY_SPEED = 60.0;	// m/s.
@@ -839,24 +828,9 @@ class DCO_GMTools
 
 	void ToggleVisibility(SCR_EditableEntityComponent e)
 	{
-		if (!e)
-			return;
-		IEntity owner = e.GetOwner();
-		if (!owner)
-			return;
-		PruneDeadEntries();
-		if (m_HiddenUnits.Find(owner) != -1)
-		{
-			owner.SetFlags(EntityFlags.VISIBLE | EntityFlags.TRACEABLE, true);
-			m_HiddenUnits.RemoveItem(owner);
-			Print("[DCO-GM] unit visibility: SHOWN", LogLevel.NORMAL);
-		}
-		else
-		{
-			owner.ClearFlags(EntityFlags.VISIBLE | EntityFlags.TRACEABLE, true);
-			m_HiddenUnits.Insert(owner);
-			Print("[DCO-GM] unit visibility: HIDDEN (your view)", LogLevel.NORMAL);
-		}
+		e = SCR_EditableEntityComponent.DCO_ResolveMissionTarget(e);
+		if (!e || !e.GetOwner()) return;
+		DCO_GMToolsServer.Route(DCO_GMToolsServer.TOOL_VISIBILITY, e.GetOwner(), vector.Zero);
 	}
 
 	// FPS MONITOR.

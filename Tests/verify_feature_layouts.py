@@ -44,8 +44,8 @@ def review(layout_texts):
         "Scripts/Game/DCO/GMUI/Compositions/DCO_GMCompositionPanel.c": "UI/layouts/DCO_GMCompositions.layout",
         "Scripts/Game/DCO/GMUI/Create/DCO_GMCreatePanelComponent.c": "UI/layouts/DCO_GMPanel.layout",
     }
-    for source in ROOT.joinpath("Scripts/Game/UI2/Screens").glob("GRSA_*Screen.c"):
-        name = source.stem.removeprefix("GRSA_").removesuffix("Screen")
+    for source in ROOT.joinpath("Scripts/Game/UI2/Screens").glob("BIA_*Screen.c"):
+        name = source.stem.removeprefix("BIA_").removesuffix("Screen")
         pairs[source.relative_to(ROOT).as_posix()] = f"UI/layouts/Menus/ArmoryV2/GRSA_Screen{name}.layout"
     for source, layout in pairs.items():
         text = ROOT.joinpath(source).read_text(encoding="utf-8-sig")

@@ -9,17 +9,49 @@ class DCO_GMMissionButton : ScriptedWidgetEventHandler
 	}
 }
 
+class DCO_MissionBackdropHandler : ScriptedWidgetEventHandler
+{
+	protected DCO_GMMissionPanel m_Panel;
+
+	void DCO_MissionBackdropHandler(DCO_GMMissionPanel panel)
+	{
+		m_Panel = panel;
+	}
+
+	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
+	{
+		return true;
+	}
+
+	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
+	{
+		if (button == 0 && m_Panel)
+			m_Panel.OnBackdropRelease(w);
+		return true;
+	}
+
+	override bool OnClick(Widget w, int x, int y, int button)
+	{
+		if (button == 0 && m_Panel)
+			m_Panel.CloseForBack();
+		return true;
+	}
+}
+
 class DCO_GMMissionPanel
 {
 	protected static ref DCO_GMMissionPanel s_Instance;
 	protected Widget m_Root;
 	protected Widget m_Panel;
+	protected Widget m_Backdrop;
+	protected ref DCO_MissionBackdropHandler m_BackdropHandler;
 	protected TextWidget m_Heading;
 	protected TextWidget m_Help;
 	protected TextWidget m_Status;
 	protected EditBoxWidget m_Title;
 	protected MultilineEditBoxWidget m_Body;
 	protected EditBoxWidget m_Value;
+	protected EditBoxWidget m_Secondary;
 	protected ref array<ref DCO_GMMissionButton> m_Handlers = {};
 	protected ref array<RplId> m_Targets = {};
 	protected ref array<ref DCO_GMMarkerRecord> m_Positions = {};
@@ -56,6 +88,13 @@ class DCO_GMMissionPanel
 		m_Title = EditBoxWidget.Cast(m_Root.FindAnyWidget("DCO_MissionTitle"));
 		m_Body = MultilineEditBoxWidget.Cast(m_Root.FindAnyWidget("DCO_MissionBody"));
 		m_Value = EditBoxWidget.Cast(m_Root.FindAnyWidget("DCO_MissionValue"));
+		m_Secondary = EditBoxWidget.Cast(m_Root.FindAnyWidget("DCO_MissionSecondary"));
+		m_Backdrop = m_Root.FindAnyWidget("DCO_MissionBackdrop");
+		if (m_Backdrop)
+		{
+			m_BackdropHandler = new DCO_MissionBackdropHandler(this);
+			m_Backdrop.AddHandler(m_BackdropHandler);
+		}
 		array<string> buttons = {"Close", "Apply", "Scope", "Include", "Previous", "Next"};
 		for (int i = 0; i < buttons.Count(); i++)
 		{
@@ -103,12 +142,19 @@ class DCO_GMMissionPanel
 			m_Root.RemoveFromHierarchy();
 		m_Root = null;
 		m_Panel = null;
+		m_BackdropHandler = null;
+		m_Backdrop = null;
 		m_Handlers.Clear();
 		m_Targets.Clear();
 		m_Positions.Clear();
 		m_NamedId = 0;
 	}
 	bool IsOpen() { return m_Root && m_Root.IsVisible(); }
+	void OnBackdropRelease(Widget releasedWidget)
+	{
+		if (IsOpen() && m_Backdrop && releasedWidget == m_Backdrop)
+			CloseForBack();
+	}
 	bool CloseForBack()
 	{
 		if (m_PendingTargetTool > 0)
@@ -126,12 +172,18 @@ class DCO_GMMissionPanel
 	}
 	void Open(int tool, vector position, SCR_EditableEntityComponent fallback, bool targetOnly = false)
 	{
-		if (tool == DCO_GMMissionTool.HIDE)
+		DCO_GMMissionInteractionComponent endpoint;
+		if (fallback && fallback.GetOwner()) endpoint = DCO_GMMissionInteractionComponent.Cast(fallback.GetOwner().FindComponent(DCO_GMMissionInteractionComponent));
+		if (tool == DCO_GMMissionTool.HIDE || (tool == DCO_GMMissionTool.TELEPORTER && (!endpoint || !endpoint.m_bStandalone)))
 		{
 			CloseForBack();
 			SCR_PlacingEditorComponent placing = SCR_PlacingEditorComponent.Cast(SCR_PlacingEditorComponent.GetInstance(SCR_PlacingEditorComponent, false, true));
 			if (placing)
-				placing.SetSelectedPrefab(DCO_PlacementCatalog.TERRAIN_AREA_RESOURCE);
+				{
+				ResourceName prefab = DCO_PlacementCatalog.TERRAIN_AREA_RESOURCE;
+				if (tool == DCO_GMMissionTool.TELEPORTER) prefab = "{DCA6090560000000}Prefabs/E_DCO_Teleporter.et";
+				placing.SetSelectedPrefab(prefab);
+			}
 			return;
 		}
 		m_PendingTargetTool = 0;
@@ -162,6 +214,7 @@ class DCO_GMMissionPanel
 		m_Title.SetText("");
 		m_Body.SetText("");
 		m_Value.SetText("1");
+		m_Secondary.SetText("1");
 		m_Heading.SetText(DCO_GMMissionTool.Name(tool));
 		Label("Title_Caption", "Name");
 		Label("Title_Help", "Enter a short, recognizable name. Maximum 64 characters.");
@@ -187,6 +240,9 @@ class DCO_GMMissionPanel
 					m_Value.SetText(scaleTarget.GetOwner().GetScale().ToString());
 				help = "1. Select the objects, equipment, vehicles or characters to resize.\n2. Enter a scale below.\n3. Choose APPLY SCALE. A selected assembly includes its attached parts; select only a part to resize it separately.";
 				Label("Value_Caption", "Uniform scale");
+				Label("Secondary_Caption", "Movement speed multiplier");
+				Label("Secondary_Help", "Adjust movement relative to size: 1 follows character size, 2 doubles that speed. Health follows size automatically.");
+				if (scaleTarget) m_Secondary.SetText(scaleTarget.DCO_GetMovementFactor().ToString());
 				Label("Value_Help", "Enter 0.01 to 100. 1.0 restores normal size, 0.5 halves it, and 2.0 doubles it. Animation and collision behavior depends on the asset.");
 				Label("Apply_Label", "APPLY SCALE");
 				break;
@@ -207,7 +263,11 @@ class DCO_GMMissionPanel
 				Label("Apply_Label", "SAVE INTEL");
 				break;
 			case DCO_GMMissionTool.HINT:
-				help = "1. Enter a title and message.\n2. Choose SEND HINT to notify all current players.";
+				help = "Write the GM message, choose everyone, selected players, or the factions of selected units, and set its display duration.";
+				m_Value.SetText("15");
+				Label("Value_Caption", "Display duration (seconds)");
+				Label("Value_Help", "1–300 seconds. Appears as a passive card beside the action.");
+				Label("Body_Help", "Write a brief message, up to 512 characters.");
 				Label("Title_Caption", "Title (optional)");
 				Label("Title_Help", "For example: Mission update. Leave blank to use Game Master. Maximum 64 characters.");
 				Label("Apply_Label", "SEND HINT");
@@ -218,11 +278,18 @@ class DCO_GMMissionPanel
 				Label("Apply_Label", "SEND CHATTER");
 				break;
 			case DCO_GMMissionTool.TELEPORTER:
-				help = "1. Select a prop and name this endpoint.\n2. Enter a link name and choose SAVE ENDPOINT.\n3. Repeat on a second prop using the same link name. Players approach either prop and use Travel to reach the other.";
+				m_Value.SetText("0");
+				m_Secondary.SetText("4.5");
+				Label("Value_Caption", "Travel delay (seconds)");
+				Label("Value_Help", "0–60 seconds. Leaving the area cancels pending travel.");
+				Label("Secondary_Caption", "Activation radius (metres)");
+				Label("Secondary_Help", "1–20 metres. Arrivals must leave this area before using it again.");
+				Label("Scope_Caption", "Activation");
+				help = "Name this point and enter the same link name on exactly two endpoints. Choose interaction or automatic entry, then save. Move or delete the point with normal GM controls; double-click to amend it.";
 				Label("Title_Caption", "Endpoint name");
 				Label("Title_Help", "For example: Main Base or Forward Camp. Players see this destination name. Maximum 64 characters.");
 				Label("Body_Caption", "Link name");
-				Label("Body_Help", "For example: base-shuttle. Enter exactly the same name on both endpoints. Use one line, up to 64 characters; a link connects exactly two props.");
+				Label("Body_Help", "For example: base-shuttle. Enter exactly the same name on both endpoints. Use one line, up to 64 characters; a link connects exactly two points.");
 				if (bodyFrame) bodyFrame.SetHeightOverride(48);
 				Label("Apply_Label", "SAVE ENDPOINT");
 				break;
@@ -231,7 +298,7 @@ class DCO_GMMissionPanel
 				Label("Apply_Label", "USE THIS POSITION");
 				break;
 			case DCO_GMMissionTool.REMOVE:
-				help = "1. Select the props with intel or teleport interactions.\n2. Choose REMOVE INTERACTION. The props themselves stay in the world.";
+				help = "1. Select the props with intel interactions.\n2. Choose REMOVE INTERACTION. The props themselves stay in the world.";
 				Label("Apply_Label", "REMOVE INTERACTION");
 				break;
 			default:
@@ -285,7 +352,7 @@ class DCO_GMMissionPanel
 		CloseForBack();
 		DCO_GMCompositionPanel.Get().CloseForBack();
 		bool ground = NeedsGround(tool);
-		bool object = tool == DCO_GMMissionTool.SCALE || tool == DCO_GMMissionTool.INVINCIBLE || tool == DCO_GMMissionTool.INTEL || tool == DCO_GMMissionTool.TELEPORTER || tool == DCO_GMMissionTool.NAMED || tool == DCO_GMMissionTool.REMOVE;
+		bool object = tool == DCO_GMMissionTool.SCALE || tool == DCO_GMMissionTool.INVINCIBLE || tool == DCO_GMMissionTool.INTEL || tool == DCO_GMMissionTool.NAMED || tool == DCO_GMMissionTool.REMOVE;
 		set<SCR_EditableEntityComponent> selected = new set<SCR_EditableEntityComponent>();
 		if (object)
 			SCR_BaseEditableEntityFilter.GetEnititiesStatic(selected, EEditableEntityState.SELECTED);
@@ -358,8 +425,9 @@ class DCO_GMMissionPanel
 		bool textTool = m_Tool == 5 || m_Tool == 6 || m_Tool == 8 || m_Tool >= 11;
 		Visible("TitleField", textTool);
 		Visible("BodyField", m_Tool >= 5 && m_Tool <= 8);
-		Visible("ValueField", m_Tool == 1 || m_Tool == 3);
-		Visible("ScopeField", m_Tool == 4 || m_Tool == 5 || m_Tool == 7);
+		Visible("ValueField", m_Tool == 1 || m_Tool == 3 || m_Tool == 6 || m_Tool == 8);
+		Visible("SecondaryField", m_Tool == 3 || m_Tool == 8);
+		Visible("ScopeField", m_Tool == 4 || m_Tool == 5 || m_Tool == 6 || m_Tool == 7 || m_Tool == 8);
 		Visible("Include", m_Tool == 4 || m_Tool == 5);
 		Visible("NamedField", m_Tool == 9);
 		string scope = "Finder only";
@@ -370,6 +438,17 @@ class DCO_GMMissionPanel
 			scope = "All players";
 			if (m_Scope == 1) scope = "Speaker's faction";
 			if (m_Scope == 2) scope = "Nearby (100 m)";
+		}
+		if (m_Tool == 6)
+		{
+			scope = "All players";
+			if (m_Scope == 1) scope = "Selected players";
+			if (m_Scope == 2) scope = "Factions of selected units";
+		}
+		if (m_Tool == 8)
+		{
+			scope = "Interact to travel";
+			if (m_Scope == 1) scope = "Automatic on entry";
 		}
 		if (m_Tool == 4)
 		{
@@ -403,7 +482,7 @@ class DCO_GMMissionPanel
 		if (action == 2)
 		{
 			int count = 3;
-			if (m_Tool == 4) count = 2;
+			if (m_Tool == 4 || m_Tool == 8) count = 2;
 			m_Scope = (m_Scope + 1) % count;
 		}
 		if (action == 3) m_Include = !m_Include;
@@ -428,6 +507,9 @@ class DCO_GMMissionPanel
 			vector options = Vector(m_Scope, 0, 0);
 			if (m_Include) options[1] = 1;
 			if (m_Tool == 1 || m_Tool == 3) options[0] = m_Value.GetText().ToFloat();
+			if (m_Tool == 3) options[1] = m_Secondary.GetText().ToFloat();
+			if (m_Tool == 6 || m_Tool == 8) options[1] = m_Value.GetText().ToFloat();
+			if (m_Tool == 8) options[2] = m_Secondary.GetText().ToFloat();
 			if (m_Tool == 9)
 			{
 				DCO_GMMarkerRecord position = SelectedPosition();
@@ -455,6 +537,9 @@ class DCO_GMMissionPanel
 		else if (m_Tool == 8 && (body.Length() > 64 || body.Contains("\n") || body.Contains("\r"))) issue = "Use a single-line link name of 64 characters or fewer.";
 		else if (m_Tool == 1 && !(m_Value.GetText().ToFloat() >= 5 && m_Value.GetText().ToFloat() <= 100)) issue = "Enter a radius from 5 to 100 metres.";
 		else if (m_Tool == DCO_GMMissionTool.SCALE && !SCR_EditableEntityComponent.DCO_IsMissionScaleValid(m_Value.GetText().ToFloat())) issue = "Enter a scale from 0.01 to 100. Use 1.0 for original size.";
+		if (issue.IsEmpty() && m_Tool == 3 && !(m_Secondary.GetText().ToFloat() >= 0.01 && m_Secondary.GetText().ToFloat() <= 100)) issue = "Movement multiplier must be 0.01–100.";
+		if (issue.IsEmpty() && m_Tool == 6 && (!(m_Value.GetText().ToFloat() >= 1 && m_Value.GetText().ToFloat() <= 300) || body.Length() > 512)) issue = "Use a duration of 1–300 seconds and a message up to 512 characters.";
+		if (issue.IsEmpty() && m_Tool == 8 && (!(m_Value.GetText().ToFloat() >= 0 && m_Value.GetText().ToFloat() <= 60) || !(m_Secondary.GetText().ToFloat() >= 1 && m_Secondary.GetText().ToFloat() <= 20))) issue = "Travel delay must be 0–60 seconds and radius 1–20 metres.";
 		if (issue.IsEmpty()) return true;
 		OnResult(false, issue);
 		return false;
@@ -479,8 +564,13 @@ class DCO_GMMissionPanel
 	{
 		if (!AcceptsReply(requestSequence)) return;
 		OnResult(success, result);
+		if (success)
+		{
+			DCO_GMHint.Show(DCO_GMMissionTool.Name(m_Tool), result, 3.5);
+			CloseForBack();
+		}
 	}
-	void OnEdit(int requestSequence, RplId id, string title, string body, int scope, bool removeClue)
+	void OnEdit(int requestSequence, RplId id, string title, string body, int scope, bool removeClue, float delay, float radius)
 	{
 		if (!AcceptsReply(requestSequence) || (m_Tool != DCO_GMMissionTool.INTEL && m_Tool != DCO_GMMissionTool.TELEPORTER) || m_Targets.Count() != 1 || m_Targets[0] != id)
 			return;
@@ -488,6 +578,11 @@ class DCO_GMMissionPanel
 		m_Body.SetText(body);
 		m_Scope = scope;
 		m_Include = removeClue;
+		if (m_Tool == 8)
+		{
+			m_Value.SetText(delay.ToString());
+			m_Secondary.SetText(radius.ToString());
+		}
 		m_Pending = false;
 		m_Status.SetText("Existing interaction loaded. Apply saves your changes.");
 		RefreshControls();
