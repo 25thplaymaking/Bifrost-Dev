@@ -53,6 +53,24 @@ def test_blood_slider_and_description_cleaning():
     assert "SCR_BloodEditorAttribute.Cast(m_Attribute)" in content, "Blood attribute check missing"
     assert 'Math.Round(value).ToString() + "%"' in content, "Blood percentage formatting missing"
     assert "CleanDescription" in content, "CleanDescription function missing"
+    assert "inTag" in content, "CleanDescription must use tag parser"
+
+    # Simulate the Enforce clean function
+    def clean(text):
+        result = []
+        in_tag = False
+        for c in text:
+            if c == "<":
+                in_tag = True
+            elif c == ">":
+                in_tag = False
+            elif not in_tag:
+                result.append(c)
+        return "".join(result)
+
+    sample = 'Setting the value to <color rgba="226,168,79,255">0</color> will always <color rgba="226,168,79,255">kill</color> the entity.'
+    cleaned = clean(sample)
+    assert cleaned == "Setting the value to 0 will always kill the entity.", f"Unexpected: {cleaned}"
     print("PASS: Blood slider and description tag cleaning verified.")
 
 if __name__ == "__main__":

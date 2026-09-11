@@ -358,7 +358,7 @@ class DCO_ScenarioOptionRow
 					string optionName = holder.GetName();
 					if (optionName.IsEmpty())
 						optionName = holder.GetDescription();
-					m_Options.Insert(optionName);
+					m_Options.Insert(CleanDescription(optionName));
 					m_OptionValues.Insert(holder.GetFloatValue());
 				}
 				continue;
@@ -964,16 +964,23 @@ class DCO_ScenarioOptionRow
 	// Remove inline XML/HTML styling tags such as color definitions.
 	protected string CleanDescription(string text)
 	{
-		int start = text.IndexOf("<");
-		while (start >= 0)
+		if (text.IsEmpty())
+			return string.Empty;
+
+		string result = "";
+		bool inTag = false;
+		int len = text.Length();
+		for (int i = 0; i < len; i++)
 		{
-			int end = text.IndexOfFrom(start, ">");
-			if (end < 0)
-				break;
-			text = text.Substring(0, start) + text.Substring(end + 1, text.Length() - end - 1);
-			start = text.IndexOf("<");
+			string c = text[i];
+			if (c == "<")
+				inTag = true;
+			else if (c == ">")
+				inTag = false;
+			else if (!inTag)
+				result += c;
 		}
-		return text;
+		return result;
 	}
 
 	// engine's date description is dynamic rich text.
