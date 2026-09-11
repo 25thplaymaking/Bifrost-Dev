@@ -2682,7 +2682,6 @@ class DCO_GMScenarioPanel
 	{
 		if (!SupportsLayout(attribute))
 			return false;
-
 		Widget attributeWidget = workspace.CreateWidgets(OPTION_LAYOUT, m_wContent);
 		if (!attributeWidget)
 		{

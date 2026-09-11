@@ -71,7 +71,6 @@ class DCO_GMUIController
 			return true;
 		return false;
 	}
-
 	static void CancelPropertySession()
 	{
 		if (s_Instance && s_Instance.m_Scenario) s_Instance.m_Scenario.CancelPropertySession();
