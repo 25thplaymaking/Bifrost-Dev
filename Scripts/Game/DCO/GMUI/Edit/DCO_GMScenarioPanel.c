@@ -234,9 +234,12 @@ class DCO_ScenarioOptionRow
 			float initialValue = m_Min;
 			if (sliderVar)
 				initialValue = sliderVar.GetFloat();
+			string suffix = "";
+			if (SCR_BloodEditorAttribute.Cast(m_Attribute))
+				suffix = "%";
 			m_Slider = new DCO_GMSlider();
 			m_Slider.Init(root, "DCO_OptionSliderTrack", "DCO_OptionSliderFill", "DCO_OptionSliderValue",
-				m_Min, m_Max, initialValue, "");
+				m_Min, m_Max, initialValue, suffix);
 			m_Slider.ConfigureScale(root, "DCO_OptionSliderThumb", "DCO_OptionSliderTick", "DCO_OptionSliderTickLabel", m_bIsTimeSlider, m_Step);
 			m_Slider.GetOnChange().Insert(OnSliderChanged);
 			GetGame().GetCallqueue().CallLater(RefreshSliderAfterLayout, 0, false);
@@ -314,13 +317,13 @@ class DCO_ScenarioOptionRow
 	protected void ResolveDataShape()
 	{
 		string layout = m_Attribute.GetLayout();
-		if (layout.Contains("Checkbox"))
+		if (layout.Contains("Checkbox") || layout.Contains("Override"))
 			m_Mode = MODE_BOOL;
 		else if (layout.Contains("MultiSelection"))
 			m_Mode = MODE_MULTI;
 		else if (layout.Contains("Slider"))
 			m_Mode = MODE_SLIDER;
-		else if (layout.Contains("Date.layout"))
+		else if (layout.Contains("Date"))
 			m_Mode = MODE_DATE;
 		else
 			m_Mode = MODE_ENUM;
@@ -401,8 +404,52 @@ class DCO_ScenarioOptionRow
 			}
 		}
 
-		if (m_Mode == MODE_SLIDER && m_SliderData && m_Step > 0)
+		if (layout.Contains("DropdownWithParam") && !m_Options.IsEmpty())
+		{
+			string param = m_Options[0];
+			m_Options.RemoveOrdered(0);
+			m_OptionValues.RemoveOrdered(0);
+			for (int p = 0; p < m_Options.Count(); p++)
+			{
+				m_Options[p] = WidgetManager.Translate(m_Options[p], param);
+				m_OptionValues[p] = p;
+			}
+		}
+
+		if (SCR_BloodEditorAttribute.Cast(m_Attribute))
+		{
+			m_Min = 0;
+			m_Max = 100;
+			m_Step = 1;
+			m_bUseWideSlider = true;
+		}
+		else if (layout.Contains("SliderVector"))
+		{
+			SCR_BaseEditorAttributeVar var = m_Attribute.GetVariableOrCopy();
+			m_Min = 0;
+			m_Max = 100;
+			if (var)
+				m_Max = var.GetVector()[1];
+			if (m_Max <= m_Min)
+				m_Max = 100;
+			m_Step = 1;
+			m_bUseWideSlider = true;
+		}
+		else if (m_Mode == MODE_SLIDER && m_SliderData && m_Step > 0)
+		{
 			m_bUseWideSlider = ((m_Max - m_Min) / m_Step) > WIDE_SLIDER_STEPS;
+		}
+		else if (m_Mode == MODE_SLIDER)
+		{
+			if (m_Max <= m_Min)
+			{
+				m_Min = 0;
+				m_Max = 100;
+			}
+			if (m_Step <= 0)
+				m_Step = 1;
+			m_bUseWideSlider = ((m_Max - m_Min) / m_Step) > WIDE_SLIDER_STEPS;
+		}
 	}
 
 	void Refresh()
@@ -883,6 +930,9 @@ class DCO_ScenarioOptionRow
 		if (m_bIsTimeSlider)
 			return FormatTimeOfDay(value);
 
+		if (SCR_BloodEditorAttribute.Cast(m_Attribute))
+			return Math.Round(value).ToString() + "%";
+
 		if (!m_SliderData)
 			return value.ToString();
 		string raw = m_SliderData.GetText(value);
@@ -911,6 +961,21 @@ class DCO_ScenarioOptionRow
 		return value.ToString();
 	}
 
+	// Remove inline XML/HTML styling tags such as color definitions.
+	protected string CleanDescription(string text)
+	{
+		int start = text.IndexOf("<");
+		while (start >= 0)
+		{
+			int end = text.IndexOfFrom(start, ">");
+			if (end < 0)
+				break;
+			text = text.Substring(0, start) + text.Substring(end + 1, text.Length() - end - 1);
+			start = text.IndexOf("<");
+		}
+		return text;
+	}
+
 	// engine's date description is dynamic rich text.
 	protected string GetReadableDescription(string fallback)
 	{
@@ -920,7 +985,7 @@ class DCO_ScenarioOptionRow
 			return "Drag the bar or type an HH:MM time on the 24-hour clock. Values use 15-minute steps, preview immediately, and apply when the settings are saved and closed.";
 		if (SCR_DateEditorAttribute.Cast(m_Attribute))
 			return "Choose a day from the calendar, use the arrows to change month or year, or type any year from 1 to 9999. Sunrise, sunset, and moon phase update automatically.";
-		return fallback;
+		return CleanDescription(fallback);
 	}
 
 	// Selected controls use the accent as their background.
@@ -2549,13 +2614,14 @@ class DCO_GMScenarioPanel
 	{
 		if (!attribute)
 			return false;
-		// These native custom layouts are still single-value preset selectors.
 		if (SCR_TimePresetsEditorAttribute.Cast(attribute) || SCR_GameOverTypeEditorAttribute.Cast(attribute))
 			return true;
 		string layout = attribute.GetLayout();
-		if (layout.Contains("SliderVector") || layout.Contains("DropdownWithParam") || layout.Contains("CharacterBloodSlider")) return false;
-		return layout.Contains("Checkbox") || layout.Contains("MultiSelection") || layout.Contains("Slider")
-			|| layout.Contains("Date.layout") || layout.Contains("ButtonBox_Selection") || layout.Contains("Spinbox") || layout.Contains("Dropdown.layout");
+		if (layout.IsEmpty())
+			return false;
+		return layout.Contains("Checkbox") || layout.Contains("Override") || layout.Contains("MultiSelection")
+			|| layout.Contains("Slider") || layout.Contains("Date") || layout.Contains("ButtonBox")
+			|| layout.Contains("Spinbox") || layout.Contains("Dropdown") || layout.Contains("Modes");
 	}
 
 	protected void BuildOrderedCategories(notnull array<SCR_BaseEditorAttribute> attributes, notnull array<ResourceName> categoryConfigs, notnull array<ref SCR_EditorAttributeCategory> categories)
@@ -2608,20 +2674,8 @@ class DCO_GMScenarioPanel
 	protected bool RenderOneAttribute(WorkspaceWidget workspace, SCR_BaseEditorAttribute attribute)
 	{
 		if (!SupportsLayout(attribute))
-		{
-			Widget compound = workspace.CreateWidgets(attribute.GetLayout(), m_wContent);
-			if (!compound) return false;
-			SCR_BaseEditorAttributeUIComponent nativeControl = SCR_BaseEditorAttributeUIComponent.Cast(compound.FindHandler(SCR_BaseEditorAttributeUIComponent));
-			if (!nativeControl)
-			{
-				delete compound;
-				return false;
-			}
-			nativeControl.Init(compound, attribute);
-			nativeControl.GetOnAttributeChanged().Insert(OnAttributeChanged);
-			VerticalLayoutSlot.SetPadding(compound, 8, 8, 8, 12);
-			return true;
-		}
+			return false;
+
 		Widget attributeWidget = workspace.CreateWidgets(OPTION_LAYOUT, m_wContent);
 		if (!attributeWidget)
 		{
@@ -2737,9 +2791,9 @@ class DCO_GMScenarioPanel
 	protected int GetPresetKind(SCR_BaseEditorAttribute attribute)
 	{
 		string layout = attribute.GetLayout();
-		if (layout.Contains("Checkbox"))
+		if (layout.Contains("Checkbox") || layout.Contains("Override"))
 			return PRESET_BOOL;
-		if (layout.Contains("MultiSelection") || layout.Contains("Date.layout"))
+		if (layout.Contains("MultiSelection") || layout.Contains("Date"))
 			return PRESET_VECTOR;
 		if (layout.Contains("Slider"))
 			return PRESET_FLOAT;
