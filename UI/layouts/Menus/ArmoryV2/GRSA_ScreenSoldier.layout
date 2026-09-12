@@ -16,21 +16,6 @@ OverlayWidgetClass "{AB21030000000001}" {
    "Use clear color" 0
    "Clear Color" 0 0 0 0
   }
-  ItemPreviewWidgetClass "{AB21030000000006}" {
-   Name "SoldierStage"
-   Slot OverlayWidgetSlot "{AB21030000000007}" {
-    HorizontalAlign 3
-    VerticalAlign 3
-   }
-   "Use Engine Scale" 0
-   xscale 1
-   yscale 1
-   Filter Bilinear
-   Format LDR
-   "Use clear color" 0
-   "Clear Color" 0 0 0 0
-   "Blend mode" Blend
-  }
   HorizontalLayoutWidgetClass "{AB21030000000008}" {
    Name "SoldierColumns"
    Slot OverlayWidgetSlot "{AB21030000000009}" {

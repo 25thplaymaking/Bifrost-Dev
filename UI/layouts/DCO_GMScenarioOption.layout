@@ -483,7 +483,7 @@ FrameWidgetClass "{DC05CEAA00000001}" {
            }
           }
          }
-         TextWidgetClass "{DC05CEAA00000010}" {
+         RichTextWidgetClass "{DC05CEAA00000010}" {
          Name "DCO_OptionDescription"
          Slot LayoutSlot "{DC05CEAA00000011}" {
           HorizontalAlign 3

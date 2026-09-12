@@ -160,20 +160,35 @@ class BIA_Theme
 
 	protected static void ApplyPanelOpacity(Widget root)
 	{
+		if (!root)
+			return;
 		if (!s_aPanelSurfaces)
 		{
 			s_aPanelSurfaces = {
 				"BackdropFill", "HeaderBg", "FooterBg", "LeftRailBg", "RightRailBg",
-				"ItemListBg", "StatsBg", "ReceiverBg", "CandidatesBg", "KitListBg", "SettingsBg", "GunsmithLeavePanelBg"
+				"ItemListBg", "StatsBg", "ReceiverBg", "CandidatesBg", "KitListBg", "SettingsBg", "GunsmithLeavePanelBg", "HardpointCounterBg"
 			};
 		}
 
-		float opacity = PanelOpacity();
-		foreach (string name : s_aPanelSurfaces)
+		ApplyReadableSurfaces(root);
+	}
+
+	protected static void ApplyReadableSurfaces(Widget widget)
+	{
+		Widget cursor = widget;
+		while (cursor)
 		{
-			Widget surface = root.FindAnyWidget(name);
-			if (surface)
-				surface.SetOpacity(opacity);
+			string name = cursor.GetName();
+			if (name == "BackdropFill")
+				cursor.SetOpacity(PanelOpacity());
+			else if (s_aPanelSurfaces.Find(name) >= 0)
+			{
+				// Text surfaces must block the bright render behind them at every opacity setting.
+				cursor.SetColor(Color.FromSRGBA(6, 7, 9, 255));
+				cursor.SetOpacity(1);
+			}
+			ApplyReadableSurfaces(cursor.GetChildren());
+			cursor = cursor.GetSibling();
 		}
 	}
 

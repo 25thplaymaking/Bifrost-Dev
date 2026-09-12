@@ -1,4 +1,3 @@
-// Shell controller for the Bifrost GM UI.
 class DCO_GMUIController
 {
 
@@ -20,7 +19,7 @@ class DCO_GMUIController
 	protected ref DCO_GMRenderManager m_Render;
 	protected ref DCO_GMNametags m_Nametags;
 	protected ref DCO_GMAwarenessCue m_Awareness;
-	protected ref DCO_GMOverlayPanel m_OverlayPanel;	// checkbox panel that toggles the overlays.
+	protected ref DCO_GMOverlayPanel m_OverlayPanel;
 	protected ref array<ref DCO_GMDraggable> m_Draggables = {};
 	protected ref array<ref DCO_GMResizable> m_Resizables = {};
 	protected ref DCO_VanillaUIVisibility m_VanillaHide = new DCO_VanillaUIVisibility();
@@ -28,9 +27,9 @@ class DCO_GMUIController
 	protected bool m_bEditShown = true;
 	protected bool m_bCreateShown = true;
 	protected bool m_bBuilt;
-	protected string m_sDiagnosticState;
 	protected bool m_bNativePropertiesOpen;
-	protected int m_iNativePropertiesHeartbeat;
+	protected EditorAttributesDialogUI m_NativePropertiesDialog;
+	protected bool m_bWorldInputSuppressed;
 	protected int m_PeelAttempts;
 	protected int m_iViewportW;	// Live game-workspace size; the embedded viewport can resize independently.
 	protected int m_iViewportH;
@@ -41,7 +40,8 @@ class DCO_GMUIController
 	protected static DCO_GMUIController s_Instance;
 	protected static int s_iPauseSuppressedUntil;
 	protected static const int PAUSE_SUPPRESS_MS = 200;
-	protected static const int NATIVE_PROPERTIES_STALE_MS = 1500;
+	protected static ref array<string> s_aModalWidgets;
+	protected static ref array<string> s_aInteractivePanels;
 
 	static bool IsActive()
 	{
@@ -57,7 +57,11 @@ class DCO_GMUIController
 	{
 		if (!s_Instance || !s_Instance.m_bBuilt)
 			return false;
-		if (s_Instance.m_bNativePropertiesOpen)
+		if (s_Instance.m_bNativePropertiesOpen || s_Instance.m_bWorldInputSuppressed || IsExternalMenuOpen())
+			return true;
+		if (!s_Instance.m_wRoot || !s_Instance.m_wRoot.IsEnabledInHierarchy())
+			return true;
+		if (HasVisibleModal(s_Instance.m_wRoot))
 			return true;
 		if (s_Instance.m_Menu && s_Instance.m_Menu.IsOpen())
 			return true;
@@ -69,6 +73,101 @@ class DCO_GMUIController
 			return true;
 		if (DCO_GMTutorial.IsOpen())
 			return true;
+		return false;
+	}
+
+	static bool IsExternalMenuOpen()
+	{
+		if (!IsActive())
+			return false;
+		MenuBase menu = GetGame().GetMenuManager().GetTopMenu();
+		return menu && !EditorMenuUI.Cast(menu);
+	}
+
+	protected bool m_bArsenalSuppressed;
+	protected bool m_bVisibleBeforeArsenal;
+
+	static void SetArsenalOpen(bool open)
+	{
+		if (!s_Instance || !s_Instance.m_wRoot || s_Instance.m_bArsenalSuppressed == open) return;
+		DCO_GMUIController controller = s_Instance;
+		controller.m_bArsenalSuppressed = open;
+		if (open)
+		{
+			controller.m_bVisibleBeforeArsenal = controller.m_wRoot.IsVisible();
+			controller.m_wRoot.SetVisible(false);
+		}
+		else
+			controller.m_wRoot.SetVisible(controller.m_bVisibleBeforeArsenal);
+	}
+
+	static bool HasVisibleModal(Widget root)
+	{
+		if (!root)
+			return false;
+		if (!s_aModalWidgets)
+			s_aModalWidgets = {
+				"DCO_ScenarioPanel", "DCO_ScenarioBackdrop", "DCO_ContextMenu", "DCO_MenuBackdrop",
+				"DCO_MissionPanel", "DCO_MissionBackdrop",
+				"DCO_CompositionPanel", "DCO_CompositionBackdrop", "DCO_MarkerPanel",
+				"DCO_TutOverlay", "DCO_TutBackdrop"
+			};
+		foreach (string name : s_aModalWidgets)
+		{
+			Widget modal = root.FindAnyWidget(name);
+			if (modal && modal.IsVisibleInHierarchy())
+				return true;
+		}
+		return false;
+	}
+
+	static bool IsWorldInputBlocked(bool allowEntityTree = false)
+	{
+		if (!IsActive())
+			return false;
+		if (IsModalActive())
+			return true;
+		int x, y;
+		WidgetManager.GetMousePos(x, y);
+		return IsPointerOverPanel(s_Instance.m_wRoot, x, y, allowEntityTree);
+	}
+
+	static bool IsPointerOverPanel(Widget root, int x, int y, bool allowEntityTree = false)
+	{
+		if (!root)
+			return false;
+		if (!s_aInteractivePanels)
+			s_aInteractivePanels = {
+				"DCO_CreateBrowser", "DCO_EditTree", "DCO_TopBar", "DCO_OptionsPanel",
+				"DCO_OrdersBox", "DCO_TacticsPanel", "DCO_GizmoPanel", "DCO_SimPanel",
+				"DCO_OverlayBar", "DCO_NotifPanel", "DCO_ChatPanel", "DCO_LayoutChip"
+			};
+		foreach (string name : s_aInteractivePanels)
+		{
+			if (allowEntityTree && name == "DCO_EditTree")
+				continue;
+			Widget panel = root.FindAnyWidget(name);
+			if (!panel || !panel.IsVisibleInHierarchy())
+				continue;
+			float px, py, width, height;
+			panel.GetScreenPos(px, py);
+			panel.GetScreenSize(width, height);
+			if (x >= px && x < px + width && y >= py && y < py + height)
+				return true;
+		}
+		return false;
+	}
+
+	static bool IsWidgetWithin(Widget widget, Widget parent)
+	{
+		if (!parent)
+			return false;
+		while (widget)
+		{
+			if (widget == parent)
+				return true;
+			widget = widget.GetParent();
+		}
 		return false;
 	}
 	static void CancelPropertySession()
@@ -83,16 +182,17 @@ class DCO_GMUIController
 	// The engine Properties dialog is a separate workspace root. While it is open,
 	// leave Bifrost visible underneath but remove it from hit-testing so the native
 	// modal owns every click and can complete its attribute-manager transaction.
-	static void SetNativePropertiesOpen(bool open)
+	static void SetNativePropertiesOpen(bool open, EditorAttributesDialogUI dialog = null)
 	{
 		if (!s_Instance || !s_Instance.m_bBuilt)
 			return;
-		DCO_TestDiagnostics.Event("gm.native-ownership", string.Format("open=%1", open));
+		if (!open && dialog && s_Instance.m_NativePropertiesDialog != dialog)
+			return;
 		s_Instance.m_bNativePropertiesOpen = open;
 		if (open)
-			s_Instance.m_iNativePropertiesHeartbeat = System.GetTickCount();
+			s_Instance.m_NativePropertiesDialog = dialog;
 		else
-			s_Instance.m_iNativePropertiesHeartbeat = 0;
+			s_Instance.m_NativePropertiesDialog = null;
 		if (s_Instance.m_wRoot)
 			s_Instance.m_wRoot.SetEnabled(!open);
 		if (open)
@@ -107,15 +207,6 @@ class DCO_GMUIController
 		}
 		else
 			ReleaseMenuFocus();
-	}
-
-	static void TouchNativeProperties()
-	{
-		if (!s_Instance || !s_Instance.m_bBuilt)
-			return;
-		s_Instance.m_iNativePropertiesHeartbeat = System.GetTickCount();
-		if (!s_Instance.m_bNativePropertiesOpen)
-			SetNativePropertiesOpen(true);
 	}
 
 	// The custom trigger editor is modal inside the Bifrost root. Temporarily hide
@@ -168,13 +259,31 @@ class DCO_GMUIController
 
 	static void ReleaseMenuFocus()
 	{
+		if (s_Instance)
+		{
+			// Closing a widget must not expose the rest of its gesture to world actions.
+			s_Instance.m_bWorldInputSuppressed = true;
+			GetGame().GetCallqueue().Remove(s_Instance.ClearWorldInputSuppression);
+			GetGame().GetCallqueue().CallLater(s_Instance.ClearWorldInputSuppression, 0, false);
+		}
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
-		if (workspace)
-			workspace.SetFocusedWidget(null, true);
+		if (!workspace)
+			return;
+		Widget focus = workspace.GetFocusedWidget();
+		if (s_Instance && !IsWidgetWithin(focus, s_Instance.m_wRoot))
+			return;
+		workspace.SetFocusedWidget(null, true);
+	}
+
+	protected void ClearWorldInputSuppression()
+	{
+		m_bWorldInputSuppressed = false;
 	}
 
 	static bool ShouldSuppressPauseOpen()
 	{
+		if (IsExternalMenuOpen() || IsNativePropertiesOpen())
+			return false;
 		int now = System.GetTickCount();
 		if (s_iPauseSuppressedUntil > now)
 			return true;
@@ -296,7 +405,7 @@ class DCO_GMUIController
 
 	protected void OnMenuAction(float value, EActionTrigger reason)
 	{
-		if (m_bNativePropertiesOpen)
+		if (m_bNativePropertiesOpen || IsExternalMenuOpen())
 			return;
 		int now = System.GetTickCount();
 		if (s_iPauseSuppressedUntil > now)
@@ -334,11 +443,6 @@ class DCO_GMUIController
 		if (DCO_GMTutorial.IsOpen())
 		{
 			DCO_GMTutorial.Close();
-			return true;
-		}
-		if (DCO_GMArsenalPanel.Get().IsOpen())
-		{
-			DCO_GMArsenalPanel.Get().CloseSilent();
 			return true;
 		}
 		if (DCO_GMMissionPanel.Get().CloseForBack())
@@ -414,7 +518,6 @@ class DCO_GMUIController
 		DCO_ArsenalAccessPlacement.Get().Init();
 		DCO_VehicleServiceAccessPlacement.Get().Init();
 
-		DCO_GMArsenalPanel.Get().Init(m_wRoot);
 
 		DCO_GMGameplayPanel.Get().Init(m_wRoot);
 
@@ -454,12 +557,10 @@ class DCO_GMUIController
 		m_PreciseBar = new DCO_GMPreciseBar();
 		m_PreciseBar.Init(m_wRoot);
 
-		// Live numeric transform readout.
 		m_GizmoPanel = new DCO_GMGizmoPanel();
 		m_GizmoPanel.Init(m_wRoot);
 		DCO_GMGizmo.Get().SetPanel(m_GizmoPanel);
 
-		// Bifrost-native notification + chat feeds.
 		m_NotifFeed = new DCO_GMNotifFeed();
 		m_NotifFeed.Init(m_wRoot);
 		m_ChatFeed = new DCO_GMChatFeed();
@@ -471,7 +572,6 @@ class DCO_GMUIController
 
 		ApplyLayout();
 
-		// Make the floating panels draggable by their top-left grip.
 		MakeDraggable("DCO_OverlayDrag",  "DCO_OverlayBar");
 		MakeDraggable("DCO_OrdersDrag",   "DCO_OrdersBox");
 
@@ -480,7 +580,6 @@ class DCO_GMUIController
 		MakeDraggable("DCO_OptionsDrag",   "DCO_OptionsPanel");
 		MakeResizable("DCO_OptionsResize", "DCO_OptionsPanel",  380, 540);
 
-		// The gizmo readout is a floating box like Overlays/Orders, so it gets the same grips.
 		MakeDraggable("DCO_GizmoDrag",   "DCO_GizmoPanel");
 		MakeResizable("DCO_GizmoResize", "DCO_GizmoPanel",     260, 190);
 
@@ -492,7 +591,6 @@ class DCO_GMUIController
 		MakeDraggable("DCO_TacticsDrag",   "DCO_TacticsPanel");
 		MakeResizable("DCO_TacticsResize", "DCO_TacticsPanel", 250, 360);
 
-		// Hover feedback.
 		DCO_GMHover.Clear();
 		array<string> hoverBtns = {
 			"DCO_ETCat_ALL", "DCO_ETCat_UNIT", "DCO_ETCat_VEH", "DCO_ETCat_OBJ", "DCO_ETCat_LOC", "DCO_ETCat_AREA",
@@ -792,7 +890,6 @@ class DCO_GMUIController
 
 
 		// Z floor for the modal/topmost chrome.
-		SetTopZ("DCO_ArsenalScreen",       9000);	// full-screen mode under every popup.
 		SetTopZ("DCO_ScenarioBackdrop",    9050);
 		SetTopZ("DCO_ScenarioPanel",       9100);
 		SetTopZ("DCO_OptionsPanel",        9200);
@@ -808,7 +905,6 @@ class DCO_GMUIController
 	{
 		if (!m_bBuilt || !m_wRoot)
 			return;
-		TraceDiagnosticState();
 		ReconcileNativePropertiesFocus();
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
 		if (!workspace)
@@ -820,36 +916,24 @@ class DCO_GMUIController
 		ApplyLayout();
 	}
 
-	protected void TraceDiagnosticState()
-	{
-		if (!DCO_TestDiagnostics.ENABLED) return;
-		WorkspaceWidget workspace = GetGame().GetWorkspace();
-		Widget focus;
-		if (workspace) focus = workspace.GetFocusedWidget();
-		Widget panel = m_wRoot.FindAnyWidget("DCO_ScenarioPanel");
-		Widget backdrop = m_wRoot.FindAnyWidget("DCO_ScenarioBackdrop");
-		Widget menu = m_wRoot.FindAnyWidget("DCO_ContextMenu");
-		Widget catcher = m_wRoot.FindAnyWidget("DCO_MenuBackdrop");
-		string state = string.Format("native=%1 suppressed=%2 root=%3 focus=%4", m_bNativePropertiesOpen, m_bPropertyOverlaysSuppressed, m_wRoot.IsEnabled(), DCO_TestDiagnostics.WidgetState(focus));
-		state += " | " + DCO_TestDiagnostics.WidgetState(panel) + " | " + DCO_TestDiagnostics.WidgetState(backdrop);
-		state += " | " + DCO_TestDiagnostics.WidgetState(menu) + " | " + DCO_TestDiagnostics.WidgetState(catcher);
-		bool suspect = !m_bNativePropertiesOpen && !m_wRoot.IsEnabled();
-		if (backdrop && backdrop.IsVisible() && (!panel || !panel.IsVisible())) suspect = true;
-		if (catcher && catcher.IsVisible() && (!menu || !menu.IsVisible())) suspect = true;
-		if (focus && !focus.IsVisibleInHierarchy()) suspect = true;
-		if (state == m_sDiagnosticState) return;
-		m_sDiagnosticState = state;
-		DCO_TestDiagnostics.Event("gm.state", state, suspect);
-	}
-
 	protected void ReconcileNativePropertiesFocus()
 	{
-		if (!m_bNativePropertiesOpen || m_iNativePropertiesHeartbeat <= 0)
+		SetArsenalOpen(BIA_ShellMenu.IsArmoryOpen());
+		if (m_bNativePropertiesOpen && (!m_NativePropertiesDialog || !m_NativePropertiesDialog.DCO_IsDialogOpen()))
+			SetNativePropertiesOpen(false);
+		bool enabled = !m_bNativePropertiesOpen && !IsExternalMenuOpen();
+		if (m_wRoot.IsEnabled() != enabled)
+			m_wRoot.SetEnabled(enabled);
+		if (m_Scenario)
+			m_Scenario.ReconcileVisibility();
+		if (m_Menu)
+			m_Menu.ReconcileVisibility();
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (!workspace)
 			return;
-		if (System.GetTickCount() - m_iNativePropertiesHeartbeat <= NATIVE_PROPERTIES_STALE_MS)
-			return;
-		DCO_TestDiagnostics.Event("gm.native-heartbeat-expired", string.Format("ageMs=%1", System.GetTickCount() - m_iNativePropertiesHeartbeat), true);
-		SetNativePropertiesOpen(false);
+		Widget focus = workspace.GetFocusedWidget();
+		if (IsWidgetWithin(focus, m_wRoot) && (!focus.IsVisibleInHierarchy() || !focus.IsEnabledInHierarchy()))
+			ReleaseMenuFocus();
 	}
 
 	protected void SetTopZ(string name, int z)
@@ -1055,33 +1139,31 @@ class DCO_GMUIController
 		ApplyLayout();	// ApplySavedGeom no-ops now the geoms are cleared - every panel lands on its PinBox default.
 		if (m_TopBar)
 			m_TopBar.SyncTabState(true, true);
-		Print("[DCO-GM] panel layout RESET to defaults", LogLevel.NORMAL);
 	}
 
 	protected void Teardown()
 	{
 		ApplyPropertyOverlaysSuppressed(false);
 		m_bNativePropertiesOpen = false;
-		m_iNativePropertiesHeartbeat = 0;
+		m_NativePropertiesDialog = null;
 		RemoveMenuActionListeners();
 		s_iPauseSuppressedUntil = 0;
 		RemoveMasterHideListener();
 		DCO_GMTheme.Get().ClearMasterHide();	// restore parked world-cue state before the shell lifetime ends.
 		GetGame().GetCallqueue().Remove(PeelVanillaPoll);	// stop the peel poll if it's still running.
-		DCO_TestDiagnostics.Event("gm.shutdown");
 		GetGame().GetCallqueue().Remove(PollViewport);	// stop workspace resize polling before the root is removed.
 		foreach (DCO_GMDraggable d : m_Draggables)	// stop any in-progress drag poll before the widgets go away.
 			d.StopDrag();
 		m_Draggables.Clear();
-		foreach (DCO_GMResizable r : m_Resizables)	// likewise stop any in-progress resize poll.
+		foreach (DCO_GMResizable r : m_Resizables)
 			r.StopResize();
 		m_Resizables.Clear();
-		DCO_GMDraggable.ResetRaise();	// next shell build starts its raise-on-grab z counter from zero.
+		DCO_GMDraggable.ResetRaise();
 		// Release the server freeze when the GM leaves the editor.
 		DCO_GMPauseServer.RoutePause(EDCO_PauseScope.ALL_AI, 0, false, true);
 		DCO_FpsMonitorClient.Get().StopWatches();
 		m_ResetHandler = null;	// its button dies with the root; drop our keep-alive ref.
-		m_VanillaHide.RestoreAll();	// un-hide any engine surfaces we hid.
+		m_VanillaHide.RestoreAll();
 		DCO_GMTutorial.Get().Shutdown();	// drops its ESC listener before the shell root takes its widgets away.
 		if (m_TopBar)
 		{
@@ -1155,7 +1237,6 @@ class DCO_GMUIController
 		DCO_ArsenalAccessPlacement.Get().Shutdown();
 		DCO_GMTacticsFlow.Get().Shutdown();	// disarm any in-flight placement before its widgets die.
 		DCO_GMTacticsPanel.Get().Shutdown();
-		DCO_GMArsenalPanel.Get().Shutdown();
 		DCO_GMGameplayPanel.Get().Shutdown();	// stops its session-time timer before the shell root takes its widgets.
 		if (m_OrdersPanel)
 		{
@@ -1163,6 +1244,8 @@ class DCO_GMUIController
 			m_OrdersPanel = null;
 		}
 		DCO_AIAnimationFxTool.Get().Shutdown();
+		if (m_Menu)
+			m_Menu.Hide();
 		m_Menu = null;
 		if (m_EditTree)
 		{
@@ -1185,6 +1268,8 @@ class DCO_GMUIController
 			m_wRoot = null;
 		}
 		m_bBuilt = false;
+		GetGame().GetCallqueue().Remove(ClearWorldInputSuppression);
+		m_bWorldInputSuppressed = false;
 		if (s_Instance == this)
 			s_Instance = null;
 		DCO_GMHover.Clear();

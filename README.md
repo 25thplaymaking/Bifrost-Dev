@@ -12,6 +12,7 @@ Bifrost is an Arma Reforger Game Master addon focused on a compact operational i
 
 - CREATE, EDIT, ORDERS, SCENARIO, GAMEPLAY, and OPTIONS surfaces
 - Searchable placement catalog and full-screen loadout editor
+- Placeable Arsenal gear crosses with reversible vest, helmet and XL belt storage
 - Precise move/rotate tools, snapping, attachment, visibility, simulation, and stance controls
 - Scenario presets, time/date controls, weather, side relations, and budget readouts
 - GM-directed group orders and scenario tools, including formations, ambush, defence, QRF, and building clearing
@@ -24,7 +25,7 @@ Open the project in Arma Reforger Workbench or install the published addon throu
 
 ## Release state
 
-Current release: **1.0.30** (prepared locally; not yet published). The clean candidate is prepared for the operator's Bohemia Workshop upload under addon GUID `6A0C2D6CE9809C6E`. Compilation and static integrity checks passed. The operator confirmed local movement-speed and teleporter behavior and cleared the reported UI delay. Dedicated-server, remote-client and join-in-progress acceptance remain separate. See [release evidence and upload handoff](docs/RELEASE_1.0.30.md) and [docs/TESTING.md](docs/TESTING.md).
+Current source release: **1.0.32**. See the [GitHub release](https://github.com/25thplaymaking/Bifrost-Dev/releases/tag/v1.0.32), [release evidence and BI handoff](docs/RELEASE_1.0.32.md), and [testing guide](docs/TESTING.md). The operator handles Bohemia Workshop publication under addon GUID `6A0C2D6CE9809C6E`. Local Arsenal acceptance is confirmed; dedicated-server, remote-client and join-in-progress acceptance remain separate.
 
 ## License and credits
 

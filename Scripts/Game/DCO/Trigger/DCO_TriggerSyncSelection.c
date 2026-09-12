@@ -4,9 +4,66 @@ modded class SCR_SelectionEditorUIComponent
 {
 	override protected bool IsInputDisabled()
 	{
-		if (DCO_GMUIController.IsModalActive())
+		if (DCO_GMUIController.IsWorldInputBlocked(true))
 			return true;
 		return super.IsInputDisabled();
+	}
+
+	protected void DCO_CancelSelectionFrame()
+	{
+		// A queued release must not commit after a modal takes ownership.
+		GetGame().GetCallqueue().Remove(ConfirmFrame);
+		m_bIsDrawingFrameConfirmed = false;
+		m_bIsDrawingFrameCancelled = true;
+		m_bIsAnimatingFrame = false;
+		ResetFrame();
+	}
+
+	override protected void DrawFrameDown(bool isToggle)
+	{
+		if (DCO_GMUIController.IsWorldInputBlocked(true))
+		{
+			DCO_CancelSelectionFrame();
+			return;
+		}
+		super.DrawFrameDown(isToggle);
+	}
+
+	override protected void DrawFramePressed(bool isToggle)
+	{
+		if (DCO_GMUIController.IsWorldInputBlocked(true))
+		{
+			DCO_CancelSelectionFrame();
+			return;
+		}
+		super.DrawFramePressed(isToggle);
+	}
+
+	override protected void DrawFrameUp(bool isToggle)
+	{
+		if (DCO_GMUIController.IsWorldInputBlocked(true))
+		{
+			DCO_CancelSelectionFrame();
+			return;
+		}
+		super.DrawFrameUp(isToggle);
+	}
+
+	override protected void ConfirmFrame(bool isToggle)
+	{
+		if (DCO_GMUIController.IsWorldInputBlocked(true))
+		{
+			DCO_CancelSelectionFrame();
+			return;
+		}
+		super.ConfirmFrame(isToggle);
+	}
+
+	override protected void OnMenuUpdate(float tDelta)
+	{
+		if (DCO_GMUIController.IsModalActive() && (m_bIsDrawingFrame || m_bIsAnimatingFrame || m_bIsDrawingFrameConfirmed))
+			DCO_CancelSelectionFrame();
+		super.OnMenuUpdate(tDelta);
 	}
 
 	override protected void EditorSetSelection(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
@@ -30,6 +87,13 @@ modded class SCR_SelectionEditorUIComponent
 
 	override protected void EditorDrawToggleSelectionDown(float value, EActionTrigger reason)
 	{
+		if (DCO_GMUIController.IsWorldInputBlocked(true))
+		{
+			DCO_CancelSelectionFrame();
+			return;
+		}
+		if (IsInputDisabled())
+			return;
 		DCO_TriggerSyncDrag.Get().BeginFromFocused(m_FocusedManager);
 		super.EditorDrawToggleSelectionDown(value, reason);
 	}

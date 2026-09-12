@@ -1,5 +1,7 @@
 # 1.0.32 UI, replication and release review
 
+September 12 closure: F1–F3 are covered by the current GM input/Properties changes and native handler checks; F4 now uses request identity and draft-revision matching; F5 is resolved by the v1.0.32 tag and canonical source fingerprint while preserving the unknown 1.0.31 boundary. See [release evidence and remaining multiplayer acceptance](RELEASE_1.0.32.md). The findings below are the historical September 7 state.
+
 Review date: 2026-09-07. Source review and fresh static/Workbench validation; no gameplay changes made.
 
 ## Scope and decision record

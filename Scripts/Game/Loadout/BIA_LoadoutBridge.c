@@ -359,8 +359,7 @@ class BIA_LoadoutBridge
 		if (!topStorage)
 			return;
 
-		//! Pin bookkeeping mirrors the client preview walker: pinned entries claim their exact
-		//! top-level hardpoint, and a pinned prefab resting anywhere else is displaced to its pin.
+		// Validate every requested hardpoint before displacing any existing attachment.
 		map<int, ResourceName> pinBySlot = new map<int, ResourceName>();
 		map<ResourceName, int> pinByPrefab = new map<ResourceName, int>();
 		foreach (int pinIdx, ResourceName pinPrefab : wanted)
@@ -370,6 +369,11 @@ class BIA_LoadoutBridge
 			if (pin < -1 || pin >= topStorage.GetSlotsCount() || pinBySlot.Contains(pin))
 			{
 				foreach (ResourceName invalid : wanted) stats.RecordSkip(invalid);
+				return;
+			}
+			if ((gate && !gate.Allows(pinPrefab)) || !CanMountPinned(owner, topStorage.GetSlot(pin), pinPrefab))
+			{
+				foreach (ResourceName rejected : wanted) stats.RecordSkip(rejected);
 				return;
 			}
 
@@ -488,6 +492,19 @@ class BIA_LoadoutBridge
 		{
 			stats.RecordSkip(prefab);
 		}
+	}
+
+	protected static bool CanMountPinned(IEntity owner, InventoryStorageSlot slot, ResourceName prefab)
+	{
+		if (!owner || !slot) return false;
+		IEntity current = slot.GetAttachedEntity();
+		if (current && SCR_ResourceNameUtils.GetPrefabName(current) == prefab) return true;
+		Resource resource = Resource.Load(prefab);
+		if (!resource || !resource.IsValid()) return false;
+		IEntity candidate = GetGame().SpawnEntityPrefabLocal(resource, owner.GetWorld());
+		bool compatible = BIA_ItemIntel.MountAcceptsEntity(slot, candidate);
+		BIA_PreviewDress.DeleteLocalHierarchy(candidate);
+		return compatible;
 	}
 
 	//------------------------------------------------------------------------------------------------

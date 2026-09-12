@@ -1,0 +1,5 @@
+MatPBRBasic {
+ Color 1 1 1 1
+ BCRMap "{51C049EAFBAC722F}Assets/Props/Military/Bifrost_GearRack/Data/Bifrost_GearRack_Dark_BCR.edds"
+ NMOMap "{6918F27822DB20B1}Assets/Props/Military/Bifrost_GearRack/Data/Bifrost_GearRack_Dark_NMO.edds"
+}

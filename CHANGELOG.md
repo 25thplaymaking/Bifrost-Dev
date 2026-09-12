@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 1.0.32 - 2026-09-12
+
+- Fixed first-press navigation on both Arsenal gear categories and item selections, including immediate contents-panel recovery and isolated quantity controls.
+- Removed the obsolete overlapping Arsenal screen, restored the preview viewport, and made menu surfaces and text independent of stage lighting.
+- Added Placeable Arsenal and XL Gear Cross under Lightning > Bifrost. World actions alternate Hang/Take for vests and helmets; the XL cross also supports belts. Arsenal remains the first action.
+- Moved original gear through server-authoritative native inventory operations, preserving nested cargo, attachments and damage. Shared rack contents use replicated IDs, with late-join snapshots and delayed display resolution.
+- Matched gear to stand support geometry at runtime, including stock PASGT/ALICE gear and available third-party vest, helmet and waist-slot geometry, without adding addon dependencies.
+- Extended nested stocking and authored attachment-slot validation across previews, saved kits and server application.
+- Fixed Properties cleanup and world-input ownership across placement, gizmos, floating panels and interrupted drag/resize. Prevented scenario-only and object-specific settings from leaking into unrelated selections.
+- Corrected rich-text descriptions and plain-label handling so colour markup does not appear as raw text.
+- Correlated Wear requests and replies across draft revisions and Arsenal sessions, preventing delayed or duplicate replies from clearing newer edits.
+- Removed temporary runtime diagnostics and obsolete UI code. Development fixtures and the installed MCP bridge are excluded from runtime release sources.
+- Local Arsenal acceptance was confirmed by the operator. Dedicated-server, remote-client and join-in-progress acceptance remain separate from the source and native-handler checks.
+
+The previous identifiable GitHub release is 1.0.30. A historical Workshop 1.0.31 observation has no recoverable immutable source baseline in this repository; this entry does not reconstruct that release or claim its contents.
+
 ## 1.0.30 - 2026-09-05
 
 - Fixed trigger-controlled audio so stopping or deactivating a trigger stops the recording, and firing status follows the replicated playback state.

@@ -162,7 +162,8 @@ class BIA_ItemListPanel
 
 		m_wPanel.SetVisible(true);
 		RebuildRows();
-		FocusFirstRow();
+		if (!GetGame().GetInputManager().IsUsingMouseAndKeyboard())
+			FocusFirstRow();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -369,6 +370,8 @@ class BIA_ItemListPanel
 			}
 
 			row.SetEntry(entry, m_bUsesSupplies);
+			// Quantity rows retain their child-control-aware click handling.
+			row.SetActivateOnPress(!m_bQuantityControls);
 			row.SetQuantityControlsEnabled(m_bQuantityControls);
 			int count;
 			m_mCounts.Find(entry.m_Prefab, count);

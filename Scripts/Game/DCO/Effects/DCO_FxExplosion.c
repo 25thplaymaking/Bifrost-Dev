@@ -859,12 +859,7 @@ class DCO_FxExplosionComponent : ScriptComponent
 			pass.m_fLifeSec += pass.m_fStationSec;
 		}
 		m_AircraftPasses.Insert(pass);
-		string passKind = "flyby";
-		if (loiter)
-			passKind = "loiter";
-		string roundName = DCO_TracerEmitterComponent.DCO_GetRoundNames()[pass.m_eGunrunRound];
-		Print(string.Format("[DCO-FX] %1 started: armed=%2 live=%3 armament=%4 rounds=%5 station=%6s",
-			passKind, gunrun, m_bLive, roundName, pass.m_iRoundsLeft, pass.m_fStationSec), LogLevel.NORMAL);
+
 
 		// Crew is mission-ready at launch: ask engine to fill every PILOT and TURRET slot configured by the selected helicopter.
 		SCR_BaseCompartmentManagerComponent compartments = SCR_BaseCompartmentManagerComponent.Cast(aircraft.FindComponent(SCR_BaseCompartmentManagerComponent));
@@ -1235,8 +1230,6 @@ class DCO_FxExplosionComponent : ScriptComponent
 		Rpc(RpcDo_DCO_CosmeticTracer, muzzle, direction, roundIndex);
 
 		pass.m_iGunrunShotsFired++;
-		if (pass.m_iGunrunShotsFired == 1)
-			Print(string.Format("[DCO-FX] armed loiter fired its first round (%1)", DCO_TracerEmitterComponent.DCO_GetRoundNames()[roundIndex]), LogLevel.NORMAL);
 		// Broadcast danger periodically so nearby AI reacts to the pass.
 		if ((pass.m_iGunrunShotsFired % GUNRUN_DANGER_EVERY) == 0)
 		{

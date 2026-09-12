@@ -20,7 +20,6 @@ class DCO_GMGizmo
 		return s_OnPreciseChanged;
 	}
 
-	// Flip precise mode.
 	static bool TogglePreciseMode()
 	{
 		SetPreciseMode(!s_bPreciseMode);
@@ -229,7 +228,7 @@ class DCO_GMGizmo
 			only = e;
 			n++;
 			if (n > 1)
-				return null;	// multi-select -> no gizmo in v1.
+				return null;	// A transform gizmo requires a single target.
 		}
 		if (n == 1)
 			return only;
@@ -354,7 +353,7 @@ class DCO_GMGizmo
 	// LMB down: if the cursor is over a handle of the current target, begin a drag.
 	void OnLmbDown(float value, EActionTrigger reason)
 	{
-		if (DCO_GMUIController.IsModalActive())
+		if (DCO_GMUIController.IsWorldInputBlocked())
 			return;
 		if (!s_bPreciseMode)
 			return;	// precise mode off -> gizmo is inert, engine drag owns the LMB.
@@ -406,10 +405,9 @@ class DCO_GMGizmo
 		}
 	}
 
-	// LMB up: end the drag.
 	void OnLmbUp(float value, EActionTrigger reason)
 	{
-		if (DCO_GMUIController.IsNativePropertiesOpen())
+		if (DCO_GMUIController.IsWorldInputBlocked())
 		{
 			AbortDrag();
 			return;
@@ -520,8 +518,12 @@ class DCO_GMGizmo
 
 	protected void OnRender(DCO_GMRenderManager r)
 	{
-		if (DCO_GMUIController.IsNativePropertiesOpen())
+		if (DCO_GMUIController.IsModalActive())
+		{
+			AbortDrag();
+			DCO_GMAttach.ClearHighlight();
 			return;
+		}
 		if (!s_bPreciseMode)
 		{
 			PanelHide();	// arrows hidden -> the readout goes with them, leaving engine place/drag untouched.
@@ -573,7 +575,7 @@ class DCO_GMGizmo
 				}
 				else
 				{
-					DragMove(cro, crd);	// axis or plane translate, snapped + surface-settled, via the dedi-safe relay.
+					DragMove(cro, crd);
 				}
 			}
 			m_Hover = m_GrabHandle;	// keep the grabbed handle lit while dragging.

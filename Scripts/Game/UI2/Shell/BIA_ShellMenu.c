@@ -62,6 +62,7 @@ class BIA_ShellMenu : SCR_SuperMenuBase
 	protected bool m_bPendingCallAction;
 	protected bool m_bPendingPlaySound;
 
+
 	//! The menu instance owns the studio hub: a static ref owning it would survive into game
 	//! teardown on a script reload with the menu open and trip the engine resource-leak assert.
 	protected ref BIA_StageHub m_Hub;
@@ -70,6 +71,7 @@ class BIA_ShellMenu : SCR_SuperMenuBase
 	override void OnMenuOpen()
 	{
 		s_bOpen = true;
+		DCO_GMUIController.SetArsenalOpen(true);
 		//! Installed before super so the tab view's OnTabCreate lookups find the hub.
 		m_Hub = new BIA_StageHub();
 		BIA_StageHub.Install(m_Hub);
@@ -179,6 +181,7 @@ class BIA_ShellMenu : SCR_SuperMenuBase
 
 		super.OnMenuClose();
 		s_bOpen = false;
+		DCO_GMUIController.SetArsenalOpen(false);
 		if (s_ActiveInstance == this)
 			s_ActiveInstance = null;
 
@@ -374,8 +377,6 @@ class BIA_ShellMenu : SCR_SuperMenuBase
 				break;
 			}
 		}
-		if ((status == BIA_EApplyStatus.SUCCESS || status == BIA_EApplyStatus.PARTIAL) && BIA_DraftService.Get())
-			BIA_DraftService.Get().m_bDraftDirty = false;
 
 		PresentStatus(text, statusColor, 4000);
 	}
@@ -422,4 +423,5 @@ class BIA_ShellMenu : SCR_SuperMenuBase
 		if (m_wHeaderWeight)
 			m_wHeaderWeight.SetTextFormat("%1 KG", service.GetDraftWeight().ToString(-1, 1));
 	}
+
 }

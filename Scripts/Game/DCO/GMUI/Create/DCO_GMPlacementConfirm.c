@@ -1,4 +1,3 @@
-// DCO GM placement-CONFIRM bridge.
 class DCO_GMPlacementConfirm
 {
 	protected Widget m_wRoot;
@@ -82,9 +81,9 @@ class DCO_GMPlacementConfirm
 
 		ResourceName prefab = m_Placing.GetSelectedPrefab();
 		EnsureAvailableForSpawn(prefab);
-		m_Placing.CreateEntity(placeOne, false);
 		m_bConfirmedThisFrame = true;
-		GetGame().GetCallqueue().CallLater(ClearConfirmGuard, 0);	// reset next frame so each click can place again.
+		GetGame().GetCallqueue().CallLater(ClearConfirmGuard, 0);
+		m_Placing.CreateEntity(placeOne, false);
 	}
 
 	protected void ClearConfirmGuard()
@@ -118,43 +117,12 @@ class DCO_GMPlacementConfirm
 
 	protected bool IsCursorOverPanels()
 	{
-		if (!m_wRoot || !m_wRoot.IsEnabled() || DCO_GMUIController.IsModalActive())
+		if (!m_wRoot || !m_wRoot.IsEnabledInHierarchy() || DCO_GMUIController.IsModalActive())
 			return true;
-		// Action listeners receive input independently of widget event consumption.
-		array<string> modals = {
-			"DCO_ScenarioPanel", "DCO_ScenarioBackdrop",
-			"DCO_MenuBackdrop",
-			"DCO_MissionPanel", "DCO_MissionBackdrop",
-			"DCO_CompositionPanel", "DCO_CompositionBackdrop",
-			"DCO_MarkerPanel",
-			"DCO_TutOverlay", "DCO_TutBackdrop"
-		};
-		foreach (string name : modals)
-		{
-			Widget modal = m_wRoot.FindAnyWidget(name);
-			if (modal && modal.IsVisibleInHierarchy())
-				return true;
-		}
-		int mx, my;
-		WidgetManager.GetMousePos(mx, my);
-		return CursorIn("DCO_CreateBrowser", mx, my)
-			|| CursorIn("DCO_EditTree", mx, my)
-			|| CursorIn("DCO_TopBar", mx, my)
-			|| CursorIn("DCO_ContextMenu", mx, my)
-			|| CursorIn("DCO_OptionsPanel", mx, my)
-			|| CursorIn("DCO_OrdersBox", mx, my)
-			|| CursorIn("DCO_TacticsPanel", mx, my)
-			|| CursorIn("DCO_GizmoPanel", mx, my);
-	}
-
-	protected bool CursorIn(string widgetName, int mx, int my)
-	{
-		Widget w = m_wRoot.FindAnyWidget(widgetName);
-		if (!w || !w.IsVisibleInHierarchy())
-			return false;
-		float x, y, sx, sy;
-		w.GetScreenPos(x, y);
-		w.GetScreenSize(sx, sy);
-		return mx >= x && mx <= x + sx && my >= y && my <= y + sy;
+		if (DCO_GMUIController.HasVisibleModal(m_wRoot))
+			return true;
+		int x, y;
+		WidgetManager.GetMousePos(x, y);
+		return DCO_GMUIController.IsPointerOverPanel(m_wRoot, x, y);
 	}
 }

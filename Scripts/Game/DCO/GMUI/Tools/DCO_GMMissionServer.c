@@ -475,16 +475,13 @@ modded class SCR_PlayerController
 			return;
 		array<int> players = {};
 		playerManager.GetPlayers(players);
-		int delivered;
 		foreach (int playerId : players)
 		{
 			SCR_PlayerController recipient = SCR_PlayerController.Cast(playerManager.GetPlayerController(playerId));
 			if (!recipient)
 				continue;
 			recipient.DCO_DeliverMissionScale(targetId, scale);
-			delivered++;
 		}
-		DCO_TestDiagnostics.Event("gm.scale.broadcast", string.Format("target=%1 value=%2 recipients=%3", targetId, scale, delivered));
 	}
 
 	protected void DCO_DeliverMissionScale(RplId targetId, float scale)
@@ -548,7 +545,6 @@ modded class SCR_PlayerController
 				m_DCO_ScaleRetries.Set(targetId, remaining);
 			else
 			{
-				DCO_TestDiagnostics.Event("gm.scale.unresolved", string.Format("target=%1 value=%2", targetId, m_DCO_PendingScales.GetElement(i)), true);
 				m_DCO_PendingScales.Remove(targetId);
 				m_DCO_ScaleRetries.Remove(targetId);
 			}

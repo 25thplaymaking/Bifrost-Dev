@@ -416,7 +416,7 @@ class DCO_TriggerSyncDrag
 
 	bool BeginFromFocused(SCR_BaseEditableEntityFilter focusedFilter)
 	{
-		if (!DCO_GMUIController.IsActive() || DCO_GMUIController.IsNativePropertiesOpen() || DCO_GMGizmo.IsPreciseModeActive() || !focusedFilter)
+		if (!DCO_GMUIController.IsActive() || DCO_GMUIController.IsModalActive() || DCO_GMGizmo.IsPreciseModeActive() || !focusedFilter)
 			return false;
 		set<SCR_EditableEntityComponent> focused = new set<SCR_EditableEntityComponent>();
 		focusedFilter.GetEntities(focused);
@@ -437,7 +437,7 @@ class DCO_TriggerSyncDrag
 	{
 		if (!m_Group)
 			return false;
-		if (DCO_GMUIController.IsNativePropertiesOpen())
+		if (DCO_GMUIController.IsModalActive())
 		{
 			Cancel();
 			return true;
@@ -453,6 +453,8 @@ class DCO_TriggerSyncDrag
 	{
 		if (!m_Group)
 			return false;
+		if (DCO_GMUIController.IsWorldInputBlocked())
+			return Cancel();
 		SCR_EditableGroupComponent group = m_Group;
 		bool wasDragging = m_bDragging;
 		m_Group = null;
@@ -521,7 +523,12 @@ class DCO_TriggerSyncDrag
 
 	protected void OnRender(DCO_GMRenderManager render)
 	{
-		if (!m_bDragging || !m_Group || !m_Group.GetOwner() || DCO_GMUIController.IsNativePropertiesOpen())
+		if (DCO_GMUIController.IsModalActive() || !m_Group || !m_Group.GetOwner())
+		{
+			Cancel();
+			return;
+		}
+		if (!m_bDragging)
 			return;
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
 		BaseWorld world = GetGame().GetWorld();

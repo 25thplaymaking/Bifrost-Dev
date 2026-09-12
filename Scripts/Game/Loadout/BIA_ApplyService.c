@@ -14,24 +14,23 @@ class BIA_ApplyService
 	//------------------------------------------------------------------------------------------------
 	static BIA_ApplyReport ApplyKitFile(notnull GameEntity character, notnull BIA_KitFile kit, notnull BIA_ApplyContext ctx)
 	{
-		DCO_TestDiagnostics.Event("kit.apply.begin", string.Format("player=%1", ctx.m_iPlayerId));
 		BIA_ApplyReport report = new BIA_ApplyReport();
 		report.m_eStatus = BIA_EApplyStatus.FAILED_INVALID;
 
 		if (!Replication.IsServer())
 		{
 			report.m_eStatus = BIA_EApplyStatus.FAILED_SERVER;
-			return DCO_TestDiagnostics.ApplyResult(report, ctx.m_iPlayerId);
+			return report;
 		}
 
 		if (kit.IsEmpty())
-			return DCO_TestDiagnostics.ApplyResult(report, ctx.m_iPlayerId);
+			return report;
 
 		SCR_ChimeraCharacter chimeraCharacter = SCR_ChimeraCharacter.Cast(character);
 		if (!chimeraCharacter)
 		{
 			report.m_eStatus = BIA_EApplyStatus.FAILED_NO_CHARACTER;
-			return DCO_TestDiagnostics.ApplyResult(report, ctx.m_iPlayerId);
+			return report;
 		}
 
 		string playerFactionKey;
@@ -45,21 +44,21 @@ class BIA_ApplyService
 		if (!PassesFactionPolicy(kit, playerFactionKey, ctx))
 		{
 			report.m_eStatus = BIA_EApplyStatus.FAILED_FACTION;
-			return DCO_TestDiagnostics.ApplyResult(report, ctx.m_iPlayerId);
+			return report;
 		}
 
 		InventoryStorageManagerComponent storageManager = InventoryStorageManagerComponent.Cast(character.FindComponent(InventoryStorageManagerComponent));
 		if (!storageManager)
 		{
 			report.m_eStatus = BIA_EApplyStatus.FAILED_NO_CHARACTER;
-			return DCO_TestDiagnostics.ApplyResult(report, ctx.m_iPlayerId);
+			return report;
 		}
 
 		string rawJson = kit.GetRawJson();
 		if (rawJson.IsEmpty())
 			rawJson = kit.ExportToString();
 		if (rawJson.IsEmpty())
-			return DCO_TestDiagnostics.ApplyResult(report, ctx.m_iPlayerId);
+			return report;
 
 		BIA_ApplyGate gate = BIA_ApplyGate.Build(ctx.m_Arsenal, character, ctx.m_Config);
 
@@ -89,7 +88,7 @@ class BIA_ApplyService
 			if (consumer && netCost > 0 && consumer.GetAggregatedResourceValue() < netCost)
 			{
 				report.m_eStatus = BIA_EApplyStatus.FAILED_SUPPLIES;
-				return DCO_TestDiagnostics.ApplyResult(report, ctx.m_iPlayerId);
+				return report;
 			}
 		}
 
@@ -111,7 +110,7 @@ class BIA_ApplyService
 		if (report.m_iApplied == 0 && report.m_iSkipped > 0)
 		{
 			report.m_eStatus = BIA_EApplyStatus.FAILED_INVALID;
-			return DCO_TestDiagnostics.ApplyResult(report, ctx.m_iPlayerId);
+			return report;
 		}
 
 		ChargeSupplies(consumer, generator, addedCost, removedRefund, ctx, report);
@@ -121,7 +120,7 @@ class BIA_ApplyService
 		else
 			report.m_eStatus = BIA_EApplyStatus.SUCCESS;
 
-		return DCO_TestDiagnostics.ApplyResult(report, ctx.m_iPlayerId);
+		return report;
 	}
 
 	//------------------------------------------------------------------------------------------------

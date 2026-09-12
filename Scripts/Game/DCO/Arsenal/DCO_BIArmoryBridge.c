@@ -65,7 +65,7 @@ class DCO_BIArmoryBridge
 		else
 			BIA_Theme.BeginLocalSession();
 
-		BIA_DraftService.BeginForTarget(target, true);
+		BIA_DraftService service = BIA_DraftService.BeginForTarget(target, true);
 		MenuBase menu = manager.OpenMenu(ChimeraMenuPreset.BIA_ArmoryV2);
 		if (!menu)
 		{

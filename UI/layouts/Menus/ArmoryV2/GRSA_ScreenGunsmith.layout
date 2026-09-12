@@ -583,12 +583,26 @@ OverlayWidgetClass "{AB21040000000001}" {
     Padding 24 24 0 24
    }
   }
-  TextWidgetClass "{AB21040000000003}" {
-   Name "HardpointCounter"
-   Slot OverlayWidgetSlot "{AB21040000000004}" {
+  OverlayWidgetClass "{6BD11E0B59F14F01}" {
+   Name "HardpointCounterPanel"
+   "Is Visible" 0
+   Slot OverlayWidgetSlot "{6BD11E0B59F14F02}" {
     HorizontalAlign 2
     VerticalAlign 0
     Padding 0 16 48 0
+   }
+   {
+    ImageWidgetClass "{6BD11E0B59F14F03}" {
+     Name "HardpointCounterBg"
+     Slot OverlayWidgetSlot "{6BD11E0B59F14F04}" { HorizontalAlign 3 VerticalAlign 3 }
+     Color 0.0235 0.0275 0.0353 1
+    }
+  TextWidgetClass "{AB21040000000003}" {
+   Name "HardpointCounter"
+   Slot OverlayWidgetSlot "{AB21040000000004}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+    Padding 8 4 8 4
    }
    Color 0.851 0.537 0.169 1
    Text ""
@@ -596,6 +610,8 @@ OverlayWidgetClass "{AB21040000000001}" {
    "Min Font Size" 14
    FontProperties FontProperties "{AB21040000000005}" {
     Font "{0E041C5B1F27DCEA}ui/fonts/robotomono_msdf_28.fnt"
+   }
+  }
    }
   }
  }

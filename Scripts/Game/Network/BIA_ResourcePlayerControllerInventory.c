@@ -7,10 +7,41 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 
 	protected ref array<string> m_aBIAChunks;
 	protected int m_iBIAExpectedChunks;
+	protected int m_iBIARequestId;
 	protected RplId m_BIAArsenalRplId;
 	protected RplId m_BIATargetRplId;
 	protected int m_iBIALastApplyTick;
 	protected bool m_bBIAApplyInProgress;
+	protected bool m_bBIARackTransfer;
+	void BIA_RequestRackTransfer(RplId rackId, DCO_EGearRackSlot kind, bool take)
+	{
+		Rpc(BIA_RpcAsk_RackTransfer, rackId, kind, take);
+	}
+
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void BIA_RpcAsk_RackTransfer(RplId rackId, DCO_EGearRackSlot kind, bool take)
+	{
+		if (m_bBIAApplyInProgress || m_bBIARackTransfer)
+		{
+			return;
+		}
+		PlayerController controller = PlayerController.Cast(GetOwner());
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(rackId));
+		DCO_GearRackComponent rack;
+		if (rpl && rpl.GetEntity()) rack = DCO_GearRackComponent.Cast(rpl.GetEntity().FindComponent(DCO_GearRackComponent));
+		if (!controller || !rack)
+		{
+			return;
+		}
+		m_bBIARackTransfer = true;
+		if (!rack.TransferGear(controller.GetControlledEntity(), kind, take, this))
+			BIA_FinishRackTransfer();
+	}
+
+	void BIA_FinishRackTransfer()
+	{
+		if (Replication.IsServer()) m_bBIARackTransfer = false;
+	}
 
 	protected static ref ScriptInvoker s_BIAOnApplyResult;
 
@@ -25,7 +56,7 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 
 	//------------------------------------------------------------------------------------------------
 	//! Client entry point, streams the kit file JSON to the server in reliable ordered chunks.
-	void BIA_RequestApplyKit(notnull BIA_KitFile kit, RplId arsenalRplId, RplId targetRplId)
+	void BIA_RequestApplyKit(notnull BIA_KitFile kit, RplId arsenalRplId, RplId targetRplId, int requestId)
 	{
 		string json = kit.GetRawJson();
 		if (json.IsEmpty())
@@ -33,7 +64,7 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 
 		if (json.IsEmpty() || json.Length() > BIA_MAX_KIT_JSON_LENGTH)
 		{
-			BIA_GetOnApplyResult().Invoke(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+			BIA_RpcDo_KitApplyResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 			return;
 		}
 
@@ -42,31 +73,31 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 
 		if (!targetRplId.IsValid())
 		{
-			BIA_GetOnApplyResult().Invoke(BIA_EApplyStatus.FAILED_NO_CHARACTER, 0, 0, 0, string.Empty);
+			BIA_RpcDo_KitApplyResult(requestId, BIA_EApplyStatus.FAILED_NO_CHARACTER, 0, 0, 0, string.Empty);
 			return;
 		}
 
-		Rpc(BIA_RpcAsk_KitBegin, total, arsenalRplId, targetRplId);
+		Rpc(BIA_RpcAsk_KitBegin, requestId, total, arsenalRplId, targetRplId);
 		for (int i = 0; i < total; ++i)
 		{
 			int start = i * BIA_CHUNK_LENGTH;
 			int chunkLength = Math.Min(BIA_CHUNK_LENGTH, length - start);
-			Rpc(BIA_RpcAsk_KitChunk, i, json.Substring(start, chunkLength));
+			Rpc(BIA_RpcAsk_KitChunk, requestId, i, json.Substring(start, chunkLength));
 		}
-		DCO_TestDiagnostics.Event("kit.request.send", string.Format("target=%1 chunks=%2", targetRplId, total));
-		Rpc(BIA_RpcAsk_KitApply);
+		Rpc(BIA_RpcAsk_KitApply, requestId);
 	}
 
 	//------------------------------------------------------------------------------------------------
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void BIA_RpcAsk_KitBegin(int chunkCount, RplId arsenalRplId, RplId targetRplId)
+	protected void BIA_RpcAsk_KitBegin(int requestId, int chunkCount, RplId arsenalRplId, RplId targetRplId)
 	{
-		if (chunkCount <= 0 || chunkCount > (BIA_MAX_KIT_JSON_LENGTH / BIA_CHUNK_LENGTH) + 1 || !targetRplId.IsValid())
+		if (requestId <= 0 || chunkCount <= 0 || chunkCount > (BIA_MAX_KIT_JSON_LENGTH / BIA_CHUNK_LENGTH) + 1 || !targetRplId.IsValid())
 		{
 			BIA_ResetKitStream();
 			return;
 		}
 
+		m_iBIARequestId = requestId;
 		m_iBIAExpectedChunks = chunkCount;
 		m_BIAArsenalRplId = arsenalRplId;
 		m_BIATargetRplId = targetRplId;
@@ -79,9 +110,9 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 
 	//------------------------------------------------------------------------------------------------
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void BIA_RpcAsk_KitChunk(int index, string chunk)
+	protected void BIA_RpcAsk_KitChunk(int requestId, int index, string chunk)
 	{
-		if (!m_aBIAChunks || index < 0 || index >= m_aBIAChunks.Count())
+		if (requestId != m_iBIARequestId || !m_aBIAChunks || index < 0 || index >= m_aBIAChunks.Count())
 			return;
 		if (chunk.IsEmpty() || chunk.Length() > BIA_CHUNK_LENGTH)
 		{
@@ -94,9 +125,13 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 
 	//------------------------------------------------------------------------------------------------
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void BIA_RpcAsk_KitApply()
+	protected void BIA_RpcAsk_KitApply(int requestId)
 	{
-		DCO_TestDiagnostics.Event("kit.request.receive", string.Format("target=%1 chunks=%2", m_BIATargetRplId, m_iBIAExpectedChunks));
+		if (requestId <= 0 || requestId != m_iBIARequestId)
+		{
+			BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+			return;
+		}
 		array<string> chunks = m_aBIAChunks;
 		int expected = m_iBIAExpectedChunks;
 		RplId arsenalRplId = m_BIAArsenalRplId;
@@ -106,26 +141,26 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 		if (!chunks || chunks.Count() != expected || expected <= 0)
 		{
 			BIA_Log.Warn("Kit apply rejected: chunk stream incomplete");
-			BIA_SendResult(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+			BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 			return;
 		}
 
-		if (m_bBIAApplyInProgress)
+		if (m_bBIAApplyInProgress || m_bBIARackTransfer)
 		{
-			BIA_SendResult(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+			BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 			return;
 		}
 
 		if (!BIA_ArsenalScenarioSettings.Get().m_bAllowKitChanges)
 		{
-			BIA_SendResult(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+			BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 			return;
 		}
 
 		int nowTick = System.GetTickCount();
 		if (m_iBIALastApplyTick != 0 && nowTick - m_iBIALastApplyTick < BIA_APPLY_COOLDOWN_MS)
 		{
-			BIA_SendResult(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+			BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 			return;
 		}
 
@@ -134,7 +169,7 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 		{
 			if (chunk.IsEmpty())
 			{
-				BIA_SendResult(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+				BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 				return;
 			}
 			json += chunk;
@@ -142,7 +177,7 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 
 		if (json.Length() > BIA_MAX_KIT_JSON_LENGTH)
 		{
-			BIA_SendResult(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+			BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 			return;
 		}
 
@@ -150,14 +185,14 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 		if (!kit.ImportFromString(json))
 		{
 			BIA_Log.Warn("Kit apply rejected: json failed to parse");
-			BIA_SendResult(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+			BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 			return;
 		}
 
 		SCR_PlayerController controller = SCR_PlayerController.Cast(GetOwner());
 		if (!controller)
 		{
-			BIA_SendResult(BIA_EApplyStatus.FAILED_NO_CHARACTER, 0, 0, 0, string.Empty);
+			BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_NO_CHARACTER, 0, 0, 0, string.Empty);
 			return;
 		}
 
@@ -167,7 +202,7 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 			character = GameEntity.Cast(targetRpl.GetEntity());
 		if (!character)
 		{
-			BIA_SendResult(BIA_EApplyStatus.FAILED_NO_CHARACTER, 0, 0, 0, string.Empty);
+			BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_NO_CHARACTER, 0, 0, 0, string.Empty);
 			return;
 		}
 
@@ -176,7 +211,7 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 		if (!isGameMaster && (character != controlled || !DCO_ArsenalAccessComponent.CanUseNearby(controlled)))
 		{
 			BIA_Log.Warn(string.Format("Kit apply refused for player %1: no active Bifrost Arsenal Access or GM authority", controller.GetPlayerId()));
-			BIA_SendResult(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+			BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 			return;
 		}
 
@@ -186,7 +221,7 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 			arsenal = SCR_ArsenalComponent.Cast(Replication.FindItem(arsenalRplId));
 			if (!arsenal)
 			{
-				BIA_SendResult(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+				BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 				return;
 			}
 
@@ -194,7 +229,7 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 			if (distanceSq > BIA_MAX_STATION_DISTANCE_SQ)
 			{
 				BIA_Log.Warn(string.Format("Player %1 requested kit apply %2m from the station", controller.GetPlayerId(), Math.Sqrt(distanceSq)));
-				BIA_SendResult(BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
+				BIA_SendResult(requestId, BIA_EApplyStatus.FAILED_INVALID, 0, 0, 0, string.Empty);
 				return;
 			}
 		}
@@ -210,7 +245,7 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 		BIA_ApplyReport report = BIA_ApplyService.ApplyKitFile(character, kit, ctx);
 		m_bBIAApplyInProgress = false;
 
-		BIA_SendResult(report.m_eStatus, report.m_iApplied, report.m_iSkipped, report.m_fSuppliesCharged, report.GetSkippedSample());
+		BIA_SendResult(requestId, report.m_eStatus, report.m_iApplied, report.m_iSkipped, report.m_fSuppliesCharged, report.GetSkippedSample());
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -218,6 +253,7 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 	{
 		m_aBIAChunks = null;
 		m_iBIAExpectedChunks = 0;
+		m_iBIARequestId = 0;
 		m_BIAArsenalRplId = RplId.Invalid();
 		m_BIATargetRplId = RplId.Invalid();
 	}
@@ -229,17 +265,17 @@ modded class SCR_ResourcePlayerControllerInventoryComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	protected void BIA_SendResult(BIA_EApplyStatus status, int applied, int skipped, float suppliesCharged, string skippedSample)
+	protected void BIA_SendResult(int requestId, BIA_EApplyStatus status, int applied, int skipped, float suppliesCharged, string skippedSample)
 	{
-		DCO_TestDiagnostics.Event("kit.result.server", string.Format("status=%1 applied=%2 skipped=%3", status, applied, skipped), status != BIA_EApplyStatus.SUCCESS);
-		Rpc(BIA_RpcDo_KitApplyResult, status, applied, skipped, suppliesCharged, skippedSample);
+		Rpc(BIA_RpcDo_KitApplyResult, requestId, status, applied, skipped, suppliesCharged, skippedSample);
 	}
 
 	//------------------------------------------------------------------------------------------------
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
-	protected void BIA_RpcDo_KitApplyResult(BIA_EApplyStatus status, int applied, int skipped, float suppliesCharged, string skippedSample)
+	protected void BIA_RpcDo_KitApplyResult(int requestId, BIA_EApplyStatus status, int applied, int skipped, float suppliesCharged, string skippedSample)
 	{
-		DCO_TestDiagnostics.Event("kit.result.client", string.Format("status=%1 applied=%2 skipped=%3", status, applied, skipped), status != BIA_EApplyStatus.SUCCESS);
+		BIA_DraftService service = BIA_DraftService.Get();
+		if (!service || !service.AcceptApplyResult(requestId, status)) return;
 		BIA_GetOnApplyResult().Invoke(status, applied, skipped, suppliesCharged, skippedSample);
 	}
 }

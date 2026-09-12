@@ -68,14 +68,7 @@ class BIA_SoldierScreen : SCR_SubMenuBase
 		m_wCustomizeHeader = TextWidget.Cast(m_wRoot.FindAnyWidget("WeaponsHeader"));
 		m_wCustomizeList = m_wRoot.FindAnyWidget("WeaponCardList");
 
-		//! The legacy pooled preview node stays hidden so the studio render can never double-draw.
-		Widget legacyPreview = m_wRoot.FindAnyWidget("SoldierStage");
-		if (legacyPreview)
-			legacyPreview.SetVisible(false);
-
 		m_wStageWorld = RenderTargetWidget.Cast(m_wRoot.FindAnyWidget("SoldierStageWorld"));
-		if (!m_wStageWorld && legacyPreview)
-			m_wStageWorld = BIA_WeaponStage.CreateFallbackRender(legacyPreview.GetParent());
 		if (!m_wStageWorld)
 			BIA_Log.Error("Soldier screen: no render widget, mannequin cannot draw");
 
@@ -238,6 +231,8 @@ class BIA_SoldierScreen : SCR_SubMenuBase
 		}
 
 		card.m_Row = row;
+		// Open before focus and stage changes can consume the release click.
+		row.SetActivateOnPress(true);
 		row.EnableSecondaryClick(true);
 		row.m_OnEntryClicked.Insert(OnCardClicked);
 		row.m_OnEntrySecondaryClicked.Insert(OnCardSecondaryClicked);
@@ -327,7 +322,7 @@ class BIA_SoldierScreen : SCR_SubMenuBase
 		if (!clothing || clothing.m_Prefab.IsEmpty())
 			return;
 
-		if (BIA_ItemIntel.HasContainerStorage(clothing.m_Prefab))
+		if (service.HasDraftContainer(clothing.m_Prefab))
 		{
 			BIA_SoldierAction contents = new BIA_SoldierAction();
 			contents.m_eKind = BIA_ESoldierActionKind.CONTENTS;
@@ -367,6 +362,7 @@ class BIA_SoldierScreen : SCR_SubMenuBase
 		}
 
 		action.m_Row = row;
+		row.SetActivateOnPress(true);
 		row.SetSlotDisplay(action.m_sLabel, state, thumbnail);
 		row.m_OnEntryClicked.Insert(OnActionClicked);
 		m_aActions.Insert(action);
@@ -398,8 +394,7 @@ class BIA_SoldierScreen : SCR_SubMenuBase
 
 		if (m_ItemList && m_ItemList.IsOpen())
 		{
-			if (!m_ActiveAction && card && card != m_ActiveCard)
-				OnCardClicked(row);
+			// Focus changes during mouse-down; replacing the list here steals the pending click.
 			return;
 		}
 
@@ -677,11 +672,11 @@ class BIA_SoldierScreen : SCR_SubMenuBase
 		service.GetContainerUsage(container, usedWeight, usedVolume);
 
 		float ratio;
-		float maxLoad = BIA_ItemIntel.GetStorageMaxLoad(container);
+		float maxLoad = service.GetContainerMaxLoad(container);
 		if (maxLoad > 0)
 			ratio = usedWeight / maxLoad;
 
-		float maxVolume = BIA_ItemIntel.GetStorageMaxVolume(container);
+		float maxVolume = service.GetContainerMaxVolume(container);
 		if (maxVolume > 0)
 			ratio = Math.Max(ratio, usedVolume / maxVolume);
 

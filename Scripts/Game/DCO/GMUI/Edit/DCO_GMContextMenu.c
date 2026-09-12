@@ -19,7 +19,6 @@ class DCO_ContextMenuHandler : ScriptedWidgetEventHandler
 	{
 		if (button == 0 && m_Owner && w == m_Owner.GetBackdrop())
 		{
-			DCO_TestDiagnostics.Event("gm.dropdown.outside");
 			m_Owner.Hide();
 			return true;
 		}
@@ -169,6 +168,11 @@ class DCO_GMContextMenu
 	{
 		if (!m_wMenu)
 			return;
+		if (labels.IsEmpty() || ids.IsEmpty())
+		{
+			Hide();
+			return;
+		}
 		m_OnAction = onAction;
 		m_Entity = e;
 		m_AllLabels.Clear();
@@ -312,6 +316,7 @@ class DCO_GMContextMenu
 
 	protected string BoundText(string value, int maxChars)
 	{
+		value = DCO_UIText.Plain(value);
 		if (maxChars < 4 || value.Length() <= maxChars)
 			return value;
 		return value.Substring(0, maxChars - 3) + "...";
@@ -468,7 +473,7 @@ class DCO_GMContextMenu
 
 	void Hide()
 	{
-		bool wasOpen = IsOpen();
+		bool wasOpen = IsOpen() || (m_wBackdrop && m_wBackdrop.IsVisible());
 		GetGame().GetCallqueue().Remove(PositionMenu);
 		if (m_wMenu)
 			m_wMenu.SetVisible(false);
@@ -476,6 +481,16 @@ class DCO_GMContextMenu
 			m_wBackdrop.SetVisible(false);
 		if (wasOpen)
 			DCO_GMUIController.ReleaseMenuFocus();
+		m_OnAction = null;
+		m_Entity = null;
+	}
+
+	void ReconcileVisibility()
+	{
+		if (m_wBackdrop && m_wBackdrop.IsVisible() && (!m_wMenu || !m_wMenu.IsVisible()))
+			Hide();
+		else if (IsOpen() && (!m_wBackdrop || !m_wBackdrop.IsVisible()))
+			Hide();
 	}
 
 	// Subtle row response without replacing the semantic order colours.
@@ -511,9 +526,10 @@ class DCO_GMContextMenu
 
 	bool OnMenuButton(Widget w)
 	{
-		if (w == m_wBackdrop)	// clicked outside the menu -> just close it.
+		if (!IsOpen() || !w || !w.IsVisibleInHierarchy() || !w.IsEnabledInHierarchy())
+			return false;
+		if (w == m_wBackdrop)
 		{
-			DCO_TestDiagnostics.Event("gm.dropdown.outside");
 			Hide();
 			return true;
 		}

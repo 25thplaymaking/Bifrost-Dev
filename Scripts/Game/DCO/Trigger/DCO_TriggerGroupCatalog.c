@@ -62,7 +62,6 @@ class DCO_TriggerGroupCatalog
 		if (general)
 			AddCatalog(general, "");
 		DCO_FactionCatalog.SortSubset(s_FactionKeys);
-		Print(string.Format("[DCO-TRIGGER] group catalog: %1 groups across %2 factions", s_Entries.Count(), s_FactionKeys.Count()), LogLevel.NORMAL);
 	}
 
 	protected static void AddCatalog(SCR_EntityCatalog catalog, FactionKey catalogFaction)

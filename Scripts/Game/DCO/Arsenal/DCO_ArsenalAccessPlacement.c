@@ -396,11 +396,22 @@ modded class SCR_InteractionHandlerComponent
 			IEntity helper = access.GetOwner();
 			if (target && helper)
 			{
-				helper.SetOrigin(access.GetAnchorWorld());
-				DCO_ArsenalAccessComponent.AppendActionOwners(helper, m_aCollectedEntities);
-				DCO_ArsenalAccessComponent.AppendActionOwners(helper, m_aCollectedNearbyEntities);
-				DCO_ArsenalAccessComponent.AppendActionOwners(target, m_aCollectedEntities);
-				DCO_ArsenalAccessComponent.AppendActionOwners(target, m_aCollectedNearbyEntities);
+				if (helper == target)
+				{
+					// Stored gear must not add its own actions to the rack's controls.
+					m_aCollectedEntities.Clear();
+					m_aCollectedNearbyEntities.Clear();
+					m_aCollectedEntities.Insert(helper);
+					m_aCollectedNearbyEntities.Insert(helper);
+				}
+				else
+				{
+					helper.SetOrigin(access.GetAnchorWorld());
+					DCO_ArsenalAccessComponent.AppendActionOwners(helper, m_aCollectedEntities);
+					DCO_ArsenalAccessComponent.AppendActionOwners(helper, m_aCollectedNearbyEntities);
+					DCO_ArsenalAccessComponent.AppendActionOwners(target, m_aCollectedEntities);
+					DCO_ArsenalAccessComponent.AppendActionOwners(target, m_aCollectedNearbyEntities);
+				}
 				m_DCOArsenalAccess = access;
 			}
 		}

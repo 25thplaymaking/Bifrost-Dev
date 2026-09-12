@@ -8,7 +8,7 @@ class DCO_GMThemeStaticData
 	};
 
 	ref array<string> m_MasterExtra = {
-		"DCO_ScenarioBackdrop", "DCO_ScenarioPanel", "DCO_OptionsPanel", "DCO_SimPanel", "DCO_ArsenalScreen",
+		"DCO_ScenarioBackdrop", "DCO_ScenarioPanel", "DCO_OptionsPanel", "DCO_SimPanel",
 		"DCO_ContextMenu", "DCO_MenuBackdrop", "DCO_HoverPreview", "DCO_LayoutChip"
 	};
 

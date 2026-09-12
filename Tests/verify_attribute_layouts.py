@@ -1,6 +1,6 @@
 import os
 import re
-import sys
+from pathlib import Path
 
 def test_no_native_widget_fallback():
     panel_c = os.path.join("Scripts", "Game", "DCO", "GMUI", "Edit", "DCO_GMScenarioPanel.c")
@@ -38,7 +38,10 @@ def test_supports_layout_coverage():
         "Attribute_AdminOverrideDefaultModes.layout"
     ]
 
-    supported_tokens = ["Checkbox", "Override", "MultiSelection", "Slider", "Date", "ButtonBox", "Spinbox", "Dropdown", "Modes"]
+    panel = Path("Scripts/Game/DCO/GMUI/Edit/DCO_GMScenarioPanel.c").read_text(encoding="utf-8")
+    body = panel.split("protected bool SupportsLayout(", 1)[1].split("protected void BuildOrderedCategories", 1)[0]
+    supported_tokens = re.findall(r'layout.Contains\("([^"]+)"\)', body)
+    assert supported_tokens, "No production layout support rules found"
 
     for layout in vanilla_layouts:
         matched = any(token.lower() in layout.lower() for token in supported_tokens)
@@ -46,32 +49,16 @@ def test_supports_layout_coverage():
     print(f"PASS: All {len(vanilla_layouts)} vanilla and custom layouts covered by SupportsLayout.")
 
 def test_blood_slider_and_description_cleaning():
-    panel_c = os.path.join("Scripts", "Game", "DCO", "GMUI", "Edit", "DCO_GMScenarioPanel.c")
-    with open(panel_c, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    assert "SCR_BloodEditorAttribute.Cast(m_Attribute)" in content, "Blood attribute check missing"
-    assert 'Math.Round(value).ToString() + "%"' in content, "Blood percentage formatting missing"
-    assert "CleanDescription" in content, "CleanDescription function missing"
-    assert "inTag" in content, "CleanDescription must use tag parser"
-
-    # Simulate the Enforce clean function
-    def clean(text):
-        result = []
-        in_tag = False
-        for c in text:
-            if c == "<":
-                in_tag = True
-            elif c == ">":
-                in_tag = False
-            elif not in_tag:
-                result.append(c)
-        return "".join(result)
-
-    sample = 'Setting the value to <color rgba="226,168,79,255">0</color> will always <color rgba="226,168,79,255">kill</color> the entity.'
-    cleaned = clean(sample)
-    assert cleaned == "Setting the value to 0 will always kill the entity.", f"Unexpected: {cleaned}"
-    print("PASS: Blood slider and description tag cleaning verified.")
+    panel = Path("Scripts/Game/DCO/GMUI/Edit/DCO_GMScenarioPanel.c").read_text(encoding="utf-8")
+    layout = Path("UI/layouts/DCO_GMScenarioOption.layout").read_text(encoding="utf-8")
+    assert "SCR_BloodEditorAttribute.Cast(m_Attribute)" in panel, "Blood attribute check missing"
+    assert 'Math.Round(value).ToString() + "%"' in panel, "Blood percentage formatting missing"
+    assert 'RichTextWidget.Cast(root.FindAnyWidget("DCO_OptionDescription"))' in panel
+    assert re.search(r'RichTextWidgetClass[^\n]*\{\s*Name "DCO_OptionDescription"', layout)
+    assert 'return WidgetManager.Translate(fallback);' in panel
+    assert 'm_Label.SetText(DCO_UIText.Plain(info.GetName()))' in panel
+    print("PASS: Blood formatting, rich description binding and plain-label routing are connected.")
+    print("Localization and text-cleaning behavior are exercised by the native Workbench probe.")
 
 if __name__ == "__main__":
     test_no_native_widget_fallback()

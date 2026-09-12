@@ -97,7 +97,7 @@ class DCO_GMGizmoPanel
 		m_Target = target;
 		if (!DCO_GMTheme.Get().IsElementEnabled(DCO_GMTheme.UI_GIZMO))
 			visible = false;
-		if (DCO_GMArsenalPanel.Get().IsOpen())
+		if (DCO_BIArmoryBridge.IsOpen())
 			visible = false;
 
 		if (!visible)

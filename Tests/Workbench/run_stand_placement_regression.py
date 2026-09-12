@@ -15,5 +15,5 @@ with socket.create_connection(('127.0.0.1', 5775), timeout=30) as connection:
     result = json.loads(receive_string(connection))
 print(json.dumps(result, indent=2))
 Path(__file__).with_name('stand_placement_result.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
-if result.get('passed') != 62 or result.get('failures'):
+if result.get('passed', 0) < 120 or result.get('failures'):
     raise SystemExit(1)

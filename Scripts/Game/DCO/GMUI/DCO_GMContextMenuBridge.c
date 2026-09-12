@@ -1,12 +1,10 @@
-// Bifrost GM context-menu bridge.
-
 class DCO_GMContextMenuBridge
 {
 	static const int NATIVE_BASE = 1000;	// menu action ids >= 1000 map into m_NativeActions.
 	static const int ID_CREATE_PLAYER = 50;	// reserved id: "Create Player Here" routes to our MEN picker, not ActionPerform.
 	static const int ID_HIDE_TERRAIN    = 60;
 	static const int ID_RESTORE_TERRAIN = 61;
-	static const int ID_SOUND           = 63;	// (deferred: sound emitter needs an imported soundset asset).
+	static const int ID_SOUND           = 63;
 	static const int ID_MARKER          = 64;
 	static const int ID_TRIGGER         = 65;
 	static const int ID_INVULN          = 66;
@@ -181,14 +179,13 @@ class DCO_GMContextMenuBridge
 			m_Picker.Shutdown();
 			m_Picker = null;
 		}
-		GetGame().GetCallqueue().Remove(HideVanillaDeferred);
 		GetGame().GetCallqueue().Remove(BuildAndShowMenu);
 	}
 
 	// Replaces the engine world menu with Bifrost actions.
 	protected void OnVanillaMenuOpen(notnull array<SCR_BaseEditorAction> actions, vector cursorWorldPosition, out notnull array<ref SCR_EditorActionData> filteredActions, out int flags = 0)
 	{
-		if (DCO_GMUIController.IsNativePropertiesOpen())
+		if (DCO_GMUIController.IsWorldInputBlocked())
 			return;
 		if (!m_Ctx || !m_Menu)
 			return;
@@ -211,13 +208,11 @@ class DCO_GMContextMenuBridge
 
 	protected void BuildAndShowMenu()
 	{
-		if (DCO_GMMissionPanel.Get().IsOpen() || DCO_GMCompositionPanel.Get().IsOpen())
+		if (DCO_GMUIController.IsWorldInputBlocked())
 		{
 			HideVanilla();
 			return;
 		}
-		if (DCO_GMUIController.IsNativePropertiesOpen())
-			return;
 		if (!ResolveContextComponent() || !m_Menu)
 			return;
 
@@ -271,7 +266,6 @@ class DCO_GMContextMenuBridge
 			enabled.Insert(evaluatedIndex < m_EvaluatedNativeCanPerform.Count() && m_EvaluatedNativeCanPerform[evaluatedIndex]);
 		}
 
-		// Append DCO group orders when a group is hovered.
 		if (m_Entity && m_Entity.GetEntityType() == EEditableEntityType.GROUP)
 		{
 			array<string> ordLabels = {};
@@ -369,6 +363,7 @@ class DCO_GMContextMenuBridge
 			}
 		}
 
+		HideVanilla();
 		if (!labels.IsEmpty())
 		{
 			while (enabled.Count() < labels.Count())
@@ -377,8 +372,6 @@ class DCO_GMContextMenuBridge
 			WidgetManager.GetMousePos(mx, my);
 			m_Menu.ShowWithAvailability(labels, ids, enabled, mx, my, m_MenuCb, m_Entity);
 		}
-
-		HideVanilla();
 	}
 
 	protected string ResolveNativeActionLabel(SCR_BaseEditorAction action)
@@ -427,17 +420,13 @@ class DCO_GMContextMenuBridge
 	{
 		if (!m_wVanillaMenu)
 			m_wVanillaMenu = FindVanillaMenu();
-		if (m_wVanillaMenu)
-			m_wVanillaMenu.SetVisible(false);
-		GetGame().GetCallqueue().Remove(HideVanillaDeferred);
-		GetGame().GetCallqueue().CallLater(HideVanillaDeferred, 1);
-	}
-
-	protected void HideVanillaDeferred()
-	{
-		if (!m_wVanillaMenu)
-			m_wVanillaMenu = FindVanillaMenu();
-		if (m_wVanillaMenu)
+		if (!m_wVanillaMenu || !m_wVanillaMenu.IsVisible())
+			return;
+		SCR_BaseContextMenuEditorUIComponent nativeMenu = SCR_BaseContextMenuEditorUIComponent.Cast(
+			m_wVanillaMenu.FindHandler(SCR_BaseContextMenuEditorUIComponent));
+		if (nativeMenu)
+			nativeMenu.CloseContextMenu();
+		else
 			m_wVanillaMenu.SetVisible(false);
 	}
 
@@ -594,5 +583,62 @@ class DCO_GMContextMenuBridge
 		playerController.DCO_SendChangeSideRelations(m_RelationSourceKey, m_RelationTargetKey, friendly);
 		m_RelationSourceKey = "";
 		m_RelationTargetKey = "";
+	}
+}
+
+modded class SCR_ContextMenuActionsEditorUIComponent
+{
+	protected bool m_bDCO_ContextPressAllowed;
+
+	override void CloseContextMenu()
+	{
+		if (m_HoveredEntityReference && m_HoveredEntityReference.GetOnUIRefresh())
+			m_HoveredEntityReference.GetOnUIRefresh().Remove(CloseContextMenu);
+		super.CloseContextMenu();
+	}
+
+	override protected void OnOpenActionsMenuDown()
+	{
+		m_bDCO_ContextPressAllowed = !DCO_GMUIController.IsWorldInputBlocked();
+		if (!m_bDCO_ContextPressAllowed)
+			return;
+		m_bEditorIsSelectingState = true;
+		super.OnOpenActionsMenuDown();
+	}
+
+	override protected void OnOpenActionsMenuUp()
+	{
+		bool allowed = m_bDCO_ContextPressAllowed;
+		m_bDCO_ContextPressAllowed = false;
+		if (DCO_GMUIController.IsActive() && (!allowed || DCO_GMUIController.IsWorldInputBlocked()))
+		{
+			m_bEditorIsSelectingState = true;
+			return;
+		}
+		super.OnOpenActionsMenuUp();
+	}
+
+	override protected void OpenContextMenu()
+	{
+		// Reject before native action evaluation can change the selected entities.
+		if (DCO_GMUIController.IsWorldInputBlocked())
+			return;
+		super.OpenContextMenu();
+	}
+}
+
+modded class SCR_BaseContextMenuEditorUIComponent
+{
+	override void CloseContextMenu()
+	{
+		// A delayed native close must not clear a newer Bifrost or dialog focus.
+		if (DCO_GMUIController.IsActive() && m_WorkSpace && !DCO_GMUIController.IsWidgetWithin(m_WorkSpace.GetFocusedWidget(), m_ContextMenu))
+		{
+			if (m_ContextMenu)
+				m_ContextMenu.SetVisible(false);
+			GetOnContextMenuToggle().Invoke(false);
+			return;
+		}
+		super.CloseContextMenu();
 	}
 }

@@ -99,7 +99,7 @@ class DCO_ScenarioOptionRow
 	protected ImageWidget m_SliderFill;
 	protected ImageWidget m_SliderTrackPlate;
 	protected TextWidget m_Label;
-	protected TextWidget m_Description;
+	protected RichTextWidget m_Description;
 	protected TextWidget m_Value;
 	protected TextWidget m_SliderValue;
 	protected EditBoxWidget m_SliderTimeEdit;
@@ -171,7 +171,7 @@ class DCO_ScenarioOptionRow
 		m_SliderFill = ImageWidget.Cast(root.FindAnyWidget("DCO_OptionSliderFill"));
 		m_SliderTrackPlate = ImageWidget.Cast(root.FindAnyWidget("DCO_OptionSliderTrackPlate"));
 		m_Label = TextWidget.Cast(root.FindAnyWidget("DCO_OptionLabel"));
-		m_Description = TextWidget.Cast(root.FindAnyWidget("DCO_OptionDescription"));
+		m_Description = RichTextWidget.Cast(root.FindAnyWidget("DCO_OptionDescription"));
 		m_Value = TextWidget.Cast(root.FindAnyWidget("DCO_OptionValue"));
 		m_SliderValue = TextWidget.Cast(root.FindAnyWidget("DCO_OptionSliderValue"));
 		m_SliderTimeEdit = EditBoxWidget.Cast(root.FindAnyWidget("DCO_OptionSliderTimeEdit"));
@@ -358,7 +358,7 @@ class DCO_ScenarioOptionRow
 					string optionName = holder.GetName();
 					if (optionName.IsEmpty())
 						optionName = holder.GetDescription();
-					m_Options.Insert(CleanDescription(optionName));
+					m_Options.Insert(optionName);
 					m_OptionValues.Insert(holder.GetFloatValue());
 				}
 				continue;
@@ -416,6 +416,9 @@ class DCO_ScenarioOptionRow
 			}
 		}
 
+		for (int optionIndex = 0; optionIndex < m_Options.Count(); optionIndex++)
+			m_Options[optionIndex] = CleanDescription(m_Options[optionIndex]);
+
 		if (SCR_BloodEditorAttribute.Cast(m_Attribute))
 		{
 			m_Min = 0;
@@ -461,7 +464,7 @@ class DCO_ScenarioOptionRow
 		SCR_EditorAttributeUIInfo info = m_Attribute.GetUIInfo();
 		if (info)
 		{
-			m_Label.SetText(info.GetName());
+			m_Label.SetText(DCO_UIText.Plain(info.GetName()));
 			m_Description.SetText(GetReadableDescription(info.GetDescription()));
 		}
 		m_Label.SetColor(theme.m_TextColor);
@@ -645,7 +648,7 @@ class DCO_ScenarioOptionRow
 		string monthName = (m_CalendarMonth + 1).ToString();
 		if (m_DateMonths && m_CalendarMonth >= 0 && m_CalendarMonth < m_DateMonths.GetCount())
 			monthName = m_DateMonths.GetEntry(m_CalendarMonth);
-		m_CalendarMonthLabel.SetText(monthName);
+		m_CalendarMonthLabel.SetText(DCO_UIText.Plain(monthName));
 		m_CalendarMonthLabel.SetColor(DCO_GMTheme.Get().m_TextColor);
 		m_bCalendarRefreshing = true;
 		m_CalendarYearEdit.SetText(m_CalendarYear.ToString());
@@ -961,26 +964,9 @@ class DCO_ScenarioOptionRow
 		return value.ToString();
 	}
 
-	// Remove inline XML/HTML styling tags such as color definitions.
 	protected string CleanDescription(string text)
 	{
-		if (text.IsEmpty())
-			return string.Empty;
-
-		string result = "";
-		bool inTag = false;
-		int len = text.Length();
-		for (int i = 0; i < len; i++)
-		{
-			string c = text[i];
-			if (c == "<")
-				inTag = true;
-			else if (c == ">")
-				inTag = false;
-			else if (!inTag)
-				result += c;
-		}
-		return result;
+		return DCO_UIText.Plain(text);
 	}
 
 	// engine's date description is dynamic rich text.
@@ -992,7 +978,7 @@ class DCO_ScenarioOptionRow
 			return "Drag the bar or type an HH:MM time on the 24-hour clock. Values use 15-minute steps, preview immediately, and apply when the settings are saved and closed.";
 		if (SCR_DateEditorAttribute.Cast(m_Attribute))
 			return "Choose a day from the calendar, use the arrows to change month or year, or type any year from 1 to 9999. Sunrise, sunset, and moon phase update automatically.";
-		return CleanDescription(fallback);
+		return WidgetManager.Translate(fallback);
 	}
 
 	// Selected controls use the accent as their background.
@@ -1310,13 +1296,11 @@ class DCO_ScenarioBackdropHandler : ScriptedWidgetEventHandler
 
 	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
 	{
-		DCO_TestDiagnostics.Event("gm.outside.down", string.Format("button=%1 widget=%2", button, DCO_TestDiagnostics.WidgetState(w)));
 		return true;
 	}
 
 	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
 	{
-		DCO_TestDiagnostics.Event("gm.outside.up", string.Format("button=%1 widget=%2", button, DCO_TestDiagnostics.WidgetState(w)));
 		if (button == 0 && m_Owner)
 			m_Owner.OnBackdropRelease(w);
 		return true;
@@ -1324,7 +1308,6 @@ class DCO_ScenarioBackdropHandler : ScriptedWidgetEventHandler
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
-		DCO_TestDiagnostics.Event("gm.outside.click", string.Format("button=%1 widget=%2", button, DCO_TestDiagnostics.WidgetState(w)));
 		if (button == 0 && m_Owner)
 			m_Owner.CancelPropertySession();
 		return true;
@@ -1425,7 +1408,7 @@ class DCO_GMScenarioPanel
 	protected int m_OptionPickerPage;
 	protected SCR_AttributesManagerEditorComponent m_Manager;
 	protected bool m_bOpen;
-	protected bool m_bEditing;	// true between StartEditing and ConfirmEditing.
+	protected bool m_bEditing;	// A custom-owned session ends on either confirm or cancel.
 	protected bool m_bSubscribed;	// guard so we hook GetOnAttributesStart only once.
 	protected bool m_bCogSession;
 	protected ref array<SCR_BaseEditorAttribute> m_aSessionAttributes;
@@ -1487,12 +1470,11 @@ class DCO_GMScenarioPanel
 		m_wPresetSelectLabel = TextWidget.Cast(root.FindAnyWidget("DCO_ScenarioPresetSelect_Label"));
 		if (m_wSizeBox)
 		{
-			// CLAMP the scroll viewport to a fixed height.
 			m_wSizeBox.EnableHeightOverride(true);
 			m_wSizeBox.SetHeightOverride(544);
 		}
 		if (m_wScroll)
-			m_wScroll.SetDefaultStyle();	// apply the native scrollbar style.
+			m_wScroll.SetDefaultStyle();
 		m_btnCog       = ButtonWidget.Cast(root.FindAnyWidget("DCO_ScenarioCog"));
 		m_btnClose     = ButtonWidget.Cast(root.FindAnyWidget("DCO_ScenarioClose"));
 		Widget grip = root.FindAnyWidget("DCO_ScenarioDrag");
@@ -1530,7 +1512,6 @@ class DCO_GMScenarioPanel
 		EnsurePresetStore();
 		UpdatePresetControls();
 
-		// Category navigation is layout-defined so it uses the same proven input path as the rest of the GM shell.
 		for (int i = 0; i < 8; i++)
 		{
 			ButtonWidget categoryButton = ButtonWidget.Cast(root.FindAnyWidget("DCO_ScenarioCat" + i.ToString()));
@@ -1803,7 +1784,6 @@ class DCO_GMScenarioPanel
 
 	void CancelPropertySession()
 	{
-		DCO_TestDiagnostics.Event("gm.properties.cancel", string.Format("open=%1 editing=%2", m_bOpen, m_bEditing));
 		EndEditing(false);
 		// A vanished manager cannot send its end event; release the local modal too.
 		if (m_bOpen || m_bConditionalRefreshQueued || m_bCategoryRefreshQueued)
@@ -1846,19 +1826,28 @@ class DCO_GMScenarioPanel
 	// Adopt the session after the native menu finishes opening.
 	bool CanOwnPropertySession()
 	{
-		if (!m_bOpen || !m_bEditing || !m_aSessionAttributes || m_aSessionAttributes.IsEmpty())
-			return false;
-		foreach (SCR_BaseEditorAttribute attribute : m_aSessionAttributes)
+		return m_bOpen && m_bEditing && m_aSessionAttributes != null;
+	}
+
+	void ReconcileVisibility()
+	{
+		if (m_bOpen)
 		{
-			if (attribute && attribute.GetLayout().IsEmpty())
-				return false;
+			if (!m_wPanel || !m_wBackdrop || !m_wPanel.IsVisible() || !m_wBackdrop.IsVisible())
+				CancelPropertySession();
+			return;
 		}
-		return true;
+		if (m_wBackdrop && m_wBackdrop.IsVisible())
+		{
+			m_wBackdrop.SetVisible(false);
+			DCO_GMUIController.ReleaseMenuFocus();
+		}
+		if (m_wPanel && m_wPanel.IsVisible())
+			m_wPanel.SetVisible(false);
 	}
 
 	protected void SetOpen(bool open)
 	{
-		DCO_TestDiagnostics.Event("gm.properties.set-open", string.Format("open=%1 editing=%2", open, m_bEditing));
 		bool wasOpen = m_bOpen;
 		if (!open && wasOpen)
 			DCO_GMUIController.ReleaseMenuFocus();
@@ -1996,6 +1985,7 @@ class DCO_GMScenarioPanel
 		if (!mgr)
 		{
 			Print("[DCO-GM] scenario: attributes manager unavailable", LogLevel.WARNING);
+			OnAttributesEnded(null);
 			return;
 		}
 		EnsureSubscribed();
@@ -2027,18 +2017,12 @@ class DCO_GMScenarioPanel
 
 		if (!m_bEditing)
 		{
-			ClearContent();
-			m_aSessionAttributes = null;
+			OnAttributesEnded(null);
 		}
-		DCO_GMUIController.SetPropertyOverlaysSuppressed(false);
-		m_bTriggerSession = false;
-		m_iTriggerFinalizeCategory = -1;
-		UpdateTriggerChrome();
 	}
 
 	protected void OnAttributesEnded(array<SCR_BaseEditorAttribute> attributes)
 	{
-		DCO_TestDiagnostics.Event("gm.properties.end", string.Format("open=%1 editing=%2 conditional=%3 category=%4", m_bOpen, m_bEditing, m_bConditionalRefreshQueued, m_bCategoryRefreshQueued));
 		// The manager is already ending its transaction; do not cancel it recursively.
 		if (m_bOpen) DCO_GMUIController.ReleaseMenuFocus();
 		m_bEditing = false;
@@ -2050,6 +2034,8 @@ class DCO_GMScenarioPanel
 		GetGame().GetCallqueue().Remove(RefreshConditionalRows);
 		GetGame().GetCallqueue().Remove(RenderSelectedCategory);
 		GetGame().GetCallqueue().Remove(SelectTimeAndDateCategory);
+		GetGame().GetCallqueue().Remove(ResetScrollToTop);
+		GetGame().GetCallqueue().Remove(RestoreScroll);
 		m_bConditionalRefreshQueued = false;
 		m_bCategoryRefreshQueued = false;
 		m_OptionPickerRow = null;
@@ -2064,57 +2050,45 @@ class DCO_GMScenarioPanel
 		UpdatePresetControls();
 		UpdateTriggerChrome();
 		DCO_GMUIController.SetPropertyOverlaysSuppressed(false);
-		DCO_GMUIController.SetNativePropertiesOpen(false);
+	}
+
+	protected bool IsScenarioSelection()
+	{
+		SCR_AttributesManagerEditorComponent manager = GetManager();
+		array<Managed> items = {};
+		if (!manager || manager.GetEditedItems(items) == 0)
+			return false;
+		foreach (Managed item : items)
+		{
+			if (!SCR_BaseGameMode.Cast(item))
+				return false;
+		}
+		return true;
 	}
 
 	protected void OnAttributesStart(array<SCR_BaseEditorAttribute> attributes)
 	{
-		DCO_TestDiagnostics.Event("gm.properties.start", "received");
-		// The server supplies the complete attribute list before the panel opens.
-		if (!CanRenderAttributeSession(attributes))
+		// The manager owns the new transaction; clear only the previous local UI.
+		OnAttributesEnded(null);
+		m_bCogSession = IsScenarioSelection();
+		m_ActiveCat = 0;
+		m_CategoryPage = 0;
+		m_aSessionAttributes = {};
+		if (attributes)
 		{
-			DCO_TestDiagnostics.Event("gm.properties.native-fallback");
-			DCO_GMUIController.SetPropertyOverlaysSuppressed(false);
-			m_bTriggerSession = false;
-			m_iTriggerFinalizeCategory = -1;
-			m_bOpen = false;
-			m_bEditing = false;
-			m_bCogSession = false;
-			m_iMissionCategory = -1;
-			RefreshBriefingEditor();
-			m_aSessionAttributes = null;
-			if (m_wBackdrop)
-				m_wBackdrop.SetVisible(false);
-			if (m_wPanel)
-				m_wPanel.SetVisible(false);
-			ClearContent();
-			return;
+			foreach (SCR_BaseEditorAttribute attribute : attributes)
+				m_aSessionAttributes.Insert(attribute);
 		}
-
-		bool newSession = !m_bEditing || !m_aSessionAttributes;
-		if (newSession)
-		{
-			m_ActiveCat = 0;
-			m_CategoryPage = 0;
-		}
-		m_bTriggerSession = IsTriggerAttributeSession(attributes);
+		m_bTriggerSession = IsTriggerAttributeSession(m_aSessionAttributes);
 		DCO_GMUIController.SetPropertyOverlaysSuppressed(m_bTriggerSession);
 		m_bEditing = true;
-		if (!m_bOpen)
-		{
-			m_bOpen = true;
-			m_bEditing = true;
-			if (m_wTitle && !m_bCogSession)
-				m_wTitle.SetText("PROPERTIES");
-			if (m_wPanel)
-				m_wPanel.SetVisible(true);
-			if (m_wBackdrop)
-				m_wBackdrop.SetVisible(true);
-			ApplyDefaultGeometry();
-		}
+		m_bOpen = true;
+		if (m_wPanel) m_wPanel.SetVisible(true);
+		if (m_wBackdrop) m_wBackdrop.SetVisible(true);
+		UpdateTriggerChrome();
+		ApplyDefaultGeometry();
 		UpdatePresetControls();
-		// The callback owns the authoritative list for this new editing session.
-		RenderAttributes(attributes);
+		RenderAttributes(m_aSessionAttributes);
 	}
 
 	protected bool IsTriggerAttributeSession(array<SCR_BaseEditorAttribute> attributes)
@@ -2129,28 +2103,13 @@ class DCO_GMScenarioPanel
 		return false;
 	}
 
-	protected bool CanRenderAttributeSession(array<SCR_BaseEditorAttribute> attributes)
-	{
-		if (!attributes || attributes.IsEmpty())
-			return false;
-		foreach (SCR_BaseEditorAttribute attribute : attributes)
-		{
-			if (attribute && attribute.GetLayout().IsEmpty())
-			{
-				Print(string.Format("[DCO-GM] attribute has no layout: %1", attribute.GetLayout()), LogLevel.WARNING);
-				return false;
-			}
-		}
-		return true;
-	}
-
 	protected void RenderAttributes(array<SCR_BaseEditorAttribute> sessionAttributes, bool resetScroll = true)
 	{
 		if (!m_wContent)
 			return;
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
 		SCR_AttributesManagerEditorComponent mgr = GetManager();
-		if (!workspace || !mgr)
+		if (!workspace || (!mgr && !sessionAttributes))
 			return;
 
 		float savedScrollX = 0;
@@ -2163,7 +2122,6 @@ class DCO_GMScenarioPanel
 			ResetScrollToTop();
 		ClearContent();
 
-		// Keep a complete session snapshot.
 		array<SCR_BaseEditorAttribute> attributes = {};
 		if (sessionAttributes)
 		{
@@ -2249,6 +2207,13 @@ class DCO_GMScenarioPanel
 			}
 		}
 
+		if (m_wPlaceholder)
+		{
+			TextWidget placeholder = TextWidget.Cast(m_wPlaceholder);
+			if (placeholder) placeholder.SetText("No editable settings are available for this selection.");
+			m_wPlaceholder.SetVisible(m_Rows.IsEmpty());
+		}
+
 		if (resetScroll)
 		{
 			ResetScrollToTop();
@@ -2307,7 +2272,7 @@ class DCO_GMScenarioPanel
 				if (info)
 					name = info.GetName();
 			}
-			t.SetText(name);
+			t.SetText(DCO_UIText.Plain(name));
 			if (categoryIndex == m_ActiveCat)
 			{
 				t.SetExactFontSize(14);
@@ -2345,6 +2310,8 @@ class DCO_GMScenarioPanel
 		m_bTriggerRepeat = false;
 		foreach (SCR_BaseEditorAttribute attribute : attributes)
 		{
+			if (!attribute)
+				continue;
 			DCO_FxContinuousFireEditorAttribute continuous = DCO_FxContinuousFireEditorAttribute.Cast(attribute);
 			if (continuous)
 			{
@@ -2375,7 +2342,7 @@ class DCO_GMScenarioPanel
 
 	protected bool ShouldRenderAttribute(SCR_BaseEditorAttribute attribute)
 	{
-		if (!attribute || attribute.GetLayout().IsEmpty())
+		if (!attribute || !SupportsLayout(attribute))
 			return false;
 		if (m_bHasContinuousFire && m_bContinuousFire && DCO_FxExplosionGunrunRoundsEditorAttribute.Cast(attribute))
 			return false;
@@ -2412,7 +2379,7 @@ class DCO_GMScenarioPanel
 			if (textEntry)
 			{
 				if (index == selected)
-					return textEntry.GetText();
+					return DCO_UIText.Plain(textEntry.GetText());
 				index++;
 				continue;
 			}
@@ -2420,7 +2387,7 @@ class DCO_GMScenarioPanel
 			if (infoEntry && infoEntry.GetInfo())
 			{
 				if (index == selected)
-					return infoEntry.GetInfo().GetName();
+					return DCO_UIText.Plain(infoEntry.GetInfo().GetName());
 				index++;
 			}
 		}
@@ -2916,9 +2883,14 @@ class DCO_GMScenarioPanel
 				row.Shutdown();
 		}
 		m_Rows.Clear();
-		m_wPlaceholder = null;	// it lives inside the content holder; it's deleted with the first clear.
-		while (m_wContent.GetChildren())
-			delete m_wContent.GetChildren();
+		if (m_wPlaceholder) m_wPlaceholder.SetVisible(false);
+		Widget child = m_wContent.GetChildren();
+		while (child)
+		{
+			Widget next = child.GetSibling();
+			if (child != m_wPlaceholder) delete child;
+			child = next;
+		}
 	}
 
 	void Shutdown()
@@ -2963,6 +2935,8 @@ class DCO_GMScenarioPanel
 		m_PresetStore = null;
 		GetGame().GetCallqueue().Remove(RenderSelectedCategory);
 		GetGame().GetCallqueue().Remove(SelectTimeAndDateCategory);
+		GetGame().GetCallqueue().Remove(ResetScrollToTop);
+		GetGame().GetCallqueue().Remove(RestoreScroll);
 		GetGame().GetCallqueue().Remove(RefreshConditionalRows);
 		m_bCategoryRefreshQueued = false;
 		m_bConditionalRefreshQueued = false;

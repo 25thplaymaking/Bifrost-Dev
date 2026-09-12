@@ -135,6 +135,7 @@ class BIA_SoldierStage
 		DeleteRenderedCharacter();
 		//! The preview manager tracks hierarchy changes; its pooled source must not be advanced directly.
 		BIA_PreviewDress.DiffDress(m_PooledCharacter, kit);
+		service.SetPreviewCharacter(m_PooledCharacter);
 		if (!RecloneCharacter())
 			return;
 
@@ -602,7 +603,10 @@ class BIA_SoldierStage
 	{
 		BIA_DraftService service = BIA_DraftService.Get();
 		if (service)
+		{
 			service.m_OnDraftChanged.Remove(OnDraftChanged);
+			service.SetPreviewCharacter(null);
+		}
 
 		ReleaseCharacter();
 		m_fCharHeight = 0;

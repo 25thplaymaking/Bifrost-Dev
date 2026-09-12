@@ -69,7 +69,6 @@ class DCO_GMPauseCore
 			if (cw && cw.IsGameTimePaused())
 			{
 				cw.PauseGameTime(false);
-				Print("[DCO-GM] pause: stale game-time pause RELEASED", LogLevel.NORMAL);
 			}
 		}
 
@@ -79,22 +78,17 @@ class DCO_GMPauseCore
 			array<IEntity> targets = {};
 			CollectScope(scope, targets);
 
-			int count = 0;
 			foreach (IEntity e : targets)
 			{
 				if (!e || DCO_PlayerUtil.IsPlayer(e))
 					continue;
-				if (FreezeOne(e, aspectMask))
-					count++;
+				FreezeOne(e, aspectMask);
 			}
 
-			Print(string.Format("[DCO-GM] pause FREEZE: scope=%1 mask=%2 affected=%3 frozenSet=%4",
-				scope, aspectMask, count, m_Frozen.Count()), LogLevel.NORMAL);
 			return;
 		}
 
 		// LIFT: a resume lifts EXACTLY the remembered set, ignoring the current scope/selection.
-		int lifted = 0;
 		DCO_GMTools tools = DCO_GMTools.Get();
 		foreach (DCO_GMPauseRecord record : m_Frozen)
 		{
@@ -107,13 +101,10 @@ class DCO_GMPauseCore
 				tools.SetCharacterFrozen(e, !record.m_bAIWasOn);
 			if (record.m_AspectMask & EDCO_PauseAspect.PHYSICS)
 				tools.SetSimFrozen(e, !record.m_bSimWasOn);
-			lifted++;
 		}
 		m_Frozen.Clear();
 		m_iRequestOwnerPlayerId = -1;
 
-		Print(string.Format("[DCO-GM] pause LIFT: released=%1 (scope arg %2 ignored on resume)",
-			lifted, scope), LogLevel.NORMAL);
 	}
 
 	// Freeze one entity per the aspect mask while retaining its pre-pause state.

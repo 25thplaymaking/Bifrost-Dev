@@ -355,7 +355,6 @@ class BIA_ItemRowComponent : SCR_ButtonBaseComponent
 	{
 		if (button == 0 && m_bActivateOnPress && IsEnabled() && IsVisible())
 		{
-			DCO_TestDiagnostics.Event("arsenal.mount.press", GetRootWidget().GetName());
 			super.OnClick(w, x, y, button);
 			return true;
 		}

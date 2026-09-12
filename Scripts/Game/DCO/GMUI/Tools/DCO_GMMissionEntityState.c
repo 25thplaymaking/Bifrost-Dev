@@ -96,7 +96,6 @@ modded class SCR_EditableEntityComponent
 
 	bool DCO_SetMissionScale(float scale)
 	{
-		DCO_TestDiagnostics.Event("gm.scale.request", string.Format("value=%1", scale));
 		if (!Replication.IsServer() || !DCO_IsMissionScaleValid(scale) || !DCO_CanScale(GetOwner()))
 			return false;
 		IEntity entity = GetOwner();
@@ -118,9 +117,7 @@ modded class SCR_EditableEntityComponent
 	{
 		if (Replication.IsServer() || !DCO_IsMissionScaleValid(scale) || !GetOwner())
 			return;
-		RplId diagnosticId;
-		IsReplicated(diagnosticId);
-		DCO_TestDiagnostics.Event("gm.scale.receive", string.Format("target=%1 value=%2", diagnosticId, scale));
+
 		m_fDCO_MissionScale = scale;
 		DCO_ApplyMissionScale();
 	}
@@ -150,9 +147,7 @@ modded class SCR_EditableEntityComponent
 		}
 		if (!reader.ReadFloat(m_fDCO_MissionScale))
 			return false;
-		RplId diagnosticId;
-		IsReplicated(diagnosticId);
-		DCO_TestDiagnostics.Event("gm.scale.jip", string.Format("target=%1 value=%2", diagnosticId, m_fDCO_MissionScale));
+
 		DCO_ApplyMissionScale();
 		return true;
 	}
@@ -190,11 +185,8 @@ modded class SCR_EditableEntityComponent
 	{
 		IEntity entity = GetOwner();
 		if (!entity || m_fDCO_MissionScale <= 0) return;
-		RplId diagnosticId;
-		IsReplicated(diagnosticId);
-		DCO_TestDiagnostics.Event("gm.scale.apply", string.Format("target=%1 requested=%2 before=%3", diagnosticId, m_fDCO_MissionScale, entity.GetScale()));
+
 		entity.SetScale(m_fDCO_MissionScale);
-		DCO_TestDiagnostics.Event("gm.scale.result", string.Format("target=%1 actual=%2", diagnosticId, entity.GetScale()), !float.AlmostEqual(entity.GetScale(), m_fDCO_MissionScale, 0.0001));
 		DCO_UpdatePresentationEvents();
 	}
 
@@ -229,9 +221,7 @@ modded class SCR_EditableEntityComponent
 
 	protected void DCO_ApplyMissionVisibility()
 	{
-		RplId diagnosticId;
-		IsReplicated(diagnosticId);
-		DCO_TestDiagnostics.Event("gm.visibility.apply", string.Format("target=%1 hidden=%2", diagnosticId, m_bDCO_MissionHidden));
+
 		DCO_UpdateMissionVisibility();
 		DCO_UpdatePresentationEvents();
 	}

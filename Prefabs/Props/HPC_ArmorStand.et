@@ -1,6 +1,6 @@
 GenericEntity {
  components {
-  MeshObject {
+  MeshObject "{B70259BB844F4A6E}" {
    Object "{237618489D5166C9}Assets/HPC_Stand/HPC_Stand.xob"
   }
  }

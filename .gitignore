@@ -1,6 +1,8 @@
 /Share/
 /tools/
 /Scripts/WorkbenchGame/
+/Scripts/Game/EnfusionMCP/
+/docs/enfusion-mcp.codex.toml
 /resourceDatabase.rdb
 /addon.gproj
 /wiki-test*.json

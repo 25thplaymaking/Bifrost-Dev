@@ -1,7 +1,5 @@
-// DCO GM draggable-panel handler.
 class DCO_GMDraggable : ScriptedWidgetEventHandler
 {
-	// Raise-on-grab.
 	protected static int s_TopZ;
 	static void Raise(Widget panel)
 	{
@@ -16,7 +14,7 @@ class DCO_GMDraggable : ScriptedWidgetEventHandler
 		s_TopZ = 0;
 	}
 
-	protected Widget m_Target;	// the panel this grip moves.
+	protected Widget m_Target;
 	protected bool m_Dragging;
 	protected int m_StartMouseX;	// cursor at drag start, native px.
 	protected int m_StartMouseY;
@@ -30,11 +28,13 @@ class DCO_GMDraggable : ScriptedWidgetEventHandler
 
 	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
 	{
-		if (!m_Target)
+		if (!m_Target || !m_Target.IsVisibleInHierarchy() || !m_Target.IsEnabledInHierarchy() || DCO_GMUIController.IsModalActive())
 			return false;
-		// RIGHT-click on the grip = quick-hide.
+		// Right-click hides this panel without opening a world context menu.
 		if (button == 1)
 		{
+			StopDrag();
+			DCO_GMContextMenuBridge.ClaimRightClick();
 			int idx = DCO_GMTheme.ElementIndexFor(m_Target.GetName());
 			if (idx >= 0)
 			{
@@ -42,11 +42,10 @@ class DCO_GMDraggable : ScriptedWidgetEventHandler
 				while (root.GetParent())
 					root = root.GetParent();
 				DCO_GMTheme.Get().SetElementEnabled(idx, false, root, false);
-				Print("[DCO-GM] quick-hide: " + m_Target.GetName() + " (re-show via OPTIONS or RESET UI)", LogLevel.NORMAL);
 			}
 			return true;
 		}
-		if (button != 0)	// left drags, right quick-hides; nothing else is ours.
+		if (button != 0)
 			return false;
 		int mx, my;
 		WidgetManager.GetMousePos(mx, my);
@@ -59,20 +58,38 @@ class DCO_GMDraggable : ScriptedWidgetEventHandler
 		m_Dragging = true;
 		GetGame().GetCallqueue().Remove(OnDragTick);
 		GetGame().GetCallqueue().CallLater(OnDragTick, 0, true);
-		return true;
+		return false;
 	}
 
 	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
 	{
-		if (!m_Dragging)
+		if (button != 0 || !m_Dragging)
 			return false;
 		StopDrag();
-		return true;
+		return false;
+	}
+
+	override bool OnFocusLost(Widget w, int x, int y)
+	{
+		StopDrag();
+		return false;
+	}
+
+	override bool OnHide(Widget w)
+	{
+		StopDrag();
+		return false;
+	}
+
+	override bool OnDisable(Widget w)
+	{
+		StopDrag();
+		return false;
 	}
 
 	protected void OnDragTick()
 	{
-		if (!m_Dragging || !m_Target)
+		if (!m_Dragging || !m_Target || !m_Target.IsVisibleInHierarchy() || !m_Target.IsEnabledInHierarchy() || DCO_GMUIController.IsModalActive())
 		{
 			StopDrag();
 			return;

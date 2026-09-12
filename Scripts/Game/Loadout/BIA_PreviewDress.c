@@ -129,6 +129,13 @@ class BIA_PreviewDress
 					if (outUnplaced) outUnplaced.Copy(attachments);
 					return;
 				}
+				IEntity occupied = topStorage.Get(pin);
+				if ((!occupied || SCR_ResourceNameUtils.GetPrefabName(occupied) != pinPrefab)
+					&& !BIA_ItemIntel.MountAccepts(topStorage.GetSlot(pin), pinPrefab))
+				{
+					if (outUnplaced) outUnplaced.Copy(attachments);
+					return;
+				}
 
 				pinBySlot.Insert(pin, pinPrefab);
 				if (!pinByPrefab.Contains(pinPrefab))

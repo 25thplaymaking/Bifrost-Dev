@@ -6,11 +6,11 @@ class DCO_GMDisplayName
 		if (!rawName.IsEmpty())
 		{
 			if (rawName[0] != "#")
-				return rawName;
+				return DCO_UIText.Plain(rawName);
 
 			string translatedName = WidgetManager.Translate(rawName);
 			if (IsResolved(translatedName, rawName))
-				return translatedName;
+				return DCO_UIText.Plain(translatedName);
 		}
 
 		// Foreign content can retain a stale localization key, so use its stable prefab identity.

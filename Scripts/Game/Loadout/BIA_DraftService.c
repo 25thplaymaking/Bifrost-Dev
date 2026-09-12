@@ -18,10 +18,15 @@ class BIA_DraftService
 {
 	protected static const int APPLY_DEBOUNCE_MS = 2100;
 	protected static ref BIA_DraftService s_Instance;
+	protected static int s_iApplyRequestSequence;
+	protected int m_iDraftRevision;
+	protected int m_iPendingApplyRevision;
+	protected int m_iPendingApplyId;
 
 	//! Character being edited. Bifrost GM sessions may target a replicated AI or another player;
 	//! player Arsenal Access sessions target the locally controlled character.
 	protected IEntity m_EditTarget;
+	protected IEntity m_PreviewCharacter;
 	protected bool m_bBifrostSession;
 	SCR_ArsenalComponent m_Arsenal;
 	ref BIA_ArmoryConfig m_Config;
@@ -170,6 +175,7 @@ class BIA_DraftService
 	//------------------------------------------------------------------------------------------------
 	void NotifyDraftChanged()
 	{
+		m_iDraftRevision++;
 		if (m_Draft)
 		{
 			BIA_KitCapture.BuildSummaries(m_Draft, GetLocalFaction());
@@ -484,6 +490,8 @@ class BIA_DraftService
 			return BIA_EExtraChangeResult.INVALID;
 		if (container.IsEmpty())
 			return BIA_EExtraChangeResult.ADDED;
+		if (!containerPreview)
+			containerPreview = GetContainerPreview(container);
 
 		if (containerPreview)
 		{
@@ -668,7 +676,28 @@ class BIA_DraftService
 		}
 
 		m_fLastApplySentMs = now;
-		rpcComponent.BIA_RequestApplyKit(kitFile, arsenalRplId, targetRplId);
+		rpcComponent.BIA_RequestApplyKit(kitFile, arsenalRplId, targetRplId, BeginApplyRequest());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// Request IDs span sessions so a previous menu cannot acknowledge a new draft.
+	int BeginApplyRequest()
+	{
+		s_iApplyRequestSequence++;
+		if (s_iApplyRequestSequence <= 0) s_iApplyRequestSequence = 1;
+		m_iPendingApplyId = s_iApplyRequestSequence;
+		m_iPendingApplyRevision = m_iDraftRevision;
+		return m_iPendingApplyId;
+	}
+
+	bool AcceptApplyResult(int requestId, BIA_EApplyStatus status)
+	{
+		if (requestId <= 0 || requestId != m_iPendingApplyId) return false;
+		m_iPendingApplyId = 0;
+		if (m_iPendingApplyRevision != m_iDraftRevision) return false;
+		if (status == BIA_EApplyStatus.SUCCESS || status == BIA_EApplyStatus.PARTIAL)
+			m_bDraftDirty = false;
+		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -799,9 +828,60 @@ class BIA_DraftService
 	//------------------------------------------------------------------------------------------------
 	void SetTargetContainer(ResourceName container)
 	{
-		if (!container.IsEmpty() && !BIA_ItemIntel.HasContainerStorage(container))
+		if (!container.IsEmpty() && !HasDraftContainer(container))
 			container = ResourceName.Empty;
 		m_TargetContainer = container;
+	}
+
+	// Borrow the configured preview; the stage retains ownership of its lifetime.
+	void SetPreviewCharacter(IEntity character)
+	{
+		m_PreviewCharacter = character;
+	}
+
+	IEntity GetContainerPreview(ResourceName prefab)
+	{
+		if (!m_PreviewCharacter || prefab.IsEmpty()) return null;
+		EquipedLoadoutStorageComponent storage = EquipedLoadoutStorageComponent.Cast(m_PreviewCharacter.FindComponent(EquipedLoadoutStorageComponent));
+		if (!storage) return null;
+		for (int i = 0; i < storage.GetSlotsCount(); i++)
+		{
+			IEntity item = storage.Get(i);
+			if (item && SCR_ResourceNameUtils.GetPrefabName(item) == prefab) return item;
+		}
+		return null;
+	}
+
+	bool HasDraftContainer(ResourceName prefab)
+	{
+		IEntity preview = GetContainerPreview(prefab);
+		if (!preview) return BIA_ItemIntel.HasContainerStorage(prefab);
+		array<BaseInventoryStorageComponent> storages = {};
+		BIA_ItemIntel.CollectContainerStorages(preview, storages);
+		return !storages.IsEmpty();
+	}
+
+	float GetContainerMaxVolume(ResourceName prefab)
+	{
+		IEntity preview = GetContainerPreview(prefab);
+		if (preview) return BIA_ItemIntel.GetLiveStorageMaxVolume(preview);
+		return BIA_ItemIntel.GetStorageMaxVolume(prefab);
+	}
+
+	float GetContainerMaxLoad(ResourceName prefab)
+	{
+		IEntity preview = GetContainerPreview(prefab);
+		if (!preview) return BIA_ItemIntel.GetStorageMaxLoad(prefab);
+		array<BaseInventoryStorageComponent> storages = {};
+		BIA_ItemIntel.CollectContainerStorages(preview, storages);
+		float capacity;
+		foreach (BaseInventoryStorageComponent storage : storages)
+		{
+			SCR_UniversalInventoryStorageComponent universal = SCR_UniversalInventoryStorageComponent.Cast(storage);
+			if (!universal || universal.GetMaxLoad() <= 0) return 0;
+			capacity += universal.GetMaxLoad();
+		}
+		return capacity;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -838,7 +918,7 @@ class BIA_DraftService
 
 		foreach (BIA_KitClothing clothing : m_Draft.m_aClothings)
 		{
-			if (!clothing.m_Prefab.IsEmpty() && BIA_ItemIntel.HasContainerStorage(clothing.m_Prefab))
+			if (!clothing.m_Prefab.IsEmpty() && HasDraftContainer(clothing.m_Prefab))
 				outContainers.Insert(clothing.m_Prefab);
 		}
 	}
@@ -853,7 +933,7 @@ class BIA_DraftService
 		{
 			foreach (BIA_KitClothing clothing : m_Draft.m_aClothings)
 			{
-				if (!clothing.m_Prefab.IsEmpty() && BIA_ItemIntel.HasContainerStorage(clothing.m_Prefab))
+				if (!clothing.m_Prefab.IsEmpty() && HasDraftContainer(clothing.m_Prefab))
 					cycle.Insert(clothing.m_Prefab);
 			}
 		}

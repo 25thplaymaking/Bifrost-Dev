@@ -371,22 +371,18 @@ modded class SCR_PlayerController
 	// Sends the GM request to authority.
 	void DCO_SendGMTool(int toolId, RplId targetId, vector pos)
 	{
-		DCO_TestDiagnostics.Event("gm.tool.send", string.Format("player=%1 tool=%2 target=%3", GetPlayerId(), toolId, targetId));
 		Rpc(DCO_RpcGMTool, toolId, targetId, pos);
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void DCO_RpcGMTool(int toolId, RplId targetId, vector pos)
 	{
-		DCO_TestDiagnostics.Event("gm.tool.receive", string.Format("player=%1 tool=%2 target=%3", GetPlayerId(), toolId, targetId));
 		if (!DCO_GMRights.Allow(GetPlayerId(), "GM tool"))
 		{
-			DCO_TestDiagnostics.Event("gm.tool.denied", string.Format("player=%1 tool=%2", GetPlayerId(), toolId), true);
 			return;
 		}
 		bool confirmedState;
 		bool reportState = DCO_GMToolsServer.Apply(toolId, targetId, pos, confirmedState);
-		DCO_TestDiagnostics.Event("gm.tool.return", string.Format("tool=%1 target=%2 reportState=%3 state=%4", toolId, targetId, reportState, confirmedState));
 		if (reportState)
 			Rpc(DCO_RpcGMToolConfirmed, toolId, targetId, confirmedState);
 	}
@@ -394,7 +390,6 @@ modded class SCR_PlayerController
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
 	protected void DCO_RpcGMToolConfirmed(int toolId, RplId targetId, bool confirmedState)
 	{
-		DCO_TestDiagnostics.Event("gm.tool.confirmed", string.Format("tool=%1 target=%2 state=%3", toolId, targetId, confirmedState));
 		RplComponent rpl = RplComponent.Cast(Replication.FindItem(targetId));
 		if (rpl)
 			DCO_GMTools.Get().MirrorAuthorityState(rpl.GetEntity(), toolId, confirmedState);

@@ -7,8 +7,8 @@ ButtonWidgetClass {
  components {
   BIA_ItemRowComponent "{A003000000000002}" {
    m_sSoundClicked "SOUND_FE_BUTTON_SELECT"
-   m_BackgroundDefault 1 1 1 0.025
-   m_BackgroundHovered 1 1 1 0.05
+   m_BackgroundDefault 0.0235 0.0275 0.0353 1
+   m_BackgroundHovered 0.075 0.085 0.10 1
    m_BackgroundSelected 0.32 0.16 0.035 1
    m_BackgroundSelectedHovered 0.851 0.537 0.169 1
    m_BackgroundClicked 0.851 0.537 0.169 1

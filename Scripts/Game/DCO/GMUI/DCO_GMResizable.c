@@ -1,4 +1,3 @@
-// DCO GM resizable-panel handler.
 class DCO_GMResizable : ScriptedWidgetEventHandler
 {
 	protected Widget m_Target;
@@ -23,7 +22,9 @@ class DCO_GMResizable : ScriptedWidgetEventHandler
 
 	override bool OnMouseButtonDown(Widget w, int x, int y, int button)
 	{
-		if (button != 0 || !m_Target)	// left button only.
+		if (!m_Target || !m_Target.IsVisibleInHierarchy() || !m_Target.IsEnabledInHierarchy() || DCO_GMUIController.IsModalActive())
+			return false;
+		if (button != 0)
 			return false;
 		int mx, my;
 		WidgetManager.GetMousePos(mx, my);
@@ -38,24 +39,42 @@ class DCO_GMResizable : ScriptedWidgetEventHandler
 		vector al = FrameSlot.GetAlignment(m_Target);
 		m_AlignX = al[0];
 		m_AlignY = al[1];
-		DCO_GMDraggable.Raise(m_Target);	// grabbing the resize grip also brings the panel to the front.
+		DCO_GMDraggable.Raise(m_Target);
 		m_Resizing = true;
 		GetGame().GetCallqueue().Remove(OnResizeTick);
 		GetGame().GetCallqueue().CallLater(OnResizeTick, 0, true);
-		return true;
+		return false;
 	}
 
 	override bool OnMouseButtonUp(Widget w, int x, int y, int button)
 	{
-		if (!m_Resizing)
+		if (button != 0 || !m_Resizing)
 			return false;
 		StopResize();
-		return true;
+		return false;
+	}
+
+	override bool OnFocusLost(Widget w, int x, int y)
+	{
+		StopResize();
+		return false;
+	}
+
+	override bool OnHide(Widget w)
+	{
+		StopResize();
+		return false;
+	}
+
+	override bool OnDisable(Widget w)
+	{
+		StopResize();
+		return false;
 	}
 
 	protected void OnResizeTick()
 	{
-		if (!m_Resizing || !m_Target)
+		if (!m_Resizing || !m_Target || !m_Target.IsVisibleInHierarchy() || !m_Target.IsEnabledInHierarchy() || DCO_GMUIController.IsModalActive())
 		{
 			StopResize();
 			return;

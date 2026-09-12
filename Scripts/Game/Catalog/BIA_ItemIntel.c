@@ -332,19 +332,46 @@ class BIA_ItemIntel
 
 	static bool MountAccepts(InventoryStorageSlot slot, ResourceName prefab)
 	{
-		if (!slot || prefab.IsEmpty() || slot.IsLocked()) return false;
+		if (prefab.IsEmpty()) return false;
+		return MountAcceptsEntity(slot, ResolveEntity(prefab));
+	}
+
+	static bool IsWaistArea(typename area)
+	{
+		// The optional character addon provides this independent waist slot.
+		string waistName = "ZEL_WaistArea";
+		typename waist = waistName.ToType();
+		return area && waist && area.IsInherited(waist);
+	}
+
+	static bool MountAcceptsEntity(InventoryStorageSlot slot, IEntity item)
+	{
+		if (!slot || !item || slot.IsLocked()) return false;
 		AttachmentSlotComponent weaponSlot = AttachmentSlotComponent.Cast(slot.GetParentContainer());
 		if (weaponSlot)
-			return weaponSlot.GetAttachmentSlotType() && SlotAcceptsItem(weaponSlot.GetAttachmentSlotType().Type(), prefab);
+		{
+			InventoryItemComponent itemComponent = InventoryItemComponent.Cast(item.FindComponent(InventoryItemComponent));
+			if (!itemComponent || !weaponSlot.GetAttachmentSlotType()) return false;
+			WeaponAttachmentAttributes attributes = WeaponAttachmentAttributes.Cast(itemComponent.FindAttribute(WeaponAttachmentAttributes));
+			return attributes && attributes.GetAttachmentType()
+				&& attributes.GetAttachmentType().Type().IsInherited(weaponSlot.GetAttachmentSlotType().Type());
+		}
 		BaseInventoryStorageComponent storage = slot.GetStorage();
 		if (!IsAttachmentStorage(storage)) return false;
-		IEntity item = ResolveEntity(prefab);
-		if (!item) return false;
 		LoadoutSlotInfo clothSlot = LoadoutSlotInfo.Cast(slot);
+		BaseLoadoutClothComponent cloth = BaseLoadoutClothComponent.Cast(item.FindComponent(BaseLoadoutClothComponent));
 		if (clothSlot && clothSlot.GetAreaType())
 		{
-			BaseLoadoutClothComponent cloth = BaseLoadoutClothComponent.Cast(item.FindComponent(BaseLoadoutClothComponent));
 			if (!cloth || !cloth.GetAreaType() || !cloth.GetAreaType().Type().IsInherited(clothSlot.GetAreaType().Type()))
+				return false;
+		}
+		else if (ClothNodeStorageComponent.Cast(storage) && cloth && cloth.GetAreaType())
+		{
+			// Untyped accessory mounts must not accept an entire wearable in place of a pouch or cover.
+			typename area = cloth.GetAreaType().Type();
+			if (area == LoadoutVestArea || area == LoadoutArmoredVestSlotArea || area == LoadoutHeadCoverArea
+				|| area == LoadoutBackpackArea || area == LoadoutJacketArea || area == LoadoutPantsArea
+				|| area == LoadoutBootsArea || area == LoadoutHandwearSlotArea || IsWaistArea(area))
 				return false;
 		}
 		if (slot.GetAttachedEntity()) return storage.CanReplaceItem(item, slot.GetID());

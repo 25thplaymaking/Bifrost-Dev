@@ -181,12 +181,12 @@ GenericWorldEntity {
     coords 0.7 2.7 0.9
     angles -63 -142 0
     Color 1 0.976 0.937 1
-    LV 5.2
+    LV 0.45
     CastShadow 0
     Type Spot
-    Radius 10
-    NearPlane 0.1
-    SpotAngle 57.74
+    Radius 5.66
+    NearPlane 0.31
+    SpotAngle 44.91
     Dynamic 1
     LensFlareType Disabled
    }

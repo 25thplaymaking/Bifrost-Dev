@@ -1,5 +1,5 @@
 //! Weapon host for the shared studio: resolves the pooled weapon, clones it onto the bench in a
-//! fixed hero pose, and keeps the draft's attachment set synced onto the clone — even while
+//! fixed hero pose, and keeps the draft's attachment set synced onto the clone â€” even while
 //! another tab fronts the studio, so the bench in the backdrop never shows a stale build. The
 //! shared stage core owns the world, environment rig, dust and the glide camera; this class
 //! owns what stands on the bench and the bench station's framing.
@@ -22,7 +22,7 @@ class BIA_WeaponStage
 	protected static const float REST_LIFT = 0.01;
 	//! Shoulder support height in the metre-scale stand mesh.
 	protected static const float STAND_SHOULDER_Y = 0.514;
-	protected static const float STAND_VEST_LIFT = 0.035;
+	protected static ref map<ResourceName, vector> s_mShoulderContacts;
 	protected static const float STAND_CROWN_Y = 0.7493;
 	//! Outer helmet shell sits just above the supporting dome.
 	protected static const float HELMET_SHELL_CLEARANCE = 0.015;
@@ -42,7 +42,7 @@ class BIA_WeaponStage
 	protected static const float EMPTY_ZOOM_MIN = 0.4;
 	protected static const float EMPTY_ZOOM_MAX = 4;
 
-	//! Borrowed from the owning hub — a strong ref here could root the world through the draft
+	//! Borrowed from the owning hub â€” a strong ref here could root the world through the draft
 	//! service's static invoker if a subscription survives a hard teardown.
 	protected BIA_StageCore m_Core;
 	protected ref array<ResourceName> m_aUnplaced = {};
@@ -120,7 +120,7 @@ class BIA_WeaponStage
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Fronts the studio through this render node even before any weapon is staged — an empty
+	//! Fronts the studio through this render node even before any weapon is staged â€” an empty
 	//! bench is a valid scene.
 	void ShowOn(notnull RenderTargetWidget target)
 	{
@@ -147,9 +147,7 @@ class BIA_WeaponStage
 
 		ReleaseWeapon();
 
-		//! Both working own-world previews (the base inspect screen and the vanilla-derived
-		//! editors) put the item in through the preview pipeline — a raw prefab spawn renders
-		//! black in a runtime world. Resolve the pooled entity, clone it into the stage.
+		//! Preview cloning supplies the materials needed for rendering in the private world.
 		ItemPreviewManagerEntity manager = BIA_ItemIntel.GetPreviewManager();
 		if (!manager)
 			return null;
@@ -205,7 +203,7 @@ class BIA_WeaponStage
 	//! storages), then re-clone so the stage shows the new build. Returns the fresh slot source
 	//! for the callout rebuild, null when nothing is staged. pins runs parallel to attachments
 	//! (-1 = automatic placement); the shared dressing walker owns the placement rules. A sync
-	//! whose signature matches the staged build is a no-op — the screen and the draft listener
+	//! whose signature matches the staged build is a no-op â€” the screen and the draft listener
 	//! both feed this path, and only one of them should pay for a re-clone.
 	IEntity SyncAttachments(notnull array<ResourceName> attachments, array<int> pins = null)
 	{
@@ -241,7 +239,7 @@ class BIA_WeaponStage
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Attachments the engine refused to mount during the last sync — the blocked-slot signal
+	//! Attachments the engine refused to mount during the last sync â€” the blocked-slot signal
 	//! (a mounted bayonet refuses a suppressor the way worn overalls refuse pants).
 	array<ResourceName> GetUnplaced()
 	{
@@ -264,7 +262,7 @@ class BIA_WeaponStage
 
 	//------------------------------------------------------------------------------------------------
 	//! Keeps the bench honest while another tab fronts the studio: the staged weapon follows the
-	//! draft — attachments resync, and a weapon dropped from the draft clears the bench.
+	//! draft â€” attachments resync, and a weapon dropped from the draft clears the bench.
 	protected void OnDraftChanged()
 	{
 		if (!m_Weapon || m_WeaponPrefab.IsEmpty())
@@ -430,24 +428,233 @@ class BIA_WeaponStage
 	//------------------------------------------------------------------------------------------------
 	protected void ApplySupportedItemPose(notnull IEntity item, bool helmet, float homeScale, vector ypr)
 	{
-		item.SetYawPitchRoll(ypr);
-		item.SetScale(homeScale);
+		PositionOnStand(item, m_ArmorStand, helmet, homeScale, ypr);
+	}
+
+	static void PositionOnStand(notnull IEntity item, notnull IEntity stand, bool helmet, float homeScale, vector ypr)
+	{
+		DCO_EGearRackSlot kind = DCO_EGearRackSlot.VEST;
+		if (helmet) kind = DCO_EGearRackSlot.HELMET;
+		PositionGearOnStand(item, stand, kind, homeScale, ypr);
+	}
+
+	static void PositionGearOnStand(notnull IEntity item, notnull IEntity stand, DCO_EGearRackSlot kind, float homeScale, vector ypr, bool xl = false)
+	{
 		vector mins, maxs;
 		item.GetBounds(mins, maxs);
 		vector itemSupport = Vector((mins[0] + maxs[0]) * 0.5, maxs[1], (mins[2] + maxs[2]) * 0.5);
-		float supportHeight = STAND_SHOULDER_Y + STAND_VEST_LIFT;
-		if (helmet)
-			supportHeight = STAND_CROWN_Y + HELMET_SHELL_CLEARANCE;
-		else if (maxs[1] > mins[1])
+		if (kind == DCO_EGearRackSlot.VEST)
+			itemSupport = VestSupportPoint(item);
+		float bottom = mins[1];
+		if (kind == DCO_EGearRackSlot.VEST)
+			bottom = LowestGearPoint(item, item);
+		vector leftShoulder, rightShoulder;
+		bool reverseMesh;
+		if (ShoulderFrame(item, leftShoulder, rightShoulder))
 		{
-			float availableHeight = Math.Max(supportHeight * m_ArmorStand.GetScale() - REST_LIFT, 0.001);
-			item.SetScale(Math.Min(homeScale, availableHeight / (maxs[1] - mins[1])));
+			vector across = rightShoulder - leftShoulder;
+			// Imported worn meshes can face backwards relative to the stand's local axes.
+			reverseMesh = across[0] < 0;
 		}
-
-		vector pos = m_ArmorStand.CoordToParent(Vector(0, supportHeight, 0));
+		item.SetYawPitchRoll(ypr);
+		item.SetScale(homeScale);
+		bool helmet = kind == DCO_EGearRackSlot.HELMET;
+		if (reverseMesh != (helmet && !xl))
+		{
+			// Turn around the stand's local up axis, including on a tilted stand.
+			vector transform[4];
+			item.GetTransform(transform);
+			transform[0] = -transform[0];
+			transform[2] = -transform[2];
+			item.SetTransform(transform);
+		}
+		float supportHeight = STAND_SHOULDER_Y + REST_LIFT;
+		if (helmet) supportHeight = STAND_CROWN_Y + HELMET_SHELL_CLEARANCE;
+		if (xl)
+		{
+			supportHeight = 1.048 + REST_LIFT;
+			if (helmet) supportHeight = 1.3462 + HELMET_SHELL_CLEARANCE;
+			if (kind == DCO_EGearRackSlot.BELT)
+			{
+				supportHeight = 0.413;
+				itemSupport[1] = (mins[1] + maxs[1]) * 0.5;
+				// Full harnesses use the waist joint; compact belts seat by the band itself.
+				Animation animation = item.GetAnimation();
+				vector waist[4];
+				if (maxs[1] > leftShoulder[1] && leftShoulder[1] > mins[1]
+					&& animation && animation.GetBoneIndex("Spine2") != -1
+					&& animation.GetBoneMatrix(animation.GetBoneIndex("Spine2"), waist)
+					&& waist[3][1] >= mins[1] && waist[3][1] <= maxs[1])
+					itemSupport = waist[3];
+			}
+		}
+		if (!helmet && kind != DCO_EGearRackSlot.BELT && maxs[1] > mins[1])
+		{
+			float availableHeight = Math.Max(supportHeight * stand.GetScale() - REST_LIFT, 0.001);
+			item.SetScale(Math.Min(homeScale, availableHeight / Math.Max(itemSupport[1] - bottom, 0.001)));
+		}
+		vector pos = stand.CoordToParent(Vector(0, supportHeight, 0));
 		pos -= item.VectorToParent(itemSupport);
 		item.SetOrigin(pos);
 		item.Update();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Contact belongs to the shoulder mesh; pouches, collars and hanging tools cannot anchor the vest.
+	protected static vector VestSupportPoint(notnull IEntity item)
+	{
+		IEntity shoulder = item;
+		float highest = -1e10;
+		FindShoulderMesh(item, item, shoulder, highest);
+		if (!shoulder.GetVObject()) return vector.Zero;
+		ResourceName mesh = shoulder.GetVObject().GetResourceName();
+		if (!s_mShoulderContacts) s_mShoulderContacts = new map<ResourceName, vector>();
+		vector contact;
+		if (!s_mShoulderContacts.Find(mesh, contact))
+		{
+			contact = MeasureShoulderContact(shoulder);
+			s_mShoulderContacts.Set(mesh, contact);
+		}
+		return item.CoordToLocal(shoulder.CoordToParent(contact));
+	}
+
+	protected static bool ShoulderFrame(IEntity part, out vector left, out vector right)
+	{
+		Animation animation = part.GetAnimation();
+		if (!animation) return false;
+		TNodeId leftBone = animation.GetBoneIndex("LeftShoulder");
+		TNodeId rightBone = animation.GetBoneIndex("RightShoulder");
+		vector frame[4];
+		if (leftBone == -1 || rightBone == -1 || !animation.GetBoneMatrix(leftBone, frame)) return false;
+		left = frame[3];
+		if (!animation.GetBoneMatrix(rightBone, frame)) return false;
+		right = frame[3];
+		TNodeId arm = animation.GetBoneIndex("LeftArm");
+		if (arm != -1 && animation.GetBoneMatrix(arm, frame)) left = vector.Lerp(left, frame[3], 0.6);
+		arm = animation.GetBoneIndex("RightArm");
+		if (arm != -1 && animation.GetBoneMatrix(arm, frame)) right = vector.Lerp(right, frame[3], 0.6);
+		return true;
+	}
+
+	protected static void FindShoulderMesh(IEntity root, IEntity part, inout IEntity best, inout float highest)
+	{
+		vector left, right, mins, maxs;
+		part.GetBounds(mins, maxs);
+		if (HasGearVolume(part, mins, maxs) && ShoulderFrame(part, left, right)
+			&& mins[0] <= Math.Min(left[0], right[0]) && maxs[0] >= Math.Max(left[0], right[0])
+			&& mins[1] <= left[1] && maxs[1] > left[1])
+		{
+			vector top = root.CoordToLocal(part.CoordToParent(Vector(0, maxs[1], 0)));
+			if (top[1] > highest)
+			{
+				highest = top[1];
+				best = part;
+			}
+			// Complete carriers own their support; auxiliary armour must not replace it.
+			if (part == root) return;
+		}
+		IEntity child = part.GetChildren();
+		while (child)
+		{
+			FindShoulderMesh(root, child, best, highest);
+			child = child.GetSibling();
+		}
+	}
+
+	protected static vector MeasureShoulderContact(notnull IEntity part)
+	{
+		vector mins, maxs, left, right;
+		part.GetBounds(mins, maxs);
+		if (!ShoulderFrame(part, left, right))
+		{
+			left = vector.Lerp(mins, maxs, 0.75);
+			right = left;
+			left[0] = Math.Lerp(mins[0], maxs[0], 0.2);
+			right[0] = Math.Lerp(mins[0], maxs[0], 0.8);
+		}
+		vector contact = (left + right) * 0.5;
+		// Visual-only straps seat below their curved crown, relative to their own shoulder span.
+		contact[1] = Math.Lerp(contact[1], maxs[1], 0.75);
+		Animation animation = part.GetAnimation();
+		vector neck[4];
+		if (animation && animation.GetBoneIndex("Neck1") != -1
+			&& animation.GetBoneMatrix(animation.GetBoneIndex("Neck1"), neck))
+		{
+			float shoulderY = (left[1] + right[1]) * 0.5;
+			// A raised collar cannot move the shoulder seat above the anatomical shoulder region.
+			if (neck[3][1] > shoulderY)
+				contact[1] = Math.Min(contact[1], neck[3][1] * 2 - shoulderY);
+		}
+		Physics body = part.GetPhysics();
+		bool ownedBody = !body;
+		MeshObject mesh = part.GetVObject().ToMeshObject();
+		if (ownedBody && mesh && mesh.GetNumGeoms() > 0)
+			body = Physics.CreateStatic(part, 0xffffffff);
+		if (!body) return contact;
+		vector leftHit, rightHit;
+		bool hitLeft = TraceShoulder(part, left, mins, maxs, leftHit);
+		bool hitRight = TraceShoulder(part, right, mins, maxs, rightHit);
+		if (ownedBody) body.Destroy();
+		if (hitLeft && hitRight) contact = (leftHit + rightHit) * 0.5;
+		return contact;
+	}
+
+	protected static bool TraceShoulder(IEntity part, vector shoulder, vector mins, vector maxs, out vector contact)
+	{
+		bool found;
+		float highest = -1e10;
+		for (int depth = -2; depth <= 2; depth++)
+		{
+			float z = shoulder[2] + depth * (maxs[2] - mins[2]) * 0.1;
+			TraceParam trace = new TraceParam();
+			trace.Start = part.CoordToParent(Vector(shoulder[0], maxs[1] + 0.1, z));
+			trace.End = part.CoordToParent(Vector(shoulder[0], shoulder[1], z));
+			trace.Flags = TraceFlags.ENTS;
+			trace.TargetLayers = 0xffffffff;
+			trace.Include = part;
+			float fraction = part.GetWorld().TraceMove(trace, null);
+			if (fraction <= 0 || fraction >= 1 || trace.TraceEnt != part) continue;
+			vector hit = part.CoordToLocal(vector.Lerp(trace.Start, trace.End, fraction));
+			if (hit[1] <= highest) continue;
+			highest = hit[1];
+			contact = hit;
+			found = true;
+		}
+		return found;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected static bool HasGearVolume(IEntity part, vector mins, vector maxs)
+	{
+		// Flat damage-plate helpers do not describe the worn item's visible extent.
+		return part.GetVObject() && maxs[0] - mins[0] > 0.0001
+			&& maxs[1] - mins[1] > 0.0001 && maxs[2] - mins[2] > 0.0001;
+	}
+
+	//! Hanging pouches and tools must clear the base without moving the shoulder support.
+	protected static float LowestGearPoint(notnull IEntity item, notnull IEntity part)
+	{
+		vector mins, maxs;
+		part.GetBounds(mins, maxs);
+		float bottom = 1e10;
+		if (HasGearVolume(part, mins, maxs))
+		{
+			for (int corner = 0; corner < 8; corner++)
+			{
+				vector point = mins;
+				for (int axis = 0; axis < 3; axis++)
+					if (corner & (1 << axis)) point[axis] = maxs[axis];
+				point = item.CoordToLocal(part.CoordToParent(point));
+				bottom = Math.Min(bottom, point[1]);
+			}
+		}
+		IEntity child = part.GetChildren();
+		while (child)
+		{
+			bottom = Math.Min(bottom, LowestGearPoint(item, child));
+			child = child.GetSibling();
+		}
+		return bottom;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -616,7 +823,7 @@ class BIA_WeaponStage
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The pooled entity is shared with every row thumbnail — draft parts are stripped back to
+	//! The pooled entity is shared with every row thumbnail â€” draft parts are stripped back to
 	//! factory state on release or they leak into later renders.
 	protected void ReleaseWeapon()
 	{
@@ -674,7 +881,7 @@ class BIA_WeaponStage
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Clears the bench (no draft weapon) — the studio and the resident soldier stay up.
+	//! Clears the bench (no draft weapon) â€” the studio and the resident soldier stay up.
 	void ClearStage()
 	{
 		ReleaseWeapon();

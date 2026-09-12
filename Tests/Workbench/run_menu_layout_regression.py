@@ -16,7 +16,8 @@ def main():
             raise RuntimeError(status)
         result = json.loads(receive_string(connection))
     print(json.dumps(result, indent=2))
-    if result.get("passed") != 49 or result.get("failures"):
+    # 153 widget/input assertions plus 685 property-scope assertions.
+    if result.get("passed") != 838 or result.get("failures"):
         raise SystemExit(1)
 
 

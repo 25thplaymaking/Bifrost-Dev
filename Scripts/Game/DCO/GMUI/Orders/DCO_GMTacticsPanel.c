@@ -342,13 +342,11 @@ class DCO_GMTacticsPanel
 			case BTN_SPRING:
 			{
 				DCO_GMToolsServer.Route(DCO_GMToolsServer.TOOL_ZONE_SPRING, zoneEnt, vector.Zero);
-				Print("[DCO-GM] tactics panel: SPRING NOW routed", LogLevel.NORMAL);
 				break;
 			}
 			case BTN_REARM:
 			{
 				DCO_GMToolsServer.Route(DCO_GMToolsServer.TOOL_ZONE_REARM, zoneEnt, vector.Zero);
-				Print("[DCO-GM] tactics panel: kill-zone RE-ARM routed", LogLevel.NORMAL);
 				break;
 			}
 			case BTN_PAIR_MINUS:

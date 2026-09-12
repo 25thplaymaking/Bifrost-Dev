@@ -121,7 +121,6 @@ class BIA_GunsmithScreen : SCR_SubMenuBase
 			m_Stage.SetDraftClothingSlot(m_iStagedClothingSlot);
 			m_Stage.ShowOn(m_wStageWorld);
 		}
-		DCO_TestDiagnostics.Event("arsenal.inspect.open", string.Format("clothingSlot=%1 stage=%2", m_iStagedClothingSlot, m_Stage != null));
 		RefreshStage();
 		BIA_Theme.Apply(m_wRoot);
 		if (m_Stage)
@@ -376,7 +375,6 @@ class BIA_GunsmithScreen : SCR_SubMenuBase
 
 		if (!slotSource)
 		{
-			DCO_TestDiagnostics.Event("arsenal.stage.missing", draftPrefab, true);
 			return;
 		}
 
@@ -465,7 +463,6 @@ class BIA_GunsmithScreen : SCR_SubMenuBase
 	protected void OnSlotClicked(int index)
 	{
 		CloseContents();
-		DCO_TestDiagnostics.Event("arsenal.mount.select", string.Format("index=%1 previous=%2", index, m_iSelectedSlot));
 		if (!m_Stage)
 			return;
 
@@ -549,7 +546,6 @@ class BIA_GunsmithScreen : SCR_SubMenuBase
 				compatible.Insert(item);
 		}
 
-		DCO_TestDiagnostics.Event("arsenal.mount.candidates", string.Format("slot=%1 pool=%2 compatible=%3", entry.m_iStorageSlot, m_aAttachmentPool.Count(), compatible.Count()));
 		if (compatible.IsEmpty())
 			m_Strip.ShowMessage(entry.m_sTypeLabel + " - NO COMPATIBLE PARTS AVAILABLE");
 		else
@@ -661,7 +657,6 @@ class BIA_GunsmithScreen : SCR_SubMenuBase
 			return;
 
 		ResourceName clicked = row.GetEntry().m_Prefab;
-		DCO_TestDiagnostics.Event("arsenal.mount.pick", string.Format("slot=%1 previous=%2 part=%3", entry.m_iStorageSlot, entry.m_AttachedPrefab, clicked));
 		if (entry.m_bMagazine && m_iStagedClothingSlot < 0)
 		{
 			ResourceName target = service.GetTargetContainer();
@@ -715,7 +710,6 @@ class BIA_GunsmithScreen : SCR_SubMenuBase
 		//! undo the swap instead of leaving the slot stripped, and say so the base-game way.
 		if (!replacement.IsEmpty() && m_Stage && m_Stage.GetUnplaced().Contains(replacement))
 		{
-			DCO_TestDiagnostics.Event("arsenal.mount.rejected", string.Format("slot=%1 part=%2", storageSlot, replacement), true);
 			if (clothingSlot >= 0)
 				service.SwapDraftClothingAttachment(clothingSlot, replacement, previous, storageSlot);
 			else
@@ -817,7 +811,6 @@ class BIA_GunsmithScreen : SCR_SubMenuBase
 		m_Contents.Open("CONTENTS", items, ResourceName.Empty, string.Empty, service.UsesSupplies(), true);
 		RefreshContentsCounts(service);
 		RefreshOverlayPanels();
-		DCO_TestDiagnostics.Event("arsenal.contents.open", clothing.m_Prefab);
 	}
 
 	protected void OnContentsDone()
@@ -853,7 +846,6 @@ class BIA_GunsmithScreen : SCR_SubMenuBase
 		if (m_Stage) preview = m_Stage.SlotSource();
 		BIA_EExtraChangeResult result = service.ChangeDraftExtraTo(item, delta, clothing.m_Prefab, preview);
 		RefreshContentsCounts(service);
-		DCO_TestDiagnostics.Event("arsenal.contents.change", string.Format("part=%1 delta=%2 result=%3", item, delta, result));
 		if (result == BIA_EExtraChangeResult.ADDED)
 			BIA_ShellMenu.ShowStatus("ITEM ADDED", true);
 		else if (result != BIA_EExtraChangeResult.REMOVED)
@@ -917,6 +909,8 @@ class BIA_GunsmithScreen : SCR_SubMenuBase
 	{
 		if (!m_wCounter)
 			return;
+		Widget panel = m_wRoot.FindAnyWidget("HardpointCounterPanel");
+		if (panel) panel.SetVisible(m_CalloutLayer && m_CalloutLayer.GetTotalCount() > 0);
 
 		if (!m_CalloutLayer || m_CalloutLayer.GetTotalCount() == 0)
 		{
