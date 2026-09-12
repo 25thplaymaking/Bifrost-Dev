@@ -1,5 +1,11 @@
 # Isolated mission-panel regression
 
+## Rack inventory replication configuration
+
+`DCO_GearRackReplicationRegression.c` reads the two production prefab sources through native Workbench resource loading, including inherited component values. Temporarily copy it into `Scripts/WorkbenchGame/EnfusionMCP/`, use native script reload and run `run_gear_rack_replication_regression.py` in the authoritative Bifrost-Dev project. Expected: **20 passes, zero failures**. It creates no scene entities and makes no inventory or server changes. It checks that both racks disable `UseVirtualInventoryReplication`, retain enabled replication and their respective slot capabilities, and leave the native ammunition-box setting enabled.
+
+The September 12 hotfix run passed all 20 checks; see `gear_rack_replication_result.json`. The first assertion run detected virtual inventory still enabled on the small cross while the maintainer had already disabled it on XL. After both native resources reflected the saved fix, all checks passed. The temporary handler was removed, and production reload/validation passed with zero errors and 14 existing base-game warnings. These checks establish native configuration and inheritance, not dedicated-server transport or remote/JIP presentation. See `docs/GEAR_RACK_REPLICATION_2026-09-12.md` for rollout and acceptance steps.
+
 ## Property-session lifecycle regression
 
 Run only in a disposable Workbench edit-mode instance with no user play world. The probe advances the game call queue by 0.2 seconds to check cancelled callbacks after their due time. The lifecycle checks use no widgets; the appended lighting probe creates and releases a private preview world and its lights. It must not run in a live or user-owned session.

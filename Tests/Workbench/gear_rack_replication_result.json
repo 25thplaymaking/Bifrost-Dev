@@ -1,0 +1,9 @@
+{
+  "passed": 20,
+  "details": [
+    "{D67E9B88BBDB4FE4}Prefabs/E_DCO_PlaceableArsenal.et UseVirtualInventoryReplication=false",
+    "{762A1A6379E24BD4}Prefabs/E_DCO_XLGearCross.et UseVirtualInventoryReplication=false"
+  ],
+  "projectPath": "C:\\Users\\Bryce\\Documents\\My Games\\ArmaReforgerWorkbench\\addons\\Bifrost-Dev",
+  "projectGuid": "6A0C2D6CE9809C6E"
+}

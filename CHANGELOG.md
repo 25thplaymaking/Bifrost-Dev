@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.0.34 - 2026-09-12
+
+- Disabled virtual inventory replication on both Gear Cross storages. Stored gear must remain available as replicated entities for remote clients to render the rack and evaluate Take actions.
+- Added 20 native prefab checks covering both cross variants, their enabled replication and slot support, and unchanged virtual-inventory behavior on a native ammunition box.
+- The deployed Workshop build was 1.0.33; its rack scripts, prefabs and embedded release manifest matched the reviewed 1.0.32 source. This hotfix changes rack configuration, without changing transfer authority or item identity. Live dedicated-server/JIP acceptance remains required after the operator installs matching builds; no production server restart or package replacement was performed.
+
 ## 1.0.32 - 2026-09-12
 
 - Fixed first-press navigation on both Arsenal gear categories and item selections, including immediate contents-panel recovery and isolated quantity controls.

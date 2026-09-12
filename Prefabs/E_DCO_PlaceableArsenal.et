@@ -3,6 +3,13 @@ GenericEntity : "{48B2066729D2EF32}Prefabs/Props/HPC_ArmorStand.et" {
  components {
   DCO_GearRackComponent "{3053711BF6384FB9}" {
   }
+  DCO_GearRackStorageComponent "{E0CBBB8C3C524769}" {
+   UseVirtualInventoryReplication 0
+  }
+  RigidBody "{97B03B3F65F547D0}" {
+   ModelGeometry 1
+   Static 1
+  }
   SCR_EditableEntityComponent "{B15C310A22BD4DD7}" {
    m_EntityType GENERIC
    m_UIInfo SCR_EditableEntityUIInfo "{45EA70E4F43642B2}" {
@@ -22,12 +29,6 @@ GenericEntity : "{48B2066729D2EF32}Prefabs/Props/HPC_ArmorStand.et" {
   }
   ScriptedInventoryStorageManagerComponent "{2749B342555B43F1}" {
   }
-  DCO_GearRackStorageComponent "{E0CBBB8C3C524769}" {
-  }
-  RigidBody "{97B03B3F65F547D0}" {
-   ModelGeometry 1
-   Static 1
-  }
   ActionsManagerComponent "{955B86069D494BC7}" {
    Enabled 1
    ActionContexts {
@@ -43,7 +44,6 @@ GenericEntity : "{48B2066729D2EF32}Prefabs/Props/HPC_ArmorStand.et" {
    }
    additionalActions {
     DCO_GearRackArsenalAction "{47674E4C22224AD7}" {
-     "Sort Priority" 0
      ParentContextList {
       "default"
      }
@@ -51,9 +51,9 @@ GenericEntity : "{48B2066729D2EF32}Prefabs/Props/HPC_ArmorStand.et" {
       Name "Arsenal"
       Description "Configure your loadout, weapon attachments, and carried gear."
      }
+     "Sort Priority" 0
     }
     DCO_HangVestAction "{F780CC1630EF42E5}" {
-     "Sort Priority" 10
      ParentContextList {
       "default"
      }
@@ -61,9 +61,9 @@ GenericEntity : "{48B2066729D2EF32}Prefabs/Props/HPC_ArmorStand.et" {
       Name "Hang Vest"
       Description "Hang your worn vest with its contents and attachments."
      }
+     "Sort Priority" 10
     }
     DCO_HangHelmetAction "{245389B95AA649FD}" {
-     "Sort Priority" 20
      ParentContextList {
       "default"
      }
@@ -71,6 +71,7 @@ GenericEntity : "{48B2066729D2EF32}Prefabs/Props/HPC_ArmorStand.et" {
       Name "Hang Helmet"
       Description "Hang your worn helmet with its contents and attachments."
      }
+     "Sort Priority" 20
     }
    }
   }

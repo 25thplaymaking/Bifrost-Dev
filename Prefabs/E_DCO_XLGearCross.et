@@ -1,11 +1,14 @@
 GenericEntity : "{D67E9B88BBDB4FE4}Prefabs/E_DCO_PlaceableArsenal.et" {
  ID "97056FAD742245C2"
  components {
-  MeshObject "{B70259BB844F4A6E}" {
-   Object "{A3180B6FF276752A}Assets/Props/Military/Bifrost_GearRack/Bifrost_GearRack.xob"
-  }
   DCO_GearRackComponent "{3053711BF6384FB9}" {
    m_bXL 1
+  }
+  DCO_GearRackStorageComponent "{E0CBBB8C3C524769}" {
+   UseVirtualInventoryReplication 0
+  }
+  MeshObject "{B70259BB844F4A6E}" {
+   Object "{A3180B6FF276752A}Assets/Props/Military/Bifrost_GearRack/Bifrost_GearRack.xob"
   }
   SCR_EditableEntityComponent "{B15C310A22BD4DD7}" {
    m_UIInfo SCR_EditableEntityUIInfo "{45EA70E4F43642B2}" {
@@ -16,7 +19,6 @@ GenericEntity : "{D67E9B88BBDB4FE4}Prefabs/E_DCO_PlaceableArsenal.et" {
   ActionsManagerComponent "{955B86069D494BC7}" {
    additionalActions {
     DCO_HangBeltAction "{C8352B72D4A0417F}" {
-     "Sort Priority" 30
      ParentContextList {
       "default"
      }
@@ -24,6 +26,7 @@ GenericEntity : "{D67E9B88BBDB4FE4}Prefabs/E_DCO_PlaceableArsenal.et" {
       Name "Hang Belt"
       Description "Hang your worn waist belt with its contents and attachments."
      }
+     "Sort Priority" 30
     }
    }
   }

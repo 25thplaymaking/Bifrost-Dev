@@ -25,7 +25,7 @@ Open the project in Arma Reforger Workbench or install the published addon throu
 
 ## Release state
 
-Current source release: **1.0.32**. See the [GitHub release](https://github.com/25thplaymaking/Bifrost-Dev/releases/tag/v1.0.32), [release evidence and BI handoff](docs/RELEASE_1.0.32.md), and [testing guide](docs/TESTING.md). The operator handles Bohemia Workshop publication under addon GUID `6A0C2D6CE9809C6E`. Local Arsenal acceptance is confirmed; dedicated-server, remote-client and join-in-progress acceptance remain separate.
+Current source release: **1.0.34**. See the [GitHub release](https://github.com/25thplaymaking/Bifrost-Dev/releases/tag/v1.0.34), [rack hotfix evidence and BI handoff](docs/GEAR_RACK_REPLICATION_2026-09-12.md), and [testing guide](docs/TESTING.md). The operator handles Bohemia Workshop publication under addon GUID `6A0C2D6CE9809C6E`. This hotfix disables virtual inventory on gear crosses so their display and Take actions can resolve stored items on remote clients. Native configuration checks pass; dedicated-server, remote-client and join-in-progress acceptance remain separate.
 
 ## License and credits
 
