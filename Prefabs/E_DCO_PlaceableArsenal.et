@@ -14,7 +14,7 @@ GenericEntity : "{48B2066729D2EF32}Prefabs/Props/HPC_ArmorStand.et" {
    m_EntityType GENERIC
    m_UIInfo SCR_EditableEntityUIInfo "{45EA70E4F43642B2}" {
     Name "Gear Cross"
-    Description "Open Arsenal, or hang your equipped vest and helmet on the gear rack."
+    Description "Open Arsenal, hang a vest with its back panel, or hang a helmet. Double-click in Game Master to name the cross and configure saving."
     Icon "{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds"
     m_Image "{42484F03A5B5B395}UI/Textures/Editor/Toolbar/ToolbarFilter_Systems.edds"
     m_EntityBudgetCost {
@@ -59,7 +59,7 @@ GenericEntity : "{48B2066729D2EF32}Prefabs/Props/HPC_ArmorStand.et" {
      }
      UIInfo UIInfo "{783D72076B89482D}" {
       Name "Hang Vest"
-      Description "Hang your worn vest with its contents and attachments."
+      Description "Hang your worn vest and back panel together, preserving their contents and attachments."
      }
      "Sort Priority" 10
     }

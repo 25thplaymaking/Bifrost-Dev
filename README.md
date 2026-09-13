@@ -12,7 +12,8 @@ Bifrost is an Arma Reforger Game Master addon focused on a compact operational i
 
 - CREATE, EDIT, ORDERS, SCENARIO, GAMEPLAY, and OPTIONS surfaces
 - Searchable placement catalog and full-screen loadout editor
-- Placeable Arsenal gear crosses with reversible vest, helmet and XL belt storage
+- Placeable Arsenal gear crosses with reversible vest/back-panel and helmet storage, plus XL belt and primary rifle supports
+- Named gear crosses with operator labels and optional restoration through native mission saves
 - Precise move/rotate tools, snapping, attachment, visibility, simulation, and stance controls
 - Scenario presets, time/date controls, weather, side relations, and budget readouts
 - GM-directed group orders and scenario tools, including formations, ambush, defence, QRF, and building clearing
@@ -25,7 +26,7 @@ Open the project in Arma Reforger Workbench or install the published addon throu
 
 ## Release state
 
-Current source release: **1.0.34**. See the [GitHub release](https://github.com/25thplaymaking/Bifrost-Dev/releases/tag/v1.0.34), [rack hotfix evidence and BI handoff](docs/GEAR_RACK_REPLICATION_2026-09-12.md), and [testing guide](docs/TESTING.md). The operator handles Bohemia Workshop publication under addon GUID `6A0C2D6CE9809C6E`. This hotfix disables virtual inventory on gear crosses so their display and Take actions can resolve stored items on remote clients. Native configuration checks pass; dedicated-server, remote-client and join-in-progress acceptance remain separate.
+Current source release: **1.0.35**. See the [GitHub release](https://github.com/25thplaymaking/Bifrost-Dev/releases/tag/v1.0.35), [rack additions, matched-session review and acceptance actions](docs/RACK_AND_AI_SESSION_REVIEW_2026-09-12.md), and [testing guide](docs/TESTING.md). The operator handles Bohemia Workshop publication under addon GUID `6A0C2D6CE9809C6E`. Gear crosses retain physical replicated inventory and add paired CDD back panels, an XL primary rifle rest, names, operator labels and opt-in mission persistence. Native checks pass; dedicated-server, remote-client, join-in-progress and actual save/restart acceptance remain separate.
 
 ## License and credits
 

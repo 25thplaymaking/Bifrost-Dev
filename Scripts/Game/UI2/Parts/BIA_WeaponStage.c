@@ -440,6 +440,11 @@ class BIA_WeaponStage
 
 	static void PositionGearOnStand(notnull IEntity item, notnull IEntity stand, DCO_EGearRackSlot kind, float homeScale, vector ypr, bool xl = false)
 	{
+		if (kind == DCO_EGearRackSlot.PRIMARY)
+		{
+			PositionRifleOnStand(item, stand, homeScale);
+			return;
+		}
 		vector mins, maxs;
 		item.GetBounds(mins, maxs);
 		vector itemSupport = Vector((mins[0] + maxs[0]) * 0.5, maxs[1], (mins[2] + maxs[2]) * 0.5);
@@ -497,6 +502,63 @@ class BIA_WeaponStage
 		pos -= item.VectorToParent(itemSupport);
 		item.SetOrigin(pos);
 		item.Update();
+	}
+
+	static void PositionBackPanel(notnull IEntity panel, notnull IEntity vest)
+	{
+		vector pose[4];
+		vest.GetTransform(pose);
+		panel.SetTransform(pose);
+		Animation panelAnimation = panel.GetAnimation();
+		Animation vestAnimation = vest.GetAnimation();
+		vector panelBone[4], vestBone[4];
+		// Independent body slots share the wearer's spine frame, including imported mesh offsets.
+		if (panelAnimation && vestAnimation
+			&& panelAnimation.GetBoneIndex("Spine5") != -1 && vestAnimation.GetBoneIndex("Spine5") != -1
+			&& panelAnimation.GetBoneMatrix(panelAnimation.GetBoneIndex("Spine5"), panelBone)
+			&& vestAnimation.GetBoneMatrix(vestAnimation.GetBoneIndex("Spine5"), vestBone))
+			panel.SetOrigin(vest.CoordToParent(vestBone[3]) - panel.VectorToParent(panelBone[3]));
+		else
+		{
+			vector panelMin, panelMax, vestMin, vestMax;
+			panel.GetBounds(panelMin, panelMax);
+			vest.GetBounds(vestMin, vestMax);
+			vector contact = Vector((panelMin[0] + panelMax[0]) * 0.5, panelMax[1], panelMax[2]);
+			vector seat = Vector((vestMin[0] + vestMax[0]) * 0.5, VestSupportPoint(vest)[1] - 0.06, vestMin[2]);
+			panel.SetOrigin(vest.CoordToParent(seat) - panel.VectorToParent(contact));
+		}
+		panel.Update();
+	}
+
+	protected static void PositionRifleOnStand(notnull IEntity rifle, notnull IEntity stand, float scale)
+	{
+		vector local[4], standPose[4], pose[4];
+		local[2] = Vector(-0.20, 0.975, 0).Normalized();
+		local[0] = Vector(local[2][1], -local[2][0], 0).Normalized();
+		local[1] = "0 0 -1";
+		vector minimum, maximum, standMin, standMax;
+		rifle.GetBounds(minimum, maximum);
+		stand.GetBounds(standMin, standMax);
+		float bottom = 1e10;
+		for (int corner = 0; corner < 8; corner++)
+		{
+			vector point = minimum;
+			if (corner & 1) point[0] = maximum[0];
+			if (corner & 2) point[1] = maximum[1];
+			if (corner & 4) point[2] = maximum[2];
+			float height = local[0][1] * point[0] + local[1][1] * point[1] + local[2][1] * point[2];
+			bottom = Math.Min(bottom, height);
+		}
+		float relativeScale = scale / Math.Max(stand.GetScale(), 0.001);
+		local[0] = local[0] * relativeScale;
+		local[1] = local[1] * relativeScale;
+		local[2] = local[2] * relativeScale;
+		// The butt rests on the base and the barrel leans toward the cross's upright.
+		local[3] = Vector(standMax[0] * 0.85, standMin[1] + 0.02 - bottom * relativeScale, 0.10);
+		stand.GetTransform(standPose);
+		Math3D.MatrixMultiply4(standPose, local, pose);
+		rifle.SetTransform(pose);
+		rifle.Update();
 	}
 
 	//------------------------------------------------------------------------------------------------

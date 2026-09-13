@@ -13,6 +13,7 @@ class DCO_GMMissionTool
 	static const int LZ = 11;
 	static const int RP = 12;
 	static const int TARGET = 13;
+	static const int GEAR_RACK = 14;
 
 	static string Name(int kind)
 	{
@@ -31,6 +32,7 @@ class DCO_GMMissionTool
 			case LZ: return "Create LZ";
 			case RP: return "Create RP";
 			case TARGET: return "Create Target";
+			case GEAR_RACK: return "Gear Cross Settings";
 		}
 		return "Mission Tool";
 	}
@@ -49,6 +51,14 @@ class DCO_GMMissionServer
 		title.Replace("\r", " ");
 		title.TrimInPlace();
 		body.TrimInPlace();
+		if (tool == DCO_GMMissionTool.GEAR_RACK)
+		{
+			if (ids.Count() != 1 || body.Length() > 64 || (options[0] != 0 && options[0] != 1)) return false;
+			SCR_EditableEntityComponent rackTarget = SCR_EditableEntityComponent.Cast(Replication.FindItem(ids[0]));
+			if (!rackTarget || !rackTarget.GetOwner()) return false;
+			DCO_GearRackComponent rack = DCO_GearRackComponent.Cast(rackTarget.GetOwner().FindComponent(DCO_GearRackComponent));
+			return rack && rack.ConfigureRack(title, body, options[0] == 1, result);
+		}
 		if (tool == DCO_GMMissionTool.RESTORE)
 		{
 			DCO_GMTerrainAreaComponent.RestoreAll();

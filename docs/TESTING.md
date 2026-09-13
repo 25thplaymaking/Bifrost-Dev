@@ -13,6 +13,8 @@ Bifrost releases use a compile-first validation policy. Real mod-stack compatibi
 
 ## Multiplayer acceptance pass
 
+Gear Cross 1.0.35 has a focused [rack, CDD, rifle, settings, JIP and scheduled-restart checklist](RACK_AND_AI_SESSION_REVIEW_2026-09-12.md#acceptance-actions). Mission restart testing must use a planned test-server session; this release does not restart or replace the production server.
+
 The new Mission Tools have a dedicated [usage and runtime acceptance guide](MISSION_TOOLS_IMPLEMENTATION_2026-09-04.md). Its dedicated-server, remote-client and JIP checks remain pending; script compilation and hidden layout instantiation are not substitutes.
 
 Run this pass on a dedicated server with a remote Game Master, then reconnect that client for the JIP checks:

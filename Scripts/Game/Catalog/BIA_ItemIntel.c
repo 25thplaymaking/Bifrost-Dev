@@ -344,6 +344,23 @@ class BIA_ItemIntel
 		return area && waist && area.IsInherited(waist);
 	}
 
+	static bool IsBackPanelArea(typename area)
+	{
+		string areaName = "ZEL_BackPanel";
+		typename backPanel = areaName.ToType();
+		return area && backPanel && area.IsInherited(backPanel);
+	}
+
+	static bool IsBackPanel(IEntity item)
+	{
+		if (!item) return false;
+		BaseLoadoutClothComponent cloth = BaseLoadoutClothComponent.Cast(item.FindComponent(BaseLoadoutClothComponent));
+		if (!cloth || !cloth.GetAreaType()) return false;
+		if (IsBackPanelArea(cloth.GetAreaType().Type())) return true;
+		// This CDD back panel occupies its legacy Extra slot instead of the Back Panel slot.
+		return SCR_ResourceNameUtils.GetPrefabName(item).EndsWith("Prefabs/Modular/Placards/ZEL_DN_Backpanel_1CR.et");
+	}
+
 	static bool MountAcceptsEntity(InventoryStorageSlot slot, IEntity item)
 	{
 		if (!slot || !item || slot.IsLocked()) return false;
@@ -371,7 +388,7 @@ class BIA_ItemIntel
 			typename area = cloth.GetAreaType().Type();
 			if (area == LoadoutVestArea || area == LoadoutArmoredVestSlotArea || area == LoadoutHeadCoverArea
 				|| area == LoadoutBackpackArea || area == LoadoutJacketArea || area == LoadoutPantsArea
-				|| area == LoadoutBootsArea || area == LoadoutHandwearSlotArea || IsWaistArea(area))
+				|| area == LoadoutBootsArea || area == LoadoutHandwearSlotArea || IsWaistArea(area) || IsBackPanel(item))
 				return false;
 		}
 		if (slot.GetAttachedEntity()) return storage.CanReplaceItem(item, slot.GetID());

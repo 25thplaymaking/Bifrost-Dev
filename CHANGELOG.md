@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 1.0.35 - 2026-09-12
+
+- Hang/Take Vest now moves a separately worn CDD back panel with the original vest, preserving native inventory contents and attachments. Added paired-move rollback and recovery if a return cannot complete.
+- Added a primary rifle rest to the XL Gear Cross, with Hang/Take actions outside Arsenal and placement derived from the rifle bounds and the cross transform.
+- Added GM cross names, operator labels with shared access, and optional restoration with the server's saved mission through native persistence.
+- Replicated the new rack contents and settings, and corrected back-panel alignment when its vest arrives later during JIP or inventory streaming.
+- Reviewed all 26 installed CDD back-panel prefab sources, including its legacy Extra-slot variant. Kept virtual inventory disabled on both cross variants.
+- Added 45 native rack checks covering configuration, transfer failure handling, settings validation and transformed rifle geometry. Dedicated-server interaction, third-party appearance and mission restart acceptance remain separate operator checks. No production server restart or package replacement was performed.
+
 ## 1.0.34 - 2026-09-12
 
 - Disabled virtual inventory replication on both Gear Cross storages. Stored gear must remain available as replicated entities for remote clients to render the rack and evaluate Take actions.

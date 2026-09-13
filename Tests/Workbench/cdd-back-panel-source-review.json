@@ -1,0 +1,213 @@
+{
+  "package": "C:\\Users\\Bryce\\Documents\\My Games\\ArmaReforgerWorkbench\\addons\\CDDDarklineCore_66CC66046FA127DA\\data001.pak",
+  "panels": [
+    {
+      "path": "Prefabs/Modular/Backpanels/ZEL_CDD_AVS1000Panel.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{2D77947E840BEB39}Prefabs/Items/Equipment/Backpacks/AVS1000BP.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Backpanels/ZEL_CDD_AVS1000PanelRG.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{2D77947E840BEB39}Prefabs/Items/Equipment/Backpacks/AVS1000BP.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Backpanels/ZEL_CDD_AVS1000PanelTan.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{2D77947E840BEB39}Prefabs/Items/Equipment/Backpacks/AVS1000BP.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Backpanels/ZEL_CDD_BreacherPanel.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{B9642E79E812D313}Assets/Characters/Pouches/Breacherpanel.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Backpanels/ZEL_CDD_BreacherPanelAVS.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{6BA8C047D176FD3B}Assets/Characters/Pouches/Data/BreacherpanelAVS.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_BackpanelGMR_MM.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{B4F4339D4E07BF80}Assets/Characters/Pouches/Data/GMR_MM.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_BackpanelGMR_MMAVS.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{D1C919023757D5D4}Assets/Characters/Pouches/Data/GMR_MMAVS.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_1CR.et",
+      "area": "ZEL_ExtraArea",
+      "nestedSlots": true,
+      "wornModel": [
+        "{DC4DEE55E26209C0}Assets/Characters/Pouches/Data/Backpanel10.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_1C_MC.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{27EF535BBB6A04B3}Assets/Characters/Pouches/Data/NJPC_Backpanel01.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_1L_MC.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{BEF1EAC2A68D3523}Assets/Characters/Pouches/Data/NJPC_Backpanel02.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_1R_MC.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{C9FB824A522FDA53}Assets/Characters/Pouches/Data/NJPC_Backpanel03.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_CPPackPanel2MC.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{5D41B2A0510DE09E}Assets/Characters/Pouches/Data/CPPackPanel2.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_CPZipnOn2AVSMC.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{1A140BCEFFF2E72D}Assets/Characters/Pouches/Data/CPZipOn2AVS.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_CPZipnOn2MC.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{8FD3DD59A4476323}Assets/Characters/Pouches/Data/CPZipOn2.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_FBanger.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{A1C9FDC4DA895F7D}Assets/Characters/Pouches/Data/FerroBanger.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_FBangerAVS.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{62D905DE77A55478}Assets/Characters/Pouches/Data/FerroBangerAVS.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_FDBLC.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{FFE9DD4C15C1D73C}Assets/Characters/Pouches/Data/FerroDBLBP.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_FDBLCAVS.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{EC03F3A2E7B24A34}Assets/Characters/Pouches/Data/FerroDBLBPAVS.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_FlatPack.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{3A8E7A024D82619E}Assets/Items/Equipment/Backpacks/FlatPackPanel.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_FlatPackPlus.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{BE7679975E261E4E}Assets/Items/Equipment/Backpacks/FlatPackPlus.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_FWTR.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{E194A3B05C99306A}Assets/Characters/Pouches/Data/FerroWTRBP.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_PackPanelMC.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{5D729E10ED72DD99}Prefabs/Items/Equipment/Backpacks/backpack_ZipOnPanel2.0/PackPanel1.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_RC2_MC.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{2EDC583592915274}Assets/Characters/Pouches/Data/RadioBackpanel2.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_RC2_MCAVS.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{B64EAAFD35D11126}Assets/Characters/Pouches/Data/RadioBackpanel2AVS.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_RC_MC.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{39F76DC29381BBB0}Assets/Characters/Pouches/Data/RadioBackpanel.xob"
+      ]
+    },
+    {
+      "path": "Prefabs/Modular/Placards/ZEL_DN_Backpanel_RC_MCAVS.et",
+      "area": "ZEL_BackPanel",
+      "nestedSlots": true,
+      "wornModel": [
+        "{FD0331DA9DEE2557}Assets/Characters/Pouches/Data/RadioBackpanelAVS.xob"
+      ]
+    }
+  ]
+}

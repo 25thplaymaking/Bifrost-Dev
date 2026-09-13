@@ -37,6 +37,16 @@ modded class EditorAttributesDialogUI
 		if (items.Count() == 1) target = SCR_EditableEntityComponent.Cast(items[0]);
 		if (target && target.GetOwner())
 		{
+			DCO_GearRackComponent rack = DCO_GearRackComponent.Cast(target.GetOwner().FindComponent(DCO_GearRackComponent));
+			if (rack && DCO_GMUIController.IsActive())
+			{
+				m_bDCO_HandingOff = true;
+				RemoveAutoClose();
+				CloseSelf();
+				DCO_GMUIController.CancelPropertySession();
+				DCO_GMMissionPanel.Get().Open(DCO_GMMissionTool.GEAR_RACK, target.GetOwner().GetOrigin(), target, true);
+				return;
+			}
 			DCO_GMMissionInteractionComponent point = DCO_GMMissionInteractionComponent.Cast(target.GetOwner().FindComponent(DCO_GMMissionInteractionComponent));
 			if (point && point.m_bStandalone)
 			{

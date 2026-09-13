@@ -13,11 +13,21 @@ GenericEntity : "{D67E9B88BBDB4FE4}Prefabs/E_DCO_PlaceableArsenal.et" {
   SCR_EditableEntityComponent "{B15C310A22BD4DD7}" {
    m_UIInfo SCR_EditableEntityUIInfo "{45EA70E4F43642B2}" {
     Name "XL Gear Cross"
-    Description "Open Arsenal, or hang your equipped vest, helmet and waist belt."
+    Description "Open Arsenal, or hang your vest and back panel, helmet, waist belt and primary rifle."
    }
   }
   ActionsManagerComponent "{955B86069D494BC7}" {
    additionalActions {
+    DCO_HangPrimaryAction "{BFD0912000000040}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{BFD0912000000041}" {
+      Name "Hang Primary Rifle"
+      Description "Rest your primary rifle on the cross with its magazine and attachments."
+     }
+     "Sort Priority" 40
+    }
     DCO_HangBeltAction "{C8352B72D4A0417F}" {
      ParentContextList {
       "default"

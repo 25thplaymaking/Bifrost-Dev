@@ -228,6 +228,22 @@ class DCO_GMMissionPanel
 		string help;
 		switch (tool)
 		{
+			case DCO_GMMissionTool.GEAR_RACK:
+				help = "Name this cross and identify its operator. Everyone can use its gear. Enable saving to restore it and its contents when this saved mission resumes.";
+				Label("Body_Caption", "Assigned operator");
+				Label("Body_Help", "Operator name or callsign, up to 64 characters. Leave blank for shared equipment.");
+				Label("Scope_Caption", "Restore across restarts");
+				Label("Scope_Help", "Uses the server's mission saves. A new mission starts fresh.");
+				if (bodyFrame) bodyFrame.SetHeightOverride(60);
+				DCO_GearRackComponent rack;
+				if (fallback && fallback.GetOwner()) rack = DCO_GearRackComponent.Cast(fallback.GetOwner().FindComponent(DCO_GearRackComponent));
+				if (rack)
+				{
+					m_Title.SetText(rack.GetRackName());
+					m_Body.SetText(rack.GetOperatorName());
+					if (rack.IsPersistent()) m_Scope = 1;
+				}
+				break;
 			case DCO_GMMissionTool.RESTORE:
 				help = "Choose RESTORE ALL TERRAIN to remove every hide area and restore the hidden structures and trees.";
 				Label("Apply_Label", "RESTORE ALL TERRAIN");
@@ -424,10 +440,10 @@ class DCO_GMMissionPanel
 			return;
 		bool textTool = m_Tool == 5 || m_Tool == 6 || m_Tool == 8 || m_Tool >= 11;
 		Visible("TitleField", textTool);
-		Visible("BodyField", m_Tool >= 5 && m_Tool <= 8);
+		Visible("BodyField", (m_Tool >= 5 && m_Tool <= 8) || m_Tool == DCO_GMMissionTool.GEAR_RACK);
 		Visible("ValueField", m_Tool == 1 || m_Tool == 3 || m_Tool == 6 || m_Tool == 8);
 		Visible("SecondaryField", m_Tool == 3 || m_Tool == 8);
-		Visible("ScopeField", m_Tool == 4 || m_Tool == 5 || m_Tool == 6 || m_Tool == 7 || m_Tool == 8);
+		Visible("ScopeField", m_Tool == 4 || m_Tool == 5 || m_Tool == 6 || m_Tool == 7 || m_Tool == 8 || m_Tool == DCO_GMMissionTool.GEAR_RACK);
 		Visible("Include", m_Tool == 4 || m_Tool == 5);
 		Visible("NamedField", m_Tool == 9);
 		string scope = "Finder only";
@@ -456,6 +472,11 @@ class DCO_GMMissionPanel
 			if (m_Scope == 1) scope = "Invincible ON";
 		}
 		Label("Scope_Label", scope);
+		if (m_Tool == DCO_GMMissionTool.GEAR_RACK)
+		{
+			if (m_Scope == 1) Label("Scope_Label", "Save cross and gear: ON");
+			else Label("Scope_Label", "Save cross and gear: OFF");
+		}
 		string include = "[ ] Include crew";
 		if (m_Include) include = "[X] Include crew";
 		if (m_Tool == 5)
@@ -482,7 +503,7 @@ class DCO_GMMissionPanel
 		if (action == 2)
 		{
 			int count = 3;
-			if (m_Tool == 4 || m_Tool == 8) count = 2;
+			if (m_Tool == 4 || m_Tool == 8 || m_Tool == DCO_GMMissionTool.GEAR_RACK) count = 2;
 			m_Scope = (m_Scope + 1) % count;
 		}
 		if (action == 3) m_Include = !m_Include;
@@ -531,7 +552,8 @@ class DCO_GMMissionPanel
 		body.TrimInPlace();
 		string issue;
 		if (title.Length() > 64) issue = "Shorten the name or title to 64 characters or fewer.";
-		else if ((m_Tool == 5 || m_Tool == 8 || m_Tool >= 11) && title.IsEmpty()) issue = "Enter a name or title in the first text box.";
+		else if ((m_Tool == 5 || m_Tool == 8 || (m_Tool >= 11 && m_Tool <= 13)) && title.IsEmpty()) issue = "Enter a name or title in the first text box.";
+		else if (m_Tool == DCO_GMMissionTool.GEAR_RACK && (body.Length() > 64 || body.Contains("\n") || body.Contains("\r"))) issue = "Use a single-line operator name of 64 characters or fewer.";
 		else if (m_Tool >= 5 && m_Tool <= 8 && body.IsEmpty()) issue = "Enter the message, intel text or link name in the labeled text box.";
 		else if (body.Length() > 2048) issue = "Shorten the message to 2048 characters or fewer.";
 		else if (m_Tool == 8 && (body.Length() > 64 || body.Contains("\n") || body.Contains("\r"))) issue = "Use a single-line link name of 64 characters or fewer.";
